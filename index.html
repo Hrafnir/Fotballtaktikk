@@ -18,15 +18,25 @@
             <div class="control-section" id="squad-management">
                 <h3>Tropp</h3>
                 <button id="add-player-button">Legg til Spiller</button>
-                <ul id="squad-list">
-                    <!-- Spillere i troppen listes her (dynamisk) -->
-                     <li><i>Ingen spillere i troppen.</i></li>
-                </ul>
-                <div id="bench">
-                    <h4>På Benken</h4>
-                    <!-- Spillere på benken vises her -->
+                <!-- Lagt til en container rundt listen for bedre layout/scroll -->
+                <div id="squad-list-container">
+                    <ul id="squad-list">
+                        <!-- Spillere i troppen listes her (dynamisk) -->
+                        <li><i>Ingen spillere i troppen.</i></li>
+                    </ul>
                 </div>
+                <!-- Benken flyttet ut av tropp-seksjonen for klarere struktur -->
             </div>
+
+             <!-- 1.1.5 Benk -->
+             <div id="bench" class="control-section"> <!-- Lagt til control-section klasse -->
+                <h4>På Benken</h4>
+                <ul id="bench-list">
+                    <!-- Spillere på benken vises her -->
+                     <li><i>Benken er tom.</i></li>
+                </ul>
+            </div>
+
 
             <!-- 1.2 Visningsalternativer -->
             <div class="control-section" id="display-options">
