@@ -4,41 +4,41 @@ body {
     margin: 0;
     padding: 0;
     background-color: #f4f4f4;
-    height: 100vh; /* Sørger for at body fyller høyden */
-    display: flex; /* Bruker flex for å sentrere app-container hvis den er mindre enn viewport */
+    height: 100vh;
+    display: flex;
     justify-content: center;
-    align-items: flex-start; /* Justerer til toppen */
-    overflow: hidden; /* Forhindrer scroll på body-nivå i utgangspunktet */
+    align-items: flex-start;
+    overflow: hidden;
 }
 
 * {
-    box-sizing: border-box; /* Enklere layoutkontroll */
+    box-sizing: border-box;
 }
 
 /* === Hovedlayout === */
 .app-container {
     display: flex;
     width: 100%;
-    max-width: 1600px; /* Maks bredde for appen */
-    height: 95vh; /* Litt mindre enn viewport høyde for å unngå dobbel scroll */
-    margin-top: 2.5vh; /* Litt luft over */
+    max-width: 1600px;
+    height: 95vh;
+    margin-top: 2.5vh;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     border-radius: 5px;
-    overflow: hidden; /* Hindrer innhold i å flyte ut */
+    overflow: hidden;
 }
 
 /* === 1. Sidepanel (Kontrollpanel) === */
 .sidebar {
-    width: 280px; /* Fast bredde for sidepanelet */
-    min-width: 280px; /* Sikrer at den ikke krymper for mye */
+    width: 300px; /* Litt bredere for bedre plass */
+    min-width: 300px;
     background-color: #e9e9e9;
     padding: 15px;
-    overflow-y: auto; /* Scroll hvis innholdet blir for høyt */
-    height: 100%; /* Fyller høyden til app-container */
+    overflow-y: auto;
+    height: 100%;
     border-right: 1px solid #ccc;
-    display: flex; /* Bruk flex for å kontrollere innhold */
-    flex-direction: column; /* Stable seksjoner vertikalt */
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar h2, .sidebar h3, .sidebar h4 {
@@ -47,108 +47,133 @@ body {
     color: #333;
 }
 
-.sidebar h3 {
+.sidebar h3 { /* Gjelder På Banen og Tropp */
     border-bottom: 1px solid #ccc;
     padding-bottom: 5px;
 }
+.sidebar h4 { /* Gjelder På Benken */
+     border-bottom: 1px solid #ccc;
+     padding-bottom: 5px;
+     margin-bottom: 5px; /* Mindre luft under benk-tittel */
+}
+
 
 .control-section {
-    margin-bottom: 20px;
+    margin-bottom: 15px; /* Litt mindre avstand */
     padding: 10px;
     background-color: #fdfdfd;
     border: 1px solid #ddd;
     border-radius: 4px;
+    flex-shrink: 0; /* Unngå at seksjoner krymper ujevnt */
 }
 
-/* Tropp og Benk spesifikt */
-#squad-management {
-    flex-shrink: 0; /* Ikke la denne krympe */
-}
-#squad-list-container { /* Ny container for scroll */
+/* Lister i sidepanelet */
+#on-pitch-list, #bench-list, #squad-list {
     list-style: none;
     padding: 0;
-    margin: 10px 0;
-    min-height: 50px; /* Minste høyde */
-    max-height: 250px; /* Maks høyde før scroll */
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    background-color: #fff;
-}
-#squad-list { /* Selve listen inni */
-     list-style: none;
-     padding: 0;
-     margin: 0;
+    margin: 0; /* Fjern default margin */
 }
 
-
-#squad-list li i { /* Styling for "Ingen spillere..." */
-    color: #777;
-    padding: 5px;
-    display: block;
-}
-
-#bench {
-    margin-top: 15px;
-    background-color: #e0e0e0; /* Litt mørkere enn resten */
-    border: 1px dashed #aaa;
-    padding: 10px;
-    border-radius: 4px;
-    min-height: 100px; /* Mer plass til benken */
-    /* La benken ta resterende plass */
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-#bench h4 {
-    margin-bottom: 5px;
-    flex-shrink: 0; /* Ikke la tittel krympe */
-}
-
-#bench-list { /* Container for spillere på benken */
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    overflow-y: auto; /* Scroll hvis mange på benken */
-    flex-grow: 1; /* Ta tilgjengelig plass */
-}
-
-/* Stil for spillere i sidepanelet (både tropp og benk) */
-.squad-player-item, .bench-player-item {
-    padding: 6px 8px;
+#on-pitch-list li, #bench-list li, #squad-list li {
+    padding: 5px 8px;
     border-bottom: 1px solid #eee;
-    cursor: grab;
-    display: flex;
-    align-items: center;
     font-size: 0.95em;
-    background-color: #fff;
+    background-color: #fff; /* Hvit bakgrunn for list items */
     margin-bottom: 2px;
     border-radius: 3px;
-    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
 }
-.squad-player-item:hover, .bench-player-item:hover {
-    background-color: #f0f0f0;
+
+#on-pitch-list li i, #bench-list li i, #squad-list li i { /* Styling for "Ingen spillere..." etc. */
+    color: #777;
+    font-style: italic;
+    padding: 5px;
+    display: block;
+    background-color: transparent; /* Ingen hvit bakgrunn for disse */
+    border-bottom: none;
 }
+
+
+/* Spesifikk styling for listene */
+
+/* 1.0 På Banen */
+#on-pitch-section {
+    background-color: #e6f7ff; /* Lys blå bakgrunn */
+    border-color: #b3e0ff;
+}
+#on-pitch-list {
+    max-height: 180px; /* Begrenset høyde */
+    overflow-y: auto;
+}
+.on-pitch-player-item {
+    cursor: default; /* Ikke dragbart */
+    /* Kan legge til en liten ikon/farge for å indikere valgt for fargeendring senere */
+}
+.on-pitch-player-item:hover {
+     background-color: #f0f8ff; /* Veldig lys blå hover */
+}
+
+/* 1.1 På Benken */
+#bench {
+    background-color: #fff0e6; /* Lys oransje/gul bakgrunn */
+    border-color: #ffe0b3;
+    min-height: 100px;
+    /* display: flex; flex-direction: column; /* Flyttet til .sidebar */
+}
+#bench-list {
+    max-height: 180px; /* Begrenset høyde */
+    overflow-y: auto;
+    flex-grow: 1; /* Tar plassen i #bench */
+}
+.bench-player-item {
+    cursor: grab; /* Dragbart */
+}
+.bench-player-item:hover {
+    background-color: #fff5e6;
+}
+
+
+/* 1.2 Tropp */
+#squad-management {
+    /* Tar resterende plass hvis nødvendig, men begrenset av listehøyde */
+     flex-grow: 1;
+     display: flex;
+     flex-direction: column;
+}
+#squad-list-container {
+    border: 1px solid #ddd;
+    background-color: #fff;
+    overflow-y: auto; /* Scroll inni containeren */
+    flex-grow: 1; /* Tar plassen i #squad-management */
+    min-height: 50px;
+}
+.squad-player-item {
+    cursor: grab; /* Dragbart */
+}
+.squad-player-item:hover {
+    background-color: #f5f5f5; /* Standard grå hover */
+}
+
 
 /* === 2. Hovedområde (Bane) === */
 .main-content {
-    flex-grow: 1; /* Tar resten av plassen */
-    display: flex; /* Bruker flex for å sentrere pitch-container */
+    flex-grow: 1;
+    display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
-    height: 100%; /* Fyller høyden til app-container */
-    overflow: auto; /* Scroll hvis banen er større enn området */
-    background-color: #ededed; /* Litt bakgrunn for kontrast */
+    height: 100%;
+    overflow: auto;
+    background-color: #ededed;
 }
 
 #pitch-container {
      width: 100%;
-     max-width: 1050px; /* Maks bredde på banen */
-     aspect-ratio: 105 / 68; /* Standard baneforhold */
+     max-width: 1050px;
+     aspect-ratio: 105 / 68;
      position: relative;
 }
-
 
 #pitch {
     width: 100%;
@@ -165,44 +190,42 @@ body {
 /* === Spillerbrikker PÅ BANEN === */
 .player-piece {
     position: absolute;
-    width: 70px;  /* Større brikke */
-    height: auto; /* Høyde bestemmes av innhold (bilde + navn) */
+    width: 70px;
+    height: auto;
     cursor: grab;
     display: flex;
-    flex-direction: column; /* Stable bilde og navn vertikalt */
+    flex-direction: column;
     align-items: center;
-    justify-content: center; /* Sentrerer innholdet vertikalt */
+    justify-content: center;
     z-index: 20;
     user-select: none;
     -webkit-user-select: none;
-    /* Ingen bakgrunn eller ramme på selve containeren */
 }
 
-.player-image-container { /* Ny container for rundhet og ramme */
-    width: 55px; /* Størrelse for sirkelen */
+.player-image-container {
+    width: 55px;
     height: 55px;
-    border-radius: 50%; /* Rund form */
-    border: 3px solid black; /* Ramme rundt sirkelen */
-    background-color: rgba(50, 50, 50, 0.8); /* Bakgrunnsfarge */
-    overflow: hidden; /* Skjul bilde som går utenfor */
+    border-radius: 50%;
+    border: 3px solid black;
+    background-color: rgba(50, 50, 50, 0.8);
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 3px; /* Avstand til navn */
+    margin-bottom: 3px;
 }
 
-.player-image { /* Selve bildet inni sirkelen */
+.player-image {
     width: 100%;
     height: 100%;
-    background-color: #ccc; /* Placeholder farge */
+    background-color: #ccc;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    border-radius: 50%; /* Sikrer rundhet (viktig for bildet) */
-    /* Ingen egen ramme her */
+    border-radius: 50%;
 }
 
-.player-name { /* Navnet under sirkelen */
+.player-name {
     background-color: rgba(0,0,0,0.7);
     color: white;
     padding: 2px 5px;
@@ -210,7 +233,7 @@ body {
     font-size: 10px;
     font-weight: bold;
     text-align: center;
-    max-width: 65px; /* Litt smalere enn brikken */
+    max-width: 65px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -248,134 +271,32 @@ body {
 
 
 /* === Drag and Drop Styling === */
-.draggable {
-    cursor: grab;
-}
+.draggable { cursor: grab; }
+.dragging { cursor: grabbing !important; opacity: 0.5; background-color: #d3e9ff !important; z-index: 1000 !important; }
+.player-piece.dragging { background-color: transparent !important; }
+.player-piece.dragging .player-image-container, .player-piece.dragging .player-name { opacity: 0.6; }
 
-.dragging {
-    cursor: grabbing !important;
-    opacity: 0.5;
-    background-color: #d3e9ff !important;
-    z-index: 1000 !important;
+/* Drop Targets */
+.drop-target.drag-over { /* Felles for bane og benk */
+     border-style: solid;
 }
-/* Fjerner bakgrunnsfarge for spillerbrikke-dragging */
-.player-piece.dragging {
-    background-color: transparent !important;
-}
-.player-piece.dragging .player-image-container {
-     opacity: 0.6;
-}
-.player-piece.dragging .player-name {
-     opacity: 0.6;
-}
-
-
-/* Visuell feedback over drop-områder */
-#pitch.drag-over {
-   background-color: rgba(144, 238, 144, 0.15); /* Litt sterkere grønn overlay */
-}
-#bench.drag-over {
-    background-color: rgba(255, 235, 150, 0.3); /* Gulaktig overlay for benk */
-    border-style: solid; /* Endre ramme fra stiplet til hel */
-}
+#pitch.drag-over { background-color: rgba(144, 238, 144, 0.15); border-color: #66cc66; }
+#bench.drag-over { background-color: rgba(255, 235, 150, 0.3); border-color: #ffcc66; }
 
 
 /* === Modal === */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1001;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 500px;
-    border-radius: 5px;
-    position: relative;
-}
-
-.close-button {
-    color: #aaa;
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.close-button:hover,
-.close-button:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
+.modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+.modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 5px; position: relative; }
+.close-button { color: #aaa; position: absolute; top: 10px; right: 15px; font-size: 28px; font-weight: bold; }
+.close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
 
 /* === Diverse UI Elementer === */
-button {
-    padding: 8px 15px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    margin: 5px 2px;
-    transition: background-color 0.2s ease;
-}
-
-button:hover {
-    background-color: #45a049;
-}
-button:active {
-     background-color: #3e8e41;
-}
-
-
-input[type="text"], input[type="color"], select {
-    padding: 8px;
-    margin: 5px 0;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    width: calc(100% - 16px);
-}
-
-input[type="color"] {
-    padding: 0;
-    height: 30px;
-    width: 50px;
-    vertical-align: middle;
-    margin-right: 5px;
-}
-
-input[type="file"] {
-     margin: 5px 0;
-}
-
-label {
-    display: block;
-    margin-bottom: 3px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-label[for="player-border-color"] {
-    display: inline-block;
-    margin-right: 5px;
-    margin-top: 0;
-}
-
-
-p {
-    font-size: 0.9em;
-    color: #666;
-    margin: 5px 0 10px 0;
-}
+button { padding: 8px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer; margin: 5px 2px; transition: background-color 0.2s ease; }
+button:hover { background-color: #45a049; }
+button:active { background-color: #3e8e41; }
+input[type="text"], input[type="color"], select { padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 3px; width: calc(100% - 16px); }
+input[type="color"] { padding: 0; height: 30px; width: 50px; vertical-align: middle; margin-right: 5px; }
+input[type="file"] { margin: 5px 0; }
+label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
+label[for="player-border-color"] { display: inline-block; margin-right: 5px; margin-top: 0; }
+p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
