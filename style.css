@@ -1,0 +1,279 @@
+/* === Generelt === */
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    height: 100vh; /* Sørger for at body fyller høyden */
+    display: flex; /* Bruker flex for å sentrere app-container hvis den er mindre enn viewport */
+    justify-content: center;
+    align-items: flex-start; /* Justerer til toppen */
+    overflow: hidden; /* Forhindrer scroll på body-nivå i utgangspunktet */
+}
+
+* {
+    box-sizing: border-box; /* Enklere layoutkontroll */
+}
+
+/* === Hovedlayout === */
+.app-container {
+    display: flex;
+    width: 100%;
+    max-width: 1600px; /* Maks bredde for appen */
+    height: 95vh; /* Litt mindre enn viewport høyde for å unngå dobbel scroll */
+    margin-top: 2.5vh; /* Litt luft over */
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 5px;
+    overflow: hidden; /* Hindrer innhold i å flyte ut */
+}
+
+/* === 1. Sidepanel (Kontrollpanel) === */
+.sidebar {
+    width: 280px; /* Fast bredde for sidepanelet */
+    background-color: #e9e9e9;
+    padding: 15px;
+    overflow-y: auto; /* Scroll hvis innholdet blir for høyt */
+    height: 100%; /* Fyller høyden til app-container */
+    border-right: 1px solid #ccc;
+}
+
+.sidebar h2, .sidebar h3, .sidebar h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.sidebar h3 {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+
+.control-section {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #fdfdfd;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#squad-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+    max-height: 200px; /* Begrenser høyden på listen */
+    overflow-y: auto;
+}
+
+#squad-list li { /* Stil for spillere i listen (kommer senere) */
+    padding: 5px;
+    border-bottom: 1px dashed #eee;
+    cursor: grab; /* Indikerer at de kan flyttes */
+}
+
+#bench {
+    min-height: 80px; /* Litt plass for benken */
+    background-color: #f0f0f0;
+    border: 1px dashed #ccc;
+    padding: 10px;
+    margin-top: 15px;
+}
+
+#bench h4 {
+    margin-bottom: 5px;
+}
+
+/* === 2. Hovedområde (Bane) === */
+.main-content {
+    flex-grow: 1; /* Tar resten av plassen */
+    display: flex; /* Bruker flex for å sentrere pitch-container */
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    height: 100%; /* Fyller høyden til app-container */
+    overflow: auto; /* Scroll hvis banen er større enn området */
+}
+
+#pitch-container {
+    /* Kontrollerer størrelsen og aspect ratio på banen */
+    /* Vi setter en fast aspect ratio, f.eks. 105/68, og skalerer */
+     width: 100%; 
+     max-width: 1050px; /* Maks bredde på banen */
+     aspect-ratio: 105 / 68; /* Standard baneforhold */
+     position: relative; /* Nødvendig for absolutt posisjonering av elementer inni */
+}
+
+
+#pitch {
+    width: 100%;
+    height: 100%;
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Football_pitch_v.svg/1050px-Football_pitch_v.svg.png'); /* Placeholder banebilde */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: relative; /* Nødvendig for absolutt posisjonering av brikker og canvas */
+    border: 1px solid #555;
+    overflow: hidden; /* Sikrer at ingenting går utenfor banen */
+}
+
+/* === Spillerbrikker, Ball, Tegning (Grunnleggende) === */
+.player-piece { /* Kommer senere, men grunnleggende stil */
+    position: absolute; /* For å plassere fritt på banen */
+    width: 50px;
+    height: 70px; /* Inkluderer plass til navn */
+    background-color: rgba(255, 0, 0, 0.7); /* Midlertidig farge */
+    border: 2px solid black;
+    border-radius: 5px;
+    cursor: grab;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px;
+    font-size: 10px;
+    color: white;
+    text-align: center;
+    overflow: hidden; /* Kutter navn hvis for langt */
+}
+
+.player-image {
+    width: 40px;
+    height: 40px;
+    background-color: #ccc; /* Placeholder */
+    border-radius: 50%;
+    margin-bottom: 2px;
+}
+
+.player-name {
+    background-color: rgba(0,0,0,0.5);
+    padding: 1px 3px;
+    width: 100%;
+    white-space: nowrap; /* Unngå linjeskift */
+}
+
+
+#ball {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: #fff;
+    border: 1px solid black;
+    border-radius: 50%;
+    cursor: grab;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 8px;
+    color: black;
+    /* Startposisjon (kan settes dynamisk) */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#drawing-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Canvas skal ikke fange museklikk (med mindre vi er i tegnemodus) */
+    z-index: 10; /* Ligger over banen, men under brikkene? Eller motsatt? Vi justerer ved behov. */
+}
+
+
+/* === Elementer som kan dras === */
+.draggable {
+    cursor: grab;
+}
+
+.dragging {
+    cursor: grabbing;
+    opacity: 0.7;
+    z-index: 1000 !important; /* Sørger for at elementet som dras er øverst */
+}
+
+
+/* === Modal === */
+.modal {
+    display: none; /* Skjult som standard */
+    position: fixed; /* Står fast ift. viewport */
+    z-index: 1001; /* Over alt annet */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Scroll hvis innholdet er for stort */
+    background-color: rgba(0,0,0,0.4); /* Halvgjennomsiktig bakgrunn */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* Sentrert vertikalt og horisontalt */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px; /* Maks bredde */
+    border-radius: 5px;
+    position: relative;
+}
+
+.close-button {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* === Diverse UI Elementer === */
+button {
+    padding: 8px 15px;
+    background-color: #4CAF50; /* Grønn */
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 5px 2px; /* Litt luft rundt knapper */
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+input[type="text"], input[type="color"], select {
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: calc(100% - 16px); /* Full bredde minus padding */
+}
+
+input[type="color"] {
+    padding: 0; /* Fargevelger trenger ofte ikke padding */
+    height: 30px;
+    width: 50px; /* Liten bredde */
+}
+
+input[type="file"] {
+     margin: 5px 0;
+}
+
+label {
+    display: block; /* Label på egen linje */
+    margin-bottom: 3px;
+    font-weight: bold;
+}
+
+p {
+    font-size: 0.9em;
+    color: #666;
+}
