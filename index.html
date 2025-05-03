@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fotballtaktiker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- === 1. Kontrollpanel / Sidepanel START === -->
+        <aside class="sidebar">
+            <h2>Kontrollpanel</h2>
+
+            <!-- 1.1 Troppbehandling -->
+            <div class="control-section" id="squad-management">
+                <h3>Tropp</h3>
+                <button id="add-player-button">Legg til Spiller</button>
+                <ul id="squad-list">
+                    <!-- Spillere i troppen listes her (dynamisk) -->
+                </ul>
+                <div id="bench">
+                    <h4>På Benken</h4>
+                    <!-- Spillere på benken vises her -->
+                </div>
+            </div>
+
+            <!-- 1.2 Visningsalternativer -->
+            <div class="control-section" id="display-options">
+                <h3>Visning</h3>
+                <label for="player-border-color">Merkingsfarge:</label>
+                <input type="color" id="player-border-color" value="#FFFF00"> 
+                <button id="set-border-color-button">Sett Farge</button> 
+                <p>(Velg spiller(e) først)</p>
+                <button id="toggle-draw-mode-button">Tegn Piler (Av)</button>
+                <button id="clear-drawings-button">Fjern Piler</button>
+            </div>
+
+            <!-- 1.3 Lagring og Lasting -->
+            <div class="control-section" id="save-load">
+                <h3>Oppsett</h3>
+                <input type="text" id="setup-name" placeholder="Navn på oppsett...">
+                <button id="save-setup-button">Lagre Oppsett</button>
+                <select id="load-setup-select">
+                    <option value="">Velg oppsett...</option>
+                    <!-- Lagrede oppsett listes her -->
+                </select>
+                <button id="load-setup-button">Last Oppsett</button>
+                <button id="delete-setup-button">Slett Valgt Oppsett</button>
+            </div>
+            
+             <!-- 1.4 Eksporter -->
+            <div class="control-section" id="export">
+                <h3>Eksporter</h3>
+                 <button id="export-png-button">Lag Skjermbilde (PNG)</button>
+            </div>
+
+        </aside>
+        <!-- === 1. Kontrollpanel / Sidepanel END === -->
+
+        <!-- === 2. Hovedområde (Bane) START === -->
+        <main class="main-content">
+            <div id="pitch-container">
+                 <div id="pitch">
+                    <!-- Bakgrunnsbilde settes med CSS -->
+                    <canvas id="drawing-canvas"></canvas> 
+                    <!-- Spillerbrikker og ball legges inn her (dynamisk) -->
+                    <div id="ball" class="draggable">Ball</div> 
+                 </div>
+            </div>
+        </main>
+        <!-- === 2. Hovedområde (Bane) END === -->
+
+    </div> <!-- /.app-container -->
+
+    <!-- === Modaler/Dialoger (f.eks. for å legge til spiller) START === -->
+    <div id="add-player-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-button">×</span>
+            <h3>Legg til ny spiller</h3>
+            <label for="player-name">Navn:</label>
+            <input type="text" id="new-player-name" required><br><br>
+            <label for="player-image">Bilde (URL eller last opp):</label>
+            <input type="file" id="new-player-image-upload" accept="image/*"><br>
+            <input type="text" id="new-player-image-url" placeholder="Eller lim inn URL"><br><br>
+            <label for="player-role">Posisjon/Rolle:</label>
+            <input type="text" id="new-player-role"><br><br>
+            <button id="confirm-add-player">Legg til</button>
+        </div>
+    </div>
+    <!-- === Modaler/Dialoger END === -->
+
+
+    <script src="script.js"></script> 
+    <!-- Vi trenger kanskje flere JS-filer eller biblioteker senere -->
+
+</body>
+</html>
