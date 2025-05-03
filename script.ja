@@ -1,0 +1,118 @@
+// === 0. Globale Variabler og Konstanter START ===
+// (Tom foreløpig, men greit å ha klar)
+// === 0. Globale Variabler og Konstanter END ===
+
+
+// === 1. DOM Element Referanser START ===
+const sidebar = document.querySelector('.sidebar');
+const addPlayerButton = document.getElementById('add-player-button');
+const squadListElement = document.getElementById('squad-list');
+const benchElement = document.getElementById('bench');
+const playerBorderColorInput = document.getElementById('player-border-color');
+const setBorderColorButton = document.getElementById('set-border-color-button');
+const toggleDrawModeButton = document.getElementById('toggle-draw-mode-button');
+const clearDrawingsButton = document.getElementById('clear-drawings-button');
+const setupNameInput = document.getElementById('setup-name');
+const saveSetupButton = document.getElementById('save-setup-button');
+const loadSetupSelect = document.getElementById('load-setup-select');
+const loadSetupButton = document.getElementById('load-setup-button');
+const deleteSetupButton = document.getElementById('delete-setup-button');
+const exportPngButton = document.getElementById('export-png-button');
+const pitchContainer = document.getElementById('pitch-container');
+const pitchElement = document.getElementById('pitch');
+const drawingCanvas = document.getElementById('drawing-canvas');
+const ballElement = document.getElementById('ball');
+
+// Modal elementer
+const addPlayerModal = document.getElementById('add-player-modal');
+const closeButton = addPlayerModal.querySelector('.close-button');
+const newPlayerNameInput = document.getElementById('new-player-name');
+const newPlayerImageUpload = document.getElementById('new-player-image-upload');
+const newPlayerImageUrlInput = document.getElementById('new-player-image-url');
+const newPlayerRoleInput = document.getElementById('new-player-role');
+const confirmAddPlayerButton = document.getElementById('confirm-add-player');
+
+// === 1. DOM Element Referanser END ===
+
+
+// === 2. Modal Håndtering START ===
+
+/**
+ * Åpner "Legg til Spiller"-modalen.
+ */
+function openAddPlayerModal() {
+    addPlayerModal.style.display = 'block';
+    // Nullstill skjemafelter når modalen åpnes (valgfritt, men god praksis)
+    newPlayerNameInput.value = '';
+    newPlayerImageUpload.value = ''; // Nullstiller file input
+    newPlayerImageUrlInput.value = '';
+    newPlayerRoleInput.value = '';
+}
+
+/**
+ * Lukker "Legg til Spiller"-modalen.
+ */
+function closeAddPlayerModal() {
+    addPlayerModal.style.display = 'none';
+}
+
+/**
+ * Håndterer klikk på "Legg til"-knappen i modalen.
+ * Foreløpig: Logger data og lukker modalen.
+ */
+function handleAddPlayerConfirm() {
+    const name = newPlayerNameInput.value.trim();
+    const imageFile = newPlayerImageUpload.files[0];
+    const imageUrl = newPlayerImageUrlInput.value.trim();
+    const role = newPlayerRoleInput.value.trim();
+
+    if (!name) {
+        alert('Spillernavn må fylles ut.');
+        return;
+    }
+    
+    // Her vil vi senere legge til logikk for å:
+    // 1. Håndtere bilde (enten filopplasting eller URL)
+    // 2. Opprette et spillerobjekt
+    // 3. Legge spilleren til i troppen (data og UI)
+    // 4. Lagre troppen (f.eks. i localStorage)
+
+    console.log('Ny spiller info:');
+    console.log('Navn:', name);
+    if (imageFile) {
+        console.log('Bilde (fil):', imageFile.name, imageFile.type);
+    } else if (imageUrl) {
+        console.log('Bilde (URL):', imageUrl);
+    } else {
+        console.log('Bilde: Ingen valgt');
+    }
+    console.log('Rolle:', role);
+
+
+    closeAddPlayerModal();
+}
+
+// === 2. Modal Håndtering END ===
+
+
+// === 3. Event Listeners START ===
+
+// Åpne modal når "Legg til Spiller"-knappen klikkes
+addPlayerButton.addEventListener('click', openAddPlayerModal);
+
+// Lukk modal når lukkeknappen (X) klikkes
+closeButton.addEventListener('click', closeAddPlayerModal);
+
+// Lukk modal når brukeren klikker utenfor modal-innholdet
+window.addEventListener('click', (event) => {
+    if (event.target === addPlayerModal) {
+        closeAddPlayerModal();
+    }
+});
+
+// Håndter bekreftelse av ny spiller
+confirmAddPlayerButton.addEventListener('click', handleAddPlayerConfirm);
+
+// === 3. Event Listeners END ===
+
+// --- Andre seksjoner kommer her senere (Spillerhåndtering, Drag-n-Drop, Tegning, Lagring etc.) ---
