@@ -51,38 +51,12 @@ const confirmAddPlayerButton = document.getElementById('confirm-add-player');
 // === 2. Modal Håndtering START ===
 function openAddPlayerModal() { /* ... (som før) ... */ }
 function closeAddPlayerModal() { /* ... (som før) ... */ }
-function handleAddPlayerConfirm() {
-    console.log('handleAddPlayerConfirm: Funksjonen startet.'); // Første linje
-    const name = newPlayerNameInput.value.trim();
-    const imageFile = newPlayerImageUpload.files[0];
-    let imageUrl = newPlayerImageUrlInput.value.trim();
-    const role = newPlayerRoleInput.value.trim();
-    console.log('handleAddPlayerConfirm: Data fra modal:', { name, imageUrl, role, imageFile });
-    if (!name) { console.log('handleAddPlayerConfirm: Navn mangler, avbryter.'); alert('Spillernavn må fylles ut.'); return; }
-    let finalImageUrl = '';
-    if (imageUrl) { finalImageUrl = imageUrl; }
-    else if (imageFile) { console.warn("Filopplasting støttes ikke for lagring enda. Bruk URL."); }
-    const maxId = squad.reduce((max, p) => Math.max(max, parseInt(p.id.split('-')[1])), 0);
-    nextPlayerId = maxId + 1;
-    const newPlayer = {
-        id: `player-${nextPlayerId}`, name: name, imageUrl: finalImageUrl, role: role,
-        position: { x: 50, y: 50 }, borderColor: 'black'
-    };
-    console.log('handleAddPlayerConfirm: Opprettet spillerobjekt:', newPlayer);
-    squad.push(newPlayer);
-    console.log('handleAddPlayerConfirm: Spiller lagt til i squad array:', squad);
-    saveSquad();
-    console.log('handleAddPlayerConfirm: saveSquad() kalt.');
-    renderUI();
-    console.log('handleAddPlayerConfirm: renderUI() kalt.');
-    closeAddPlayerModal();
-    console.log('handleAddPlayerConfirm: closeAddPlayerModal() kalt, funksjonen avslutter.');
-}
+function handleAddPlayerConfirm() { /* ... (som før) ... */ }
 // === 2. Modal Håndtering END ===
 
 
 // === 3. UI Rendering START ===
-// (Funksjonene renderUI, renderOnPitchList, renderBench, renderSquadList som før)
+// (renderUI, renderOnPitchList, renderBench, renderSquadList som før)
 function renderUI() { /* ... */ }
 function renderOnPitchList() { /* ... */ }
 function renderBench() { /* ... */ }
@@ -91,14 +65,14 @@ function renderSquadList() { /* ... */ }
 
 
 // === 4. Spillerbrikke Håndtering START ===
-// (Funksjonene createPlayerPieceElement, getPlayerById som før)
+// (createPlayerPieceElement, getPlayerById som før)
 function createPlayerPieceElement(player, xPercent, yPercent) { /* ... */ }
 function getPlayerById(playerId) { /* ... */ }
 // === 4. Spillerbrikke Håndtering END ===
 
 
 // === 5. Drag and Drop Logikk START ===
-// (Alle drag/drop funksjoner som før, inkludert logging i addDragListenersToSquadItems og handleDragStart)
+// (Alle drag/drop funksjoner som før)
 function addDragListenersToSquadItems() { /* ... */ }
 function addDragListenersToBenchItems() { /* ... */ }
 function handleDragStart(event) { /* ... */ }
@@ -114,7 +88,7 @@ function resetDragState() { /* ... */ }
 
 
 // === 6. Lokal Lagring START ===
-// (Alle lagringsfunksjoner som før, inkludert logging i saveSquad og loadSquad)
+// (Alle lagringsfunksjoner som før)
 function saveSquad() { /* ... */ }
 function loadSquad() { /* ... */ }
 function getCurrentStateData() { /* ... */ }
@@ -137,24 +111,19 @@ document.addEventListener('DOMContentLoaded', () => {
     loadLastState();
     populateSetupDropdown();
 
-    // Modal Listeners
-    addPlayerButton.addEventListener('click', openAddPlayerModal);
+    // --- Modal Listeners ---
+    addPlayerButton.addEventListener('click', () => {
+        console.log("ENKEL TEST: 'Legg til Spiller'-knappen ble klikket!"); // ENKEL TEST
+        openAddPlayerModal();
+    });
     closeButton.addEventListener('click', closeAddPlayerModal);
     window.addEventListener('click', (event) => { if (event.target === addPlayerModal) closeAddPlayerModal(); });
-
-    // FIKS: Legg til logg INNI event listener callback
-    if (confirmAddPlayerButton) {
-         confirmAddPlayerButton.addEventListener('click', (event) => {
-            // --- DEBUGGING START ---
-            console.log('Confirm Add Player Button KLIKKET!');
-            // --- DEBUGGING END ---
-            handleAddPlayerConfirm(); // Kall den opprinnelige funksjonen
-         });
+     if (confirmAddPlayerButton) {
+         confirmAddPlayerButton.addEventListener('click', handleAddPlayerConfirm);
          console.log('DOMContentLoaded: Event listener lagt til for confirmAddPlayerButton.');
     } else {
         console.error('DOMContentLoaded: Fant IKKE confirmAddPlayerButton!');
     }
-    // FIKS SLUTT
 
     // Drag and Drop Listeners
     pitchElement.addEventListener('dragover', (e) => handleDragOver(e, 'pitch'));
@@ -168,9 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
     saveSetupButton.addEventListener('click', handleSaveSetup);
     loadSetupButton.addEventListener('click', handleLoadSetup);
     deleteSetupButton.addEventListener('click', handleDeleteSetup);
-
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
 
-// Husk å lime inn resten av funksjonene fra forrige script.js der det står /* ... */
+// Lim inn resten av funksjonene fra forrige script.js her (spesielt Seksjon 3, 4, 5, 6)
