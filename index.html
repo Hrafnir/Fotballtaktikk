@@ -9,7 +9,7 @@
 <body>
 
     <div class="app-container">
-        
+
         <!-- === 1. Kontrollpanel / Sidepanel START === -->
         <aside class="sidebar">
             <h2>Kontrollpanel</h2>
@@ -20,6 +20,7 @@
                 <button id="add-player-button">Legg til Spiller</button>
                 <ul id="squad-list">
                     <!-- Spillere i troppen listes her (dynamisk) -->
+                     <li><i>Ingen spillere i troppen.</i></li>
                 </ul>
                 <div id="bench">
                     <h4>På Benken</h4>
@@ -31,8 +32,8 @@
             <div class="control-section" id="display-options">
                 <h3>Visning</h3>
                 <label for="player-border-color">Merkingsfarge:</label>
-                <input type="color" id="player-border-color" value="#FFFF00"> 
-                <button id="set-border-color-button">Sett Farge</button> 
+                <input type="color" id="player-border-color" value="#FFFF00">
+                <button id="set-border-color-button">Sett Farge</button>
                 <p>(Velg spiller(e) først)</p>
                 <button id="toggle-draw-mode-button">Tegn Piler (Av)</button>
                 <button id="clear-drawings-button">Fjern Piler</button>
@@ -50,7 +51,7 @@
                 <button id="load-setup-button">Last Oppsett</button>
                 <button id="delete-setup-button">Slett Valgt Oppsett</button>
             </div>
-            
+
              <!-- 1.4 Eksporter -->
             <div class="control-section" id="export">
                 <h3>Eksporter</h3>
@@ -65,9 +66,9 @@
             <div id="pitch-container">
                  <div id="pitch">
                     <!-- Bakgrunnsbilde settes med CSS -->
-                    <canvas id="drawing-canvas"></canvas> 
+                    <canvas id="drawing-canvas"></canvas>
                     <!-- Spillerbrikker og ball legges inn her (dynamisk) -->
-                    <div id="ball" class="draggable">Ball</div> 
+                    <div id="ball" class="draggable">Ball</div>
                  </div>
             </div>
         </main>
@@ -93,7 +94,7 @@
     <!-- === Modaler/Dialoger END === -->
 
 
-    <script src="script.js"></script> 
+    <script src="script.js"></script>
     <!-- Vi trenger kanskje flere JS-filer eller biblioteker senere -->
 
 </body>
