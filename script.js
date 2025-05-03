@@ -93,19 +93,13 @@ function handleAddPlayerConfirm() {
         imageUrl: finalImageUrl,
         imageFile: imageFile || null,
         role: role,
-        // Fjernet onPitch herfra, status bestemmes av playersOnPitch/playersOnBench
         position: { x: 50, y: 50 }, // Standard startposisjon (midten)
         borderColor: 'black'
     };
 
     squad.push(newPlayer);
-
-    // Oppdater UI (både troppliste og benk)
     renderUI(); // Felles render-funksjon
-
     closeAddPlayerModal();
-
-    // TODO: Lagre squad til localStorage
     console.log("Spillertropp:", squad);
 }
 
@@ -120,7 +114,6 @@ function handleAddPlayerConfirm() {
 function renderUI() {
     renderSquadList();
     renderBench();
-    // Evt. rendre banen på nytt hvis nødvendig (f.eks. farger)
 }
 
 
@@ -129,7 +122,7 @@ function renderUI() {
  * Viser kun spillere som IKKE er på banen OG IKKE på benken.
  */
 function renderSquadList() {
-    squadListElement.innerHTML = ''; // Tøm listen først
+    squadListElement.innerHTML = '';
     const availablePlayers = squad.filter(p => !playersOnPitch[p.id] && !playersOnBench.includes(p.id));
 
     if (availablePlayers.length === 0 && squad.length > 0) {
@@ -141,12 +134,11 @@ function renderSquadList() {
             const listItem = document.createElement('li');
             listItem.textContent = player.name + (player.role ? ` (${player.role})` : '');
             listItem.setAttribute('data-player-id', player.id);
-            listItem.classList.add('squad-player-item', 'draggable'); // Legg til draggable klasse
+            listItem.classList.add('squad-player-item', 'draggable');
             listItem.setAttribute('draggable', true);
             squadListElement.appendChild(listItem);
         });
     }
-     // Legg til dragstart-event listener på de nye listeelementene
      addDragListenersToSquadItems();
 }
 
@@ -154,7 +146,7 @@ function renderSquadList() {
  * Oppdaterer visningen av spillere på benken.
  */
 function renderBench() {
-    benchListElement.innerHTML = ''; // Tøm listen først
+    benchListElement.innerHTML = '';
 
     if (playersOnBench.length === 0) {
         benchListElement.innerHTML = '<li><i>Benken er tom.</i></li>';
@@ -167,15 +159,13 @@ function renderBench() {
             const listItem = document.createElement('li');
             listItem.textContent = player.name + (player.role ? ` (${player.role})` : '');
             listItem.setAttribute('data-player-id', player.id);
-            listItem.classList.add('bench-player-item', 'draggable'); // Legg til draggable klasse
+            listItem.classList.add('bench-player-item', 'draggable');
             listItem.setAttribute('draggable', true);
             benchListElement.appendChild(listItem);
         } else {
              console.warn(`Fant ikke spiller med ID ${playerId} for benken.`);
         }
     });
-
-    // Legg til drag listeners på benk-items
     addDragListenersToBenchItems();
 }
 
@@ -200,31 +190,27 @@ function createPlayerPieceElement(player, xPercent, yPercent) {
 
     piece.style.left = `${xPercent}%`;
     piece.style.top = `${yPercent}%`;
-    piece.style.transform = 'translate(-50%, -50%)'; // Sentrer brikken
+    piece.style.transform = 'translate(-50%, -50%)';
 
-    // Container for rundhet og ramme
     const imgContainer = document.createElement('div');
     imgContainer.classList.add('player-image-container');
-    imgContainer.style.borderColor = player.borderColor || 'black'; // Sett rammefarge her
+    imgContainer.style.borderColor = player.borderColor || 'black';
 
-    // Bilde-div inni containeren
     const imgDiv = document.createElement('div');
     imgDiv.classList.add('player-image');
     if (player.imageUrl && !player.imageUrl.startsWith('placeholder-file:')) {
         imgDiv.style.backgroundImage = `url('${player.imageUrl}')`;
     } else {
-        imgDiv.style.backgroundColor = '#aaa'; // Grå placeholder
+        imgDiv.style.backgroundColor = '#aaa';
     }
-    imgContainer.appendChild(imgDiv); // Legg bilde inni container
-    piece.appendChild(imgContainer); // Legg container til brikken
+    imgContainer.appendChild(imgDiv);
+    piece.appendChild(imgContainer);
 
-    // Navn-div under containeren
     const nameDiv = document.createElement('div');
     nameDiv.classList.add('player-name');
     nameDiv.textContent = player.name;
     piece.appendChild(nameDiv);
 
-    // Legg til drag listeners for brikker på banen
     piece.addEventListener('dragstart', handleDragStartPiece);
     piece.addEventListener('dragend', handleDragEnd);
 
@@ -237,6 +223,8 @@ function createPlayerPieceElement(player, xPercent, yPercent) {
  * @returns {object | null} Spillerobjektet eller null hvis ikke funnet.
  */
 function getPlayerById(playerId) {
+    // Legg til en sjekk for null/undefined/tom playerId for sikkerhets skyld
+    if (!playerId) return null;
     return squad.find(p => p.id === playerId) || null;
 }
 
@@ -264,7 +252,7 @@ function addDragListenersToSquadItems() {
 function addDragListenersToBenchItems() {
     const items = benchListElement.querySelectorAll('.bench-player-item');
     items.forEach(item => {
-        item.removeEventListener('dragstart', handleDragStartBench); // Bruk egen handler
+        item.removeEventListener('dragstart', handleDragStartBench);
         item.addEventListener('dragstart', handleDragStartBench);
         item.removeEventListener('dragend', handleDragEnd);
         item.addEventListener('dragend', handleDragEnd);
@@ -277,14 +265,19 @@ function addDragListenersToBenchItems() {
  */
 function handleDragStart(event) {
     draggedPlayerId = event.target.getAttribute('data-player-id');
-    // Sjekk om spilleren finnes (sanity check)
-     if (!getPlayerById(draggedPlayerId)) return;
+     if (!getPlayerById(draggedPlayerId)) {
+        console.error("handleDragStart: Kunne ikke finne spiller for ID:", draggedPlayerId);
+        event.preventDefault(); // Avbryt drag hvis spiller ikke finnes
+        return;
+     }
 
     draggedElement = event.target;
-    dragSource = 'squad'; // Sett kilden
-    event.dataTransfer.setData('text/plain', playerId);
+    dragSource = 'squad';
+    // === FIKS HER ===
+    event.dataTransfer.setData('text/plain', draggedPlayerId); // Bruk draggedPlayerId
+    // === FIKS SLUTT ===
     event.dataTransfer.effectAllowed = 'move';
-    setTimeout(() => event.target.classList.add('dragging'), 0);
+    setTimeout(() => { if(draggedElement) draggedElement.classList.add('dragging') }, 0); // Sjekk om draggedElement finnes
     console.log(`Dragging player from SQUAD: ${draggedPlayerId}`);
 }
 
@@ -294,14 +287,17 @@ function handleDragStart(event) {
  */
 function handleDragStartBench(event) {
     draggedPlayerId = event.target.getAttribute('data-player-id');
-     if (!getPlayerById(draggedPlayerId)) return;
+     if (!getPlayerById(draggedPlayerId)) {
+        console.error("handleDragStartBench: Kunne ikke finne spiller for ID:", draggedPlayerId);
+        event.preventDefault();
+        return;
+     }
 
     draggedElement = event.target;
-    dragSource = 'bench'; // Sett kilden
-    const playerId = draggedPlayerId; // For closure in setData
-    event.dataTransfer.setData('text/plain', playerId);
+    dragSource = 'bench';
+    event.dataTransfer.setData('text/plain', draggedPlayerId); // Korrekt variabel brukt her
     event.dataTransfer.effectAllowed = 'move';
-    setTimeout(() => event.target.classList.add('dragging'), 0);
+    setTimeout(() => { if(draggedElement) draggedElement.classList.add('dragging') }, 0);
     console.log(`Dragging player from BENCH: ${draggedPlayerId}`);
 }
 
@@ -311,19 +307,21 @@ function handleDragStartBench(event) {
  * @param {DragEvent} event
  */
 function handleDragStartPiece(event) {
-    // Finn nærmeste .player-piece container
     const pieceElement = event.target.closest('.player-piece');
-    if (!pieceElement) return; // Avbryt hvis vi ikke fant brikken
+    if (!pieceElement) return;
 
     draggedPlayerId = pieceElement.getAttribute('data-player-id');
-     if (!getPlayerById(draggedPlayerId)) return;
+     if (!getPlayerById(draggedPlayerId)) {
+        console.error("handleDragStartPiece: Kunne ikke finne spiller for ID:", draggedPlayerId);
+        event.preventDefault();
+        return;
+     }
 
     draggedElement = pieceElement;
-    dragSource = 'pitch'; // Sett kilden
-    const playerId = draggedPlayerId; // For closure in setData
-    event.dataTransfer.setData('text/plain', playerId);
+    dragSource = 'pitch';
+    event.dataTransfer.setData('text/plain', draggedPlayerId); // Korrekt variabel brukt her
     event.dataTransfer.effectAllowed = 'move';
-    setTimeout(() => pieceElement.classList.add('dragging'), 0);
+    setTimeout(() => { if(draggedElement) draggedElement.classList.add('dragging') }, 0);
     console.log(`Dragging player from PITCH: ${draggedPlayerId}`);
     event.stopPropagation();
 }
@@ -346,24 +344,21 @@ function handleDragOver(event, targetType) {
 
 /**
  * Håndterer når et dratt element forlater et gyldig slippmål.
- * @param {Event} event - Merk: Kan være MouseEvent eller DragEvent
+ * @param {DragEvent} event - Merk: DragEvent har relatedTarget
  * @param {string} targetType - 'pitch' eller 'bench'
  */
 function handleDragLeave(event, targetType) {
-     // Sjekk om musen fortsatt er over elementet (kan fyre unødvendig)
      const relatedTarget = event.relatedTarget;
      const targetElement = (targetType === 'pitch') ? pitchElement : benchElement;
 
-     // Sjekk om vi forlater til et barneelement innenfor målet
-     if (relatedTarget && targetElement.contains(relatedTarget)) {
-         return;
+     // Forlater vi til utsiden av målet?
+     if (!relatedTarget || !targetElement.contains(relatedTarget)) {
+        if (targetType === 'pitch') {
+            pitchElement.classList.remove('drag-over');
+        } else if (targetType === 'bench') {
+            benchElement.classList.remove('drag-over');
+        }
      }
-
-    if (targetType === 'pitch') {
-        pitchElement.classList.remove('drag-over');
-    } else if (targetType === 'bench') {
-        benchElement.classList.remove('drag-over');
-    }
 }
 
 
@@ -374,7 +369,24 @@ function handleDragLeave(event, targetType) {
 function handleDropOnPitch(event) {
     event.preventDefault();
     pitchElement.classList.remove('drag-over');
-    const playerId = event.dataTransfer.getData('text/plain');
+    // Bruk try-catch for å håndtere feil ved dataoverføring
+    let playerId;
+    try {
+        playerId = event.dataTransfer.getData('text/plain');
+    } catch (e) {
+        console.error("Feil ved henting av dataTransfer:", e);
+        resetDragState();
+        return;
+    }
+
+    // Sjekk om playerId faktisk ble hentet
+    if (!playerId) {
+        console.warn("Drop on Pitch: Mottok tom playerId.");
+        // Dette kan skje hvis drag startet feil, f.eks. fra et ikke-dragbart element
+        resetDragState();
+        return;
+    }
+
     const player = getPlayerById(playerId);
 
     if (!player) {
@@ -384,7 +396,6 @@ function handleDropOnPitch(event) {
     }
 
     // --- 11-spiller sjekk ---
-    // Sjekk KUN hvis spilleren kommer fra squad eller benk (ikke hvis den flyttes internt på banen)
     if (dragSource === 'squad' || dragSource === 'bench') {
         const currentPlayersOnPitchCount = Object.keys(playersOnPitch).length;
         if (currentPlayersOnPitchCount >= MAX_PLAYERS_ON_PITCH) {
@@ -401,7 +412,6 @@ function handleDropOnPitch(event) {
     const xPercent = Math.max(0, Math.min(100, (dropX / pitchRect.width) * 100));
     const yPercent = Math.max(0, Math.min(100, (dropY / pitchRect.height) * 100));
 
-    // Oppdater spillerobjektets posisjon
     player.position = { x: xPercent, y: yPercent };
 
     // --- Håndter flytt/plassering ---
@@ -415,7 +425,6 @@ function handleDropOnPitch(event) {
         pitchElement.appendChild(newPiece);
         playersOnPitch[playerId] = newPiece; // Registrer på banen
 
-        // Hvis spilleren kom fra benken, fjern fra benk-listen
         if (dragSource === 'bench') {
             const benchIndex = playersOnBench.indexOf(playerId);
             if (benchIndex > -1) {
@@ -425,7 +434,6 @@ function handleDropOnPitch(event) {
         console.log(`Placed player ${playerId} from ${dragSource}`);
     }
 
-    // Oppdater listene i sidepanelet
     renderUI();
     resetDragState();
 }
@@ -437,7 +445,21 @@ function handleDropOnPitch(event) {
 function handleDropOnBench(event) {
     event.preventDefault();
     benchElement.classList.remove('drag-over');
-    const playerId = event.dataTransfer.getData('text/plain');
+    let playerId;
+    try {
+        playerId = event.dataTransfer.getData('text/plain');
+    } catch (e) {
+        console.error("Feil ved henting av dataTransfer:", e);
+        resetDragState();
+        return;
+    }
+
+     if (!playerId) {
+        console.warn("Drop on Bench: Mottok tom playerId.");
+        resetDragState();
+        return;
+    }
+
     const player = getPlayerById(playerId);
 
     if (!player) {
@@ -448,27 +470,21 @@ function handleDropOnBench(event) {
 
     // --- Håndter kun slipp fra banen ---
     if (dragSource === 'pitch') {
-        // Sjekk om spilleren allerede er på benken (bør ikke skje, men greit å sjekke)
         if (!playersOnBench.includes(playerId)) {
-            playersOnBench.push(playerId); // Legg til på benken
+            playersOnBench.push(playerId);
         }
 
-        // Fjern fra banen (både element og data)
         if (playersOnPitch[playerId]) {
-            playersOnPitch[playerId].remove(); // Fjern DOM-elementet
-            delete playersOnPitch[playerId]; // Fjern fra pitch-data
+            playersOnPitch[playerId].remove();
+            delete playersOnPitch[playerId];
             console.log(`Moved player ${playerId} from pitch to bench`);
         }
-
-        // Oppdater listene
         renderUI();
 
     } else if (dragSource === 'squad') {
         console.log("Ignorerer slipp fra tropp til benk (må via banen).");
-        // Gjør ingenting, spiller må på banen først.
     } else if (dragSource === 'bench') {
         console.log("Ignorerer slipp fra benk til benk.");
-        // Gjør ingenting, ingen reordering implementert ennå.
     }
 
     resetDragState();
@@ -480,16 +496,15 @@ function handleDropOnBench(event) {
  * @param {DragEvent} event
  */
 function handleDragEnd(event) {
-    if (draggedElement) {
-       draggedElement.classList.remove('dragging');
-    }
-    // Fjern all drag-over highlighting
-    pitchElement.classList.remove('drag-over');
-    benchElement.classList.remove('drag-over');
-
-    // Nullstill globale drag-variabler uansett utfall
-    resetDragState();
-    // console.log("Drag end"); // Kan fjernes, blir mye støy
+    // Bruk setTimeout for å sikre at 'drop' har kjørt ferdig
+    setTimeout(() => {
+        if (draggedElement && draggedElement.classList.contains('dragging')) {
+           draggedElement.classList.remove('dragging');
+        }
+        pitchElement.classList.remove('drag-over');
+        benchElement.classList.remove('drag-over');
+        resetDragState();
+    }, 0); // Kjør rett etter nåværende synkron kode
 }
 
 /**
@@ -507,7 +522,6 @@ function resetDragState() {
 
 // === 6. Event Listeners START ===
 
-// Initialiser event listeners når scriptet lastes
 document.addEventListener('DOMContentLoaded', () => {
     // --- Modal Listeners ---
     addPlayerButton.addEventListener('click', openAddPlayerModal);
@@ -532,10 +546,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Andre Listeners ---
     // TODO: Legg til for fargevalg, tegning, lagring etc.
 
-
     // --- Initial rendering ---
-    renderUI(); // Kall felles render-funksjon
-
+    renderUI();
 });
 
 // === 6. Event Listeners END ===
