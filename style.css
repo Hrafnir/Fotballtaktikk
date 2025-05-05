@@ -1,4 +1,4 @@
-/* Version: #55 */
+/* Version: #57 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -39,7 +39,7 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .rotate-button { position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; }
 #pitch-container { width: 100%; max-width: calc(90vh * (68 / 105)); max-height: 90vh; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; transition: max-width 0.4s ease-in-out, max-height 0.4s ease-in-out; }
 #pitch-container.rotated { max-width: calc(95vh * (105 / 68)); }
-#pitch { width: 100%; height: 100%; position: relative; overflow: hidden; /* Klipp surface som evt. går utenfor */ aspect-ratio: 68 / 105; max-width: 100%; max-height: 100%; border: 2px solid white; transition: aspect-ratio 0.4s ease-in-out; background-color: transparent; /* Farge flyttes til surface */ box-shadow: none; /* Skygge flyttes til surface */ }
+#pitch { width: 100%; height: 100%; position: relative; overflow: hidden; aspect-ratio: 68 / 105; max-width: 100%; max-height: 100%; border: 2px solid white; transition: aspect-ratio 0.4s ease-in-out; }
 #pitch-container.rotated #pitch { aspect-ratio: 105 / 68; }
 
 /* Pitch Surface: Roterer, har bakgrunn, inneholder alt */
@@ -49,40 +49,39 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
     transform-origin: center center; transition: transform 0.4s ease-in-out;
     z-index: 1;
-    overflow: hidden; /* Klipp linjer som går utenfor */
+    overflow: hidden; /* Viktig for pseudo-element linjer */
 }
 #pitch-container.rotated #pitch-surface { transform: rotate(90deg); }
 
-/* --- Banelinjer (inne i #pitch-surface) --- */
-.pitch-line { position: absolute; background-color: rgba(255, 255, 255, 0.8); z-index: 2; }
-.line-vertical { width: 2px; height: 100%; top: 0; }
-.line-horizontal { height: 2px; width: 100%; left: 0; }
-.line-halfway { top: 50%; transform: translateY(-50%); }
-.circle-center { position: absolute; top: 50%; left: 50%; width: 18%; padding-bottom: 18%; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translate(-50%, -50%); z-index: 2;}
-.spot-center { position: absolute; top: 50%; left: 50%; width: 1%; padding-bottom: 1%; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translate(-50%, -50%); z-index: 3; }
-.penalty-area { position: absolute; border: 2px solid rgba(255, 255, 255, 0.8); z-index: 2; }
-.penalty-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 59%; height: 15.7%; border-top: none;}
-.penalty-area-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 59%; height: 15.7%; border-bottom: none; }
-.goal-area { position: absolute; border: 2px solid rgba(255, 255, 255, 0.8); z-index: 2; }
-.goal-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 26.5%; height: 5.2%; border-top: none; }
-.goal-area-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 26.5%; height: 5.2%; border-bottom: none; }
-.penalty-spot { position: absolute; width: 0.8%; padding-bottom: 0.8%; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translateX(-50%); z-index: 3; }
-.penalty-spot-top { top: 10.5%; left: 50%; }
-.penalty-spot-bottom { bottom: 10.5%; left: 50%; }
-.corner-arc { position: absolute; width: 4%; height: 4%; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; z-index: 2; }
-.corner-top-left { top: -2%; left: -2%; border-top-color: transparent; border-left-color: transparent; }
-.corner-top-right { top: -2%; right: -2%; border-top-color: transparent; border-right-color: transparent; }
-.corner-bottom-left { bottom: -2%; left: -2%; border-bottom-color: transparent; border-left-color: transparent; }
-.corner-bottom-right { bottom: -2%; right: -2%; border-bottom-color: transparent; border-right-color: transparent; }
+/* --- Banelinjer (med pseudo-elementer PÅ surface) --- */
+#pitch-surface::before, /* Midtlinje */
+#pitch-surface::after { /* Midtsirkel */
+    content: '';
+    position: absolute;
+    background-color: white;
+    z-index: 2; /* Over gress, under brikker */
+    box-sizing: border-box; /* Viktig for border */
+}
+#pitch-surface::before { /* Midtlinje */
+    top: 50%; left: 0; width: 100%; height: 2px; transform: translateY(-50%);
+}
+#pitch-surface::after { /* Midtsirkel */
+    top: 50%; left: 50%; width: 18%; padding-bottom: 18%;
+    border: 2px solid white; border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background-color: transparent !important; /* Ingen fyllfarge */
+}
+/* TODO: Legg til flere linjer med flere pseudo-elementer eller divs hvis ønskelig */
+
 
 /* === Spillerbrikker PÅ BANEN (inne i #pitch-surface) === */
-.player-piece { position: absolute; width: 70px; height: auto; cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; user-select: none; -webkit-user-select: none; opacity: 1; transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.4s ease-in-out; transform-origin: center center; transform: translate(-50%, -50%) rotate(0deg); /* Standard posisjonering OG rotasjon */ }
+.player-piece { position: absolute; width: 70px; height: auto; cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; user-select: none; -webkit-user-select: none; opacity: 1; transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.4s ease-in-out; transform-origin: center center; transform: translate(-50%, -50%) rotate(0deg); /* Standard rotasjon */ }
 .player-image-container { width: 55px; height: 55px; border-radius: 50%; border: 3px solid black; background-color: rgba(50, 50, 50, 0.8); overflow: hidden; display: flex; justify-content: center; align-items: center; margin-bottom: 3px; }
 .player-image { width: 100%; height: 100%; background-color: #ccc; background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 50%; }
 .player-name { background-color: rgba(0,0,0,0.7); color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; font-weight: bold; text-align: center; max-width: 65px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Mot-roter spillerbrikker NÅR BANEN ER ROTERT */
 #pitch-container.rotated #pitch-surface .player-piece {
-    transform: translate(-50%, -50%) rotate(-90deg); /* Legg til mot-rotasjon */
+    transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 /* === Ball (inne i #pitch-surface) === */
@@ -105,7 +104,7 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .player-piece.dragging { background-color: transparent !important; opacity: 1 !important; }
 .player-piece.dragging .player-image-container, .player-piece.dragging .player-name { opacity: 0.6; }
 .drop-target.drag-over { border-style: solid; border-width: 2px; }
-#pitch.drag-over { /* Ikke nødvendig lenger? */ }
+#pitch.drag-over { /* Ikke nødvendig med visuell feedback på ytre ramme */ }
 #bench.drag-over { background-color: rgba(255, 235, 150, 0.3); border-color: #ffcc66; }
 #squad-list-container.drag-over { background-color: rgba(200, 200, 200, 0.2); border-color: #999999; }
 
@@ -149,4 +148,4 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 label[for="player-border-color"] { display: inline-block; margin-right: 5px; margin-top: 0; }
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-/* Version: #55 */
+/* Version: #57 */
