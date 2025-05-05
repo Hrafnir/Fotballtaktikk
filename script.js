@@ -1,4 +1,4 @@
-/* Version: #51 */
+/* Version: #55 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; // { playerId: element }
