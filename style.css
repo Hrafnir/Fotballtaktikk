@@ -26,7 +26,7 @@ body {
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     border-radius: 5px;
     overflow: hidden;
-    position: relative; /* Nødvendig for absolutt posisjonerte barn som toggle-knapp */
+    position: relative;
 }
 
 /* === 1. Sidepanel (Kontrollpanel) === */
@@ -41,15 +41,13 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
-    transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease; /* Animasjon */
-    flex-shrink: 0; /* Forhindre at den krymper uønsket */
+    transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease;
+    flex-shrink: 0;
 }
 
-/* Skjul/Vis sidebar knapp */
 .sidebar-toggle-button {
     position: absolute;
     top: 10px;
-    /* Starter innenfor når synlig */
     right: 10px;
     width: 30px;
     height: 30px;
@@ -62,15 +60,14 @@ body {
     text-align: center;
     padding: 0;
     cursor: pointer;
-    z-index: 1050; /* Høyt for å være over alt annet i sidebaren */
+    z-index: 1050;
     box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, right 0.3s ease; /* Animer transform og posisjon */
+    transition: transform 0.3s ease, right 0.3s ease;
 }
 .sidebar-toggle-button:hover {
     background-color: #e0e0e0;
 }
 
-/* Tilstand når sidebar er skjult */
 .app-container.sidebar-hidden .sidebar {
     width: 0;
     min-width: 0;
@@ -79,16 +76,13 @@ body {
     overflow: hidden;
     border-right: none;
 }
-/* Flytt og roter pilen når sidebar er skjult */
 .app-container.sidebar-hidden .sidebar .sidebar-toggle-button {
-    /* Plasseres like utenfor kanten av .app-container */
-    right: -15px; /* Flytt ut */
-    transform: scaleX(-1); /* Speilvend pilen */
-    background-color: #e9e9e9; /* Match bakgrunn */
+    right: -15px;
+    transform: scaleX(-1);
+    background-color: #e9e9e9;
 }
 
 .sidebar h2, .sidebar h3, .sidebar h4 {
-    /* Sikrer at disse skjules når padding/width er 0 */
     white-space: nowrap;
     overflow: hidden;
     margin-top: 0;
@@ -105,22 +99,19 @@ body {
     border: 1px solid #ddd;
     border-radius: 4px;
     flex-shrink: 0;
-    /* Sikrer at innhold skjules når sidebar er smal */
     overflow: hidden;
     white-space: nowrap;
 }
 
-/* Lister i sidepanelet */
 #on-pitch-list, #bench-list, #squad-list { list-style: none; padding: 0; margin: 0; }
 #on-pitch-list li, #bench-list li, #squad-list li { padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 0.95em; background-color: #fff; margin-bottom: 2px; border-radius: 3px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #on-pitch-list li i, #bench-list li i, #squad-list li i { color: #777; font-style: italic; padding: 5px; display: block; background-color: transparent; border-bottom: none; }
 
-/* Spesifikk styling for listene */
 #on-pitch-section { background-color: #e6f7ff; border-color: #b3e0ff; }
 #on-pitch-list { max-height: 180px; overflow-y: auto; }
 .on-pitch-player-item { cursor: default; }
 .on-pitch-player-item:hover { background-color: #f0f8ff; }
-#bench { background-color: #fff0e6; border-color: #ffe0b3; min-height: 100px; display: flex; flex-direction: column; } /* Lagt til flex her */
+#bench { background-color: #fff0e6; border-color: #ffe0b3; min-height: 100px; display: flex; flex-direction: column; }
 #bench-list { max-height: 180px; overflow-y: auto; flex-grow: 1; }
 .bench-player-item { cursor: grab; }
 .bench-player-item:hover { background-color: #fff5e6; }
@@ -133,12 +124,62 @@ body {
 /* === 2. Hovedområde (Bane) === */
 .main-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; height: 100%; overflow: hidden; background-color: #ededed; position: relative; }
 .rotate-button { position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; }
-#pitch-container { width: 100%; max-width: calc(95vh * (105 / 68)); max-height: 90vh; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; transition: transform 0.4s ease-in-out; transform-origin: center center;} /* Flyttet transition hit */
-#pitch { width: 100%; height: 100%; position: relative; overflow: visible; aspect-ratio: 105 / 68; max-width: 100%; max-height: 100%; border: 1px solid #555; }
-#pitch-surface { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Football_pitch_v.svg/1050px-Football_pitch_v.svg.png'); background-size: contain; background-repeat: no-repeat; background-position: center; transform-origin: center center; /* Beholder transition her for selve overflaten */ transition: transform 0.4s ease-in-out; }
-.rotated #pitch-surface { /* Rotasjon på overflaten */ transform: rotate(90deg); }
-/* Justering for rotert container - kan være nødvendig for å unngå klipping */
-/* .rotated { transform: rotate(-90deg); } */ /* Vi prøver uten denne først */
+
+#pitch-container {
+    width: 100%;
+    max-width: calc(90vh * (68 / 105)); /* Portrett */
+    max-height: 90vh;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: max-width 0.4s ease-in-out, max-height 0.4s ease-in-out; /* Animer størrelsesendring */
+}
+/* Juster container når rotert */
+#pitch-container.rotated {
+     max-width: calc(95vh * (105 / 68)); /* Landskap */
+     /* max-height kan forbli 90vh, eller justeres */
+}
+
+#pitch {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 68 / 105; /* Standard PORTRETT */
+    max-width: 100%;
+    max-height: 100%;
+    border: 2px solid white;
+    background-color: #287a33;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+    transition: aspect-ratio 0.4s ease-in-out; /* Animer endring av form */
+}
+/* Bytt aspect-ratio på #pitch når #pitch-container har .rotated */
+#pitch-container.rotated #pitch {
+     aspect-ratio: 105 / 68; /* Landskap */
+}
+
+
+#pitch-surface {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: center center;
+    transition: transform 0.4s ease-in-out;
+    z-index: 1;
+}
+/* Roter surface når container har .rotated */
+#pitch-container.rotated #pitch-surface {
+    transform: rotate(90deg);
+}
+
+/* Banelinjer */
+#pitch-surface::before,
+#pitch-surface::after { content: ''; position: absolute; background-color: white; z-index: 2; }
+#pitch-surface::before { top: 50%; left: 0; width: 100%; height: 2px; transform: translateY(-50%); } /* Midtlinje */
+#pitch-surface::after { top: 50%; left: 50%; width: 18%; padding-bottom: 18%; border: 2px solid white; border-radius: 50%; transform: translate(-50%, -50%); background-color: transparent !important; } /* Midtsirkel */
 
 
 /* === Spillerbrikker PÅ BANEN === */
