@@ -1,4 +1,4 @@
-/* Version: #69 */
+/* Version: #72 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; // { playerId: element }
@@ -12,9 +12,10 @@ let isSidebarHidden = false;
 let isPitchRotated = false; // Global variabel for rotasjonsstatus
 
 const MAX_PLAYERS_ON_PITCH = 11;
-const PITCH_ASPECT_RATIO_PORTRAIT = 68 / 105;
-const PITCH_ASPECT_RATIO_LANDSCAPE = 105 / 68;
-
+// --- JUSTERTE SIDEFORHOLD TIL CA. 3:4 / 4:3 ---
+const PITCH_ASPECT_RATIO_PORTRAIT = 3 / 4; // = 0.75
+const PITCH_ASPECT_RATIO_LANDSCAPE = 4 / 3; // ≈ 1.333
+// -------------------------------------------
 
 const STORAGE_KEY_SQUAD = 'fotballtaktiker_squad';
 const STORAGE_KEY_LAST_STATE = 'fotballtaktiker_lastState';
@@ -345,7 +346,7 @@ function applyState(stateData) {
     console.log("Tilstand anvendt.");
 }
 // === applyState (END - Fra V#68) ===
-// === resizePitchElement (MODIFIED) START ===
+// === resizePitchElement (START - Fra V#69) ===
 function resizePitchElement() {
      if (!pitchContainer || !pitchElement) {
         console.error("resizePitchElement: pitchContainer or pitchElement not found!");
@@ -398,7 +399,7 @@ function resizePitchElement() {
         console.log(`JS Resize SET (Portrait): Style W=${targetWidth.toFixed(0)}px, H=${targetHeight.toFixed(0)}px`);
     }
 }
-// === resizePitchElement (MODIFIED) END ===
+// === resizePitchElement (END - Fra V#69) ===
 function loadLastState() { const savedState = localStorage.getItem(STORAGE_KEY_LAST_STATE); if (savedState) { try { const stateData = JSON.parse(savedState); applyState(stateData); console.log("Siste tilstand lastet."); } catch (e) { console.error("Feil ved parsing av state:", e); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett størrelse også ved feil */ renderUI(); } } else { console.log("Ingen lagret tilstand funnet."); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; // Sørg for at default er ikke-rotert
      if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett default størrelse */ renderUI(); } }
 function clearPitch() { if (!pitchSurface) {console.error("clearPitch: pitchSurface ikke funnet!"); return;} const pieces = pitchSurface.querySelectorAll('.player-piece'); pieces.forEach(piece => piece.remove()); console.log("clearPitch: Fjernet spillerbrikker fra pitchSurface"); }
@@ -451,4 +452,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #69 */
+/* Version: #72 */
