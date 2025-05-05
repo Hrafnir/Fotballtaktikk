@@ -1,4 +1,4 @@
-/* Version: #77 */
+/* Version: #78 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -48,7 +48,7 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     overflow: hidden; /* Klipper det som går utenfor containeren */
 }
 
-/* Pitch: Kun basis-styling, størrelse settes av JS */
+/* Pitch: Størrelse settes av JS, får bakgrunnsbilde */
 #pitch {
     max-width: 100%;  /* Begrens til container bredde */
     max-height: 100%; /* Begrens til container høyde */
@@ -60,28 +60,31 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     transition: transform 0.4s ease-in-out;
     transform-origin: center center;
     transform: rotate(0deg); /* Standard */
-    background-color: #333; /* Endret bakgrunnsfarge til mørk grå */
+    /* Fjernet bakgrunnsfarge */
     box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+
+    /* --- Flyttet bakgrunn hit --- */
+    background-image: url('pitch-background.jpg');
+    background-size: contain;
+    background-position: center center;
+    background-repeat: no-repeat;
+    /* --------------------------- */
 }
 /* Rotert Pitch: Kun transform endres her */
 #pitch-container.rotated #pitch {
     /* aspect-ratio, width, height fjernet */
-    transform: rotate(90deg); /* Roter selve banen */
+    transform: rotate(90deg); /* Roter selve banen (inkludert bakgrunnen) */
 }
 
-/* Pitch Surface: Dekker #pitch, får bakgrunnsbilde */
+/* Pitch Surface: Dekker #pitch, transparent, for elementplassering */
 #pitch-surface {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1;
     overflow: visible; /* Skal IKKE klippe her */
-    background-image: url('pitch-background.jpg'); /* Legg til bildet */
-    background-size: contain; /* Skaler bildet til å passe, bevar AR */
-    background-position: center center; /* Sentrer bildet */
-    background-repeat: no-repeat; /* Ikke gjenta bildet */
+    /* Fjernet bakgrunnsbilde herfra */
 }
 
 /* --- Fjernet ALLE CSS-regler for banelinjer --- */
-/* .pitch-line, .circle-center, .penalty-area, .goal-area, .penalty-spot, .penalty-arc, .corner-arc etc. er fjernet */
 
 
 /* === Spillerbrikker PÅ BANEN (inne i #pitch-surface) === */
@@ -176,4 +179,4 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 label[for="player-border-color"] { display: inline-block; margin-right: 5px; margin-top: 0; }
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-/* Version: #77 */
+/* Version: #78 */
