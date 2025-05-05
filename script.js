@@ -23,7 +23,7 @@ const appContainer = document.querySelector('.app-container');
 const sidebar = document.querySelector('.sidebar');
 const toggleSidebarButton = document.getElementById('toggle-sidebar-button');
 const onPitchListElement = document.getElementById('on-pitch-list');
-const benchListElement = document.getElementById('bench-list'); // Trengs kanskje ikke globalt nå
+const benchListElement = document.getElementById('bench-list');
 const squadListElement = document.getElementById('squad-list');
 const squadListContainer = document.getElementById('squad-list-container');
 const onPitchCountElement = document.getElementById('on-pitch-count');
@@ -92,33 +92,15 @@ function handleDropOnPitch(event) {
     event.preventDefault(); if (pitchElement) pitchElement.classList.remove('drag-over');
     const draggedItemType = event.dataTransfer.getData('text/x-dragged-item');
     if (draggedItemType === 'ball') {
-        const pitchRect = pitchElement.getBoundingClientRect(); // Bruk pitchElement for rect
-        if (!pitchRect || pitchRect.width === 0 || pitchRect.height === 0) { console.error("handleDropOnPitch (ball): Kan ikke beregne posisjon.", pitchRect); return; }
-        const dropX = event.clientX - pitchRect.left; const dropY = event.clientY - pitchRect.top;
-        const xPercent = Math.max(0, Math.min(100, (dropX / pitchRect.width) * 100));
-        const yPercent = Math.max(0, Math.min(100, (dropY / pitchRect.height) * 100));
-        console.log(`handleDropOnPitch (ball): dropY=${dropY.toFixed(1)}, height=${pitchRect.height.toFixed(1)}, yPercent=${yPercent.toFixed(1)}%`); updateBallPosition(xPercent, yPercent); return;
+        const pitchRect = pitchElement.getBoundingClientRect(); if (!pitchRect || pitchRect.width === 0 || pitchRect.height === 0) { console.error("handleDropOnPitch (ball): Kan ikke beregne posisjon.", pitchRect); return; } const dropX = event.clientX - pitchRect.left; const dropY = event.clientY - pitchRect.top; const xPercent = Math.max(0, Math.min(100, (dropX / pitchRect.width) * 100)); const yPercent = Math.max(0, Math.min(100, (dropY / pitchRect.height) * 100)); console.log(`handleDropOnPitch (ball): dropY=${dropY.toFixed(1)}, height=${pitchRect.height.toFixed(1)}, yPercent=${yPercent.toFixed(1)}%`); updateBallPosition(xPercent, yPercent); return;
     }
     let playerId; try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); return; } if (!playerId) { console.warn("Drop on Pitch: Mottok tom playerId for spiller."); return; } const player = getPlayerById(playerId); if (!player) { console.error("Drop on Pitch: Fant ikke spiller ID:", playerId); return; } if ( (dragSource === 'squad' || dragSource === 'bench') && Object.keys(playersOnPitch).length >= MAX_PLAYERS_ON_PITCH ) { alert(`Maks ${MAX_PLAYERS_ON_PITCH} spillere på banen.`); return; }
-    const pitchRect = pitchElement.getBoundingClientRect(); // Bruk pitchElement for rect
-    if (!pitchRect || pitchRect.width === 0 || pitchRect.height === 0) { console.error("handleDropOnPitch (spiller): Kan ikke beregne posisjon.", pitchRect); return; }
-    const dropX = event.clientX - pitchRect.left; const dropY = event.clientY - pitchRect.top;
-    console.log(`handleDropOnPitch: Før beregning - dropY: ${dropY.toFixed(1)}, pitchRect.height: ${pitchRect.height.toFixed(1)}`);
-    const xPercent = Math.max(0, Math.min(100, (dropX / pitchRect.width) * 100));
-    const yPercent = Math.max(0, Math.min(100, (dropY / pitchRect.height) * 100));
-    console.log(`handleDropOnPitch: Dropped ${playerId} at raw(${dropX.toFixed(1)}, ${dropY.toFixed(1)}), calculated percent(${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%)`);
-    player.position = { x: xPercent, y: yPercent };
-    let stateChanged = false;
+    const pitchRect = pitchElement.getBoundingClientRect(); if (!pitchRect || pitchRect.width === 0 || pitchRect.height === 0) { console.error("handleDropOnPitch (spiller): Kan ikke beregne posisjon.", pitchRect); return; } const dropX = event.clientX - pitchRect.left; const dropY = event.clientY - pitchRect.top; console.log(`handleDropOnPitch: Før beregning - dropY: ${dropY.toFixed(1)}, pitchRect.height: ${pitchRect.height.toFixed(1)}`);
+    const xPercent = Math.max(0, Math.min(100, (dropX / pitchRect.width) * 100)); const yPercent = Math.max(0, Math.min(100, (dropY / pitchRect.height) * 100)); console.log(`handleDropOnPitch: Dropped ${playerId} at raw(${dropX.toFixed(1)}, ${dropY.toFixed(1)}), calculated percent(${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%)`); player.position = { x: xPercent, y: yPercent }; let stateChanged = false;
     if (playersOnPitch[playerId]) {
-        const piece = playersOnPitch[playerId];
-        console.log(`handleDropOnPitch: Flytter eksisterende brikke ${playerId} til ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`);
-        piece.style.left = `${xPercent}%`; piece.style.top = `${yPercent}%`;
-        console.log(`handleDropOnPitch: Stiler satt for ${playerId}: left=${piece.style.left}, top=${piece.style.top}`); stateChanged = true;
+        const piece = playersOnPitch[playerId]; console.log(`handleDropOnPitch: Flytter eksisterende brikke ${playerId} til ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`); piece.style.left = `${xPercent}%`; piece.style.top = `${yPercent}%`; console.log(`handleDropOnPitch: Stiler satt for ${playerId}: left=${piece.style.left}, top=${piece.style.top}`); stateChanged = true;
     } else {
-        console.log(`handleDropOnPitch: Plasserer ny brikke ${playerId} på ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`);
-        const newPiece = createPlayerPieceElement(player, xPercent, yPercent);
-        if (pitchSurface) pitchSurface.appendChild(newPiece); else console.error("FEIL: pitchSurface ikke funnet ved plassering!"); playersOnPitch[playerId] = newPiece;
-        if (dragSource === 'bench') { const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); } } stateChanged = true;
+        console.log(`handleDropOnPitch: Plasserer ny brikke ${playerId} på ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`); const newPiece = createPlayerPieceElement(player, xPercent, yPercent); if (pitchSurface) pitchSurface.appendChild(newPiece); else console.error("FEIL: pitchSurface ikke funnet ved plassering!"); playersOnPitch[playerId] = newPiece; if (dragSource === 'bench') { const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); } } stateChanged = true;
     }
     if (stateChanged) { saveCurrentState(); renderUI(); }
 }
@@ -161,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     newPlayerRoleInput = document.getElementById('new-player-role');
     confirmAddPlayerButton = document.getElementById('confirm-add-player');
     playerDetailModal = document.getElementById('player-detail-modal');
-    benchElement = document.getElementById('bench'); // Hentet her
+    benchElement = document.getElementById('bench');
     console.log("DOMContentLoaded: Modal og bench element references assigned/checked.");
     loadSquad(); loadLastState(); populateSetupDropdown();
     if (addPlayerButton) { addPlayerButton.addEventListener('click', openAddPlayerModal); console.log("Listener: addPlayerButton OK"); } else { console.error("addPlayerButton ikke funnet!"); }
