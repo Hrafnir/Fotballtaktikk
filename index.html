@@ -114,8 +114,15 @@
             <input type="hidden" id="detail-player-id"> <!-- ID: detail-player-id -->
 
             <div class="modal-columns">
-                <!-- Kolonne 1: Personlig Info & Kommentarer -->
+                <!-- Kolonne 1: Bilde & Personlig Info -->
                 <div class="modal-column">
+                    <h4>Bilde</h4>
+                    <div id="detail-player-image-display" class="detail-image-display"> <!-- ID: detail-player-image-display -->
+                        <span>Ingen bilde-URL</span>
+                    </div>
+                    <label for="detail-player-image-url">Bilde-URL:</label>
+                    <input type="text" id="detail-player-image-url" placeholder="Lim inn URL til bilde..."> <!-- ID: detail-player-image-url -->
+
                     <h4>Personlig Info</h4>
                     <label for="detail-player-name">Navn:</label>
                     <input type="text" id="detail-player-name"> <!-- ID: detail-player-name -->
@@ -134,17 +141,17 @@
 
                     <label for="detail-player-email">E-post:</label>
                     <input type="email" id="detail-player-email" placeholder="navn@example.com"> <!-- ID: detail-player-email -->
+                </div>
 
+                <!-- Kolonne 2: Kommentarer & Statistikk -->
+                <div class="modal-column">
                     <h4>Kamp-kommentar (Denne økten)</h4>
                     <textarea id="detail-match-comment" rows="4" placeholder="Notater..."></textarea> <!-- ID: detail-match-comment -->
                     <button id="add-comment-to-history-button">Legg til i historikk</button> <!-- ID: add-comment-to-history-button -->
 
                     <h4>Kommentarhistorikk</h4>
                     <div id="detail-comment-history" class="comment-history"><p><i>Ingen historikk.</i></p></div> <!-- ID: detail-comment-history -->
-                </div>
 
-                <!-- Kolonne 2: Sesongstatistikk -->
-                <div class="modal-column">
                     <h4>Sesongstatistikk (Manuell)</h4>
                     <label for="detail-matches-played">Kamper spilt:</label>
                     <input type="number" id="detail-matches-played" min="0" value="0"> <!-- ID: detail-matches-played -->
