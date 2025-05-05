@@ -1,4 +1,4 @@
-/* Version: #67 */
+/* Version: #68 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; // { playerId: element }
@@ -224,33 +224,83 @@ function toggleSidebar() { isSidebarHidden = !isSidebarHidden; if (appContainer)
 // === togglePitchRotation (MODIFIED) START ===
 function togglePitchRotation() {
     isPitchRotated = !isPitchRotated; // Oppdater global status
-    if (pitchContainer) {
-        pitchContainer.classList.toggle('rotated', isPitchRotated);
-        console.log("Pitch rotation toggled, rotated:", isPitchRotated);
 
-        // Logg dimensjoner etter en kort forsinkelse
-        setTimeout(() => {
-            if (pitchElement) {
-                const width = pitchElement.offsetWidth;
-                const height = pitchElement.offsetHeight;
-                const actualAR = width > 0 && height > 0 ? width / height : 0;
-                const expectedAR = isPitchRotated ? PITCH_ASPECT_RATIO_LANDSCAPE : PITCH_ASPECT_RATIO_PORTRAIT;
-
-                console.log(`Pitch Dimensions (${isPitchRotated ? 'Rotated' : 'Normal'}):`);
-                console.log(`  - OffsetWidth: ${width}px`);
-                console.log(`  - OffsetHeight: ${height}px`);
-                console.log(`  - Actual AR (W/H): ${actualAR.toFixed(3)}`);
-                console.log(`  - Expected AR: ${expectedAR.toFixed(3)}`);
-                if (Math.abs(actualAR - expectedAR) > 0.01) { // Tillat litt avvik
-                    console.warn("  - AR MISMATCH DETECTED!");
-                }
-            } else {
-                console.error("togglePitchRotation log: pitchElement not found!");
-            }
-        }, 100); // 100ms forsinkelse for layout-oppdatering
-
+    if (!pitchContainer || !pitchElement) {
+        console.error("togglePitchRotation: pitchContainer or pitchElement not found!");
+        return;
     }
-     saveCurrentState(); // Lagre den nye rotasjonsstatusen
+
+    pitchContainer.classList.toggle('rotated', isPitchRotated);
+    console.log("Pitch rotation toggled, rotated:", isPitchRotated);
+
+    // Beregn og sett størrelse manuelt
+    const containerWidth = pitchContainer.clientWidth;
+    const containerHeight = pitchContainer.clientHeight;
+    let targetWidth, targetHeight;
+
+    if (isPitchRotated) { // LANDSKAP
+        // Beregn basert på å fylle bredden
+        const heightFromWidth = containerWidth / PITCH_ASPECT_RATIO_LANDSCAPE;
+        // Beregn basert på å fylle høyden
+        const widthFromHeight = containerHeight * PITCH_ASPECT_RATIO_LANDSCAPE;
+
+        if (heightFromWidth <= containerHeight) {
+            // Å fylle bredden passer innenfor høyden
+            targetWidth = containerWidth;
+            targetHeight = heightFromWidth;
+            console.log("JS Resize (Landscape): Width limited");
+        } else {
+            // Å fylle høyden er nødvendig for å passe
+            targetWidth = widthFromHeight;
+            targetHeight = containerHeight;
+             console.log("JS Resize (Landscape): Height limited");
+        }
+    } else { // PORTRETT
+        // Beregn basert på å fylle høyden
+        const widthFromHeight = containerHeight * PITCH_ASPECT_RATIO_PORTRAIT;
+        // Beregn basert på å fylle bredden
+        const heightFromWidth = containerWidth / PITCH_ASPECT_RATIO_PORTRAIT;
+
+        if (widthFromHeight <= containerWidth) {
+            // Å fylle høyden passer innenfor bredden
+            targetWidth = widthFromHeight;
+            targetHeight = containerHeight;
+             console.log("JS Resize (Portrait): Height limited");
+        } else {
+            // Å fylle bredden er nødvendig for å passe
+            targetWidth = containerWidth;
+            targetHeight = heightFromWidth;
+             console.log("JS Resize (Portrait): Width limited");
+        }
+    }
+
+    // Sett stilen direkte på pitchElement
+    pitchElement.style.width = `${targetWidth}px`;
+    pitchElement.style.height = `${targetHeight}px`;
+    console.log(`JS Resize: Set pitch style to ${targetWidth.toFixed(0)}px x ${targetHeight.toFixed(0)}px`);
+
+    // Logg dimensjoner etter en kort forsinkelse for å verifisere
+    setTimeout(() => {
+        if (pitchElement) {
+            const width = pitchElement.offsetWidth;
+            const height = pitchElement.offsetHeight;
+            const actualAR = width > 0 && height > 0 ? width / height : 0;
+            const expectedAR = isPitchRotated ? PITCH_ASPECT_RATIO_LANDSCAPE : PITCH_ASPECT_RATIO_PORTRAIT;
+
+            console.log(`Pitch Dimensions AFTER JS Resize (${isPitchRotated ? 'Rotated' : 'Normal'}):`);
+            console.log(`  - OffsetWidth: ${width}px`);
+            console.log(`  - OffsetHeight: ${height}px`);
+            console.log(`  - Actual AR (W/H): ${actualAR.toFixed(3)}`);
+            console.log(`  - Expected AR: ${expectedAR.toFixed(3)}`);
+            if (Math.abs(actualAR - expectedAR) > 0.01) { // Tillat litt avvik
+                console.warn("  - AR MISMATCH DETECTED!");
+            }
+        } else {
+            console.error("togglePitchRotation log: pitchElement not found!");
+        }
+    }, 100); // 100ms forsinkelse for layout-oppdatering
+
+    saveCurrentState(); // Lagre den nye rotasjonsstatusen
 }
 // === togglePitchRotation (MODIFIED) END ===
 // === 5. Drag and Drop & Valg/Farge/UI Toggles END ===
@@ -288,7 +338,7 @@ function getCurrentStateData() {
 }
 // === getCurrentStateData (END - Fra V#62) ===
 function saveCurrentState() { try { const stateData = getCurrentStateData(); localStorage.setItem(STORAGE_KEY_LAST_STATE, JSON.stringify(stateData)); console.log("Lagret current state:", stateData); } catch (e) { console.error("Feil ved lagring av state:", e); } }
-// === applyState (START - Fra V#62) ===
+// === applyState (MODIFIED) START ===
 function applyState(stateData) {
     if (!stateData) return;
     clearPitch();
@@ -299,6 +349,8 @@ function applyState(stateData) {
     isPitchRotated = stateData.isPitchRotated || false;
     if (pitchContainer) {
         pitchContainer.classList.toggle('rotated', isPitchRotated);
+        // VIKTIG: Kall resize her også for å sette korrekt størrelse ved last
+        resizePitchElement();
         console.log("applyState: Rotasjonsstatus satt til:", isPitchRotated);
     }
 
@@ -335,9 +387,42 @@ function applyState(stateData) {
     renderUI();
     console.log("Tilstand anvendt.");
 }
-// === applyState (END - Fra V#62) ===
-function loadLastState() { const savedState = localStorage.getItem(STORAGE_KEY_LAST_STATE); if (savedState) { try { const stateData = JSON.parse(savedState); applyState(stateData); console.log("Siste tilstand lastet."); } catch (e) { console.error("Feil ved parsing av state:", e); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; if (pitchContainer) pitchContainer.classList.remove('rotated'); renderUI(); } } else { console.log("Ingen lagret tilstand funnet."); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; // Sørg for at default er ikke-rotert
-     if (pitchContainer) pitchContainer.classList.remove('rotated'); renderUI(); } }
+// === applyState (MODIFIED) END ===
+// === resizePitchElement (NEW HELPER FUNCTION) START ===
+function resizePitchElement() {
+     if (!pitchContainer || !pitchElement) {
+        console.error("resizePitchElement: pitchContainer or pitchElement not found!");
+        return;
+    }
+    const containerWidth = pitchContainer.clientWidth;
+    const containerHeight = pitchContainer.clientHeight;
+    let targetWidth, targetHeight;
+
+     if (isPitchRotated) { // LANDSKAP
+        const heightFromWidth = containerWidth / PITCH_ASPECT_RATIO_LANDSCAPE;
+        const widthFromHeight = containerHeight * PITCH_ASPECT_RATIO_LANDSCAPE;
+        if (heightFromWidth <= containerHeight) {
+            targetWidth = containerWidth; targetHeight = heightFromWidth;
+        } else {
+            targetWidth = widthFromHeight; targetHeight = containerHeight;
+        }
+    } else { // PORTRETT
+        const widthFromHeight = containerHeight * PITCH_ASPECT_RATIO_PORTRAIT;
+        const heightFromWidth = containerWidth / PITCH_ASPECT_RATIO_PORTRAIT;
+        if (widthFromHeight <= containerWidth) {
+            targetWidth = widthFromHeight; targetHeight = containerHeight;
+        } else {
+            targetWidth = containerWidth; targetHeight = heightFromWidth;
+        }
+    }
+
+    pitchElement.style.width = `${targetWidth}px`;
+    pitchElement.style.height = `${targetHeight}px`;
+    console.log(`resizePitchElement: Set pitch style to ${targetWidth.toFixed(0)}px x ${targetHeight.toFixed(0)}px (Rotated: ${isPitchRotated})`);
+}
+// === resizePitchElement (NEW HELPER FUNCTION) END ===
+function loadLastState() { const savedState = localStorage.getItem(STORAGE_KEY_LAST_STATE); if (savedState) { try { const stateData = JSON.parse(savedState); applyState(stateData); console.log("Siste tilstand lastet."); } catch (e) { console.error("Feil ved parsing av state:", e); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett størrelse også ved feil */ renderUI(); } } else { console.log("Ingen lagret tilstand funnet."); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; // Sørg for at default er ikke-rotert
+     if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett default størrelse */ renderUI(); } }
 function clearPitch() { if (!pitchSurface) {console.error("clearPitch: pitchSurface ikke funnet!"); return;} const pieces = pitchSurface.querySelectorAll('.player-piece'); pieces.forEach(piece => piece.remove()); console.log("clearPitch: Fjernet spillerbrikker fra pitchSurface"); }
 function getSavedSetups() { const setupsJson = localStorage.getItem(STORAGE_KEY_SETUPS); if (setupsJson) { try { return JSON.parse(setupsJson); } catch (e) { console.error("Feil ved parsing av oppsett:", e); return {}; } } return {}; }
 function handleSaveSetup() { if(!setupNameInput || !loadSetupSelect) return; const name = setupNameInput.value.trim(); if (!name) { alert("Skriv inn navn."); return; } const currentSetups = getSavedSetups(); const currentState = getCurrentStateData(); currentSetups[name] = currentState; try { localStorage.setItem(STORAGE_KEY_SETUPS, JSON.stringify(currentSetups)); alert(`Oppsett "${name}" lagret!`); populateSetupDropdown(); setupNameInput.value = ''; } catch (e) { console.error("Feil ved lagring av oppsett:", e); alert("Kunne ikke lagre."); } }
@@ -360,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
     playerDetailModal = document.getElementById('player-detail-modal');
     benchElement = document.getElementById('bench');
     console.log("DOMContentLoaded: Modal og bench element references assigned/checked.");
-    loadSquad(); loadLastState(); populateSetupDropdown(); // loadLastState() vil nå sette isPitchRotated korrekt
+    loadSquad(); loadLastState(); populateSetupDropdown(); // loadLastState() kaller nå resizePitchElement
     if (addPlayerButton) { addPlayerButton.addEventListener('click', openAddPlayerModal); console.log("Listener: addPlayerButton OK"); } else { console.error("addPlayerButton ikke funnet!"); }
     if (closeButton) { closeButton.addEventListener('click', closeAddPlayerModal); console.log("Listener: closeButton OK"); } else { console.error("closeButton ikke funnet!"); }
     if (confirmAddPlayerButton) { confirmAddPlayerButton.addEventListener('click', handleAddPlayerConfirm); console.log('Listener: confirmAddPlayerButton OK'); } else { console.error('confirmAddPlayerButton ikke funnet!'); }
@@ -381,7 +466,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saveSetupButton) { saveSetupButton.addEventListener('click', handleSaveSetup); console.log("Listener: saveSetupButton OK"); } else { console.error("saveSetupButton ikke funnet!"); }
     if (loadSetupButton) { loadSetupButton.addEventListener('click', handleLoadSetup); console.log("Listener: loadSetupButton OK"); } else { console.error("loadSetupButton ikke funnet!"); }
     if (deleteSetupButton) { deleteSetupButton.addEventListener('click', handleDeleteSetup); console.log("Listener: deleteSetupButton OK"); } else { console.error("deleteSetupButton ikke funnet!"); }
+
+    // Legg til lytter for resize av vinduet for å justere banestørrelsen
+    window.addEventListener('resize', resizePitchElement);
+
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #67 */
+/* Version: #68 */
