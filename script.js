@@ -1,4 +1,4 @@
-/* Version: #68 */
+/* Version: #69 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; // { playerId: element }
@@ -221,7 +221,7 @@ function handlePlayerPieceClick(event) { const pieceElement = event.currentTarge
 function clearPlayerSelection() { selectedPlayerIds.forEach(id => { const piece = playersOnPitch[id]; if (piece) { piece.classList.remove('selected'); } }); selectedPlayerIds.clear(); console.log("Valg nullstilt."); }
 function handleSetSelectedPlayerBorderColor() { const color = playerBorderColorInput.value; if (selectedPlayerIds.size === 0) { alert("Ingen spillere valgt."); return; } let stateChanged = false; selectedPlayerIds.forEach(playerId => { const player = getPlayerById(playerId); const piece = playersOnPitch[playerId]; if (player && piece) { if (player.borderColor !== color) { player.borderColor = color; const imgContainer = piece.querySelector('.player-image-container'); if (imgContainer) { imgContainer.style.borderColor = color; } stateChanged = true; } } }); if (stateChanged) { console.log("Farge oppdatert til:", color); saveCurrentState(); } clearPlayerSelection(); }
 function toggleSidebar() { isSidebarHidden = !isSidebarHidden; if (appContainer) { appContainer.classList.toggle('sidebar-hidden', isSidebarHidden); if (toggleSidebarButton) { toggleSidebarButton.innerHTML = isSidebarHidden ? '>' : '<'; } console.log("Sidebar toggled, hidden:", isSidebarHidden); } }
-// === togglePitchRotation (MODIFIED) START ===
+// === togglePitchRotation (START - Fra V#68) ===
 function togglePitchRotation() {
     isPitchRotated = !isPitchRotated; // Oppdater global status
 
@@ -233,51 +233,8 @@ function togglePitchRotation() {
     pitchContainer.classList.toggle('rotated', isPitchRotated);
     console.log("Pitch rotation toggled, rotated:", isPitchRotated);
 
-    // Beregn og sett størrelse manuelt
-    const containerWidth = pitchContainer.clientWidth;
-    const containerHeight = pitchContainer.clientHeight;
-    let targetWidth, targetHeight;
-
-    if (isPitchRotated) { // LANDSKAP
-        // Beregn basert på å fylle bredden
-        const heightFromWidth = containerWidth / PITCH_ASPECT_RATIO_LANDSCAPE;
-        // Beregn basert på å fylle høyden
-        const widthFromHeight = containerHeight * PITCH_ASPECT_RATIO_LANDSCAPE;
-
-        if (heightFromWidth <= containerHeight) {
-            // Å fylle bredden passer innenfor høyden
-            targetWidth = containerWidth;
-            targetHeight = heightFromWidth;
-            console.log("JS Resize (Landscape): Width limited");
-        } else {
-            // Å fylle høyden er nødvendig for å passe
-            targetWidth = widthFromHeight;
-            targetHeight = containerHeight;
-             console.log("JS Resize (Landscape): Height limited");
-        }
-    } else { // PORTRETT
-        // Beregn basert på å fylle høyden
-        const widthFromHeight = containerHeight * PITCH_ASPECT_RATIO_PORTRAIT;
-        // Beregn basert på å fylle bredden
-        const heightFromWidth = containerWidth / PITCH_ASPECT_RATIO_PORTRAIT;
-
-        if (widthFromHeight <= containerWidth) {
-            // Å fylle høyden passer innenfor bredden
-            targetWidth = widthFromHeight;
-            targetHeight = containerHeight;
-             console.log("JS Resize (Portrait): Height limited");
-        } else {
-            // Å fylle bredden er nødvendig for å passe
-            targetWidth = containerWidth;
-            targetHeight = heightFromWidth;
-             console.log("JS Resize (Portrait): Width limited");
-        }
-    }
-
-    // Sett stilen direkte på pitchElement
-    pitchElement.style.width = `${targetWidth}px`;
-    pitchElement.style.height = `${targetHeight}px`;
-    console.log(`JS Resize: Set pitch style to ${targetWidth.toFixed(0)}px x ${targetHeight.toFixed(0)}px`);
+    // Beregn og sett størrelse manuelt (kaller den nye funksjonen)
+    resizePitchElement();
 
     // Logg dimensjoner etter en kort forsinkelse for å verifisere
     setTimeout(() => {
@@ -302,7 +259,7 @@ function togglePitchRotation() {
 
     saveCurrentState(); // Lagre den nye rotasjonsstatusen
 }
-// === togglePitchRotation (MODIFIED) END ===
+// === togglePitchRotation (END - Fra V#68) ===
 // === 5. Drag and Drop & Valg/Farge/UI Toggles END ===
 
 
@@ -338,7 +295,7 @@ function getCurrentStateData() {
 }
 // === getCurrentStateData (END - Fra V#62) ===
 function saveCurrentState() { try { const stateData = getCurrentStateData(); localStorage.setItem(STORAGE_KEY_LAST_STATE, JSON.stringify(stateData)); console.log("Lagret current state:", stateData); } catch (e) { console.error("Feil ved lagring av state:", e); } }
-// === applyState (MODIFIED) START ===
+// === applyState (START - Fra V#68) ===
 function applyState(stateData) {
     if (!stateData) return;
     clearPitch();
@@ -387,8 +344,8 @@ function applyState(stateData) {
     renderUI();
     console.log("Tilstand anvendt.");
 }
-// === applyState (MODIFIED) END ===
-// === resizePitchElement (NEW HELPER FUNCTION) START ===
+// === applyState (END - Fra V#68) ===
+// === resizePitchElement (MODIFIED) START ===
 function resizePitchElement() {
      if (!pitchContainer || !pitchElement) {
         console.error("resizePitchElement: pitchContainer or pitchElement not found!");
@@ -396,31 +353,52 @@ function resizePitchElement() {
     }
     const containerWidth = pitchContainer.clientWidth;
     const containerHeight = pitchContainer.clientHeight;
-    let targetWidth, targetHeight;
+    let targetWidth, targetHeight; // Beregnede *visuelle* dimensjoner
 
      if (isPitchRotated) { // LANDSKAP
-        const heightFromWidth = containerWidth / PITCH_ASPECT_RATIO_LANDSCAPE;
-        const widthFromHeight = containerHeight * PITCH_ASPECT_RATIO_LANDSCAPE;
+        // Beregn dimensjoner som om banen *visuelt* skal passe inn
+        const heightFromWidth = containerWidth / PITCH_ASPECT_RATIO_LANDSCAPE; // Høyde hvis bredden fyller
+        const widthFromHeight = containerHeight * PITCH_ASPECT_RATIO_LANDSCAPE; // Bredde hvis høyden fyller
+
         if (heightFromWidth <= containerHeight) {
-            targetWidth = containerWidth; targetHeight = heightFromWidth;
+            // Bredden er begrensende
+            targetWidth = containerWidth;
+            targetHeight = heightFromWidth;
+             console.log("JS Resize Calc (Landscape): Width limited");
         } else {
-            targetWidth = widthFromHeight; targetHeight = containerHeight;
+            // Høyden er begrensende
+            targetWidth = widthFromHeight;
+            targetHeight = containerHeight;
+             console.log("JS Resize Calc (Landscape): Height limited");
         }
+        // *** SWAP for transform: rotate(90deg) ***
+        pitchElement.style.width = `${targetHeight}px`; // Sett bredde til beregnet HØYDE
+        pitchElement.style.height = `${targetWidth}px`; // Sett høyde til beregnet BREDDE
+        console.log(`JS Resize SET (Landscape): Style W=${targetHeight.toFixed(0)}px, H=${targetWidth.toFixed(0)}px`);
+
     } else { // PORTRETT
+        // Beregn dimensjoner som normalt
         const widthFromHeight = containerHeight * PITCH_ASPECT_RATIO_PORTRAIT;
         const heightFromWidth = containerWidth / PITCH_ASPECT_RATIO_PORTRAIT;
-        if (widthFromHeight <= containerWidth) {
-            targetWidth = widthFromHeight; targetHeight = containerHeight;
-        } else {
-            targetWidth = containerWidth; targetHeight = heightFromWidth;
-        }
-    }
 
-    pitchElement.style.width = `${targetWidth}px`;
-    pitchElement.style.height = `${targetHeight}px`;
-    console.log(`resizePitchElement: Set pitch style to ${targetWidth.toFixed(0)}px x ${targetHeight.toFixed(0)}px (Rotated: ${isPitchRotated})`);
+        if (widthFromHeight <= containerWidth) {
+            // Høyden er begrensende
+            targetWidth = widthFromHeight;
+            targetHeight = containerHeight;
+             console.log("JS Resize Calc (Portrait): Height limited");
+        } else {
+            // Bredden er begrensende
+            targetWidth = containerWidth;
+            targetHeight = heightFromWidth;
+             console.log("JS Resize Calc (Portrait): Width limited");
+        }
+        // Sett dimensjoner direkte
+        pitchElement.style.width = `${targetWidth}px`;
+        pitchElement.style.height = `${targetHeight}px`;
+        console.log(`JS Resize SET (Portrait): Style W=${targetWidth.toFixed(0)}px, H=${targetHeight.toFixed(0)}px`);
+    }
 }
-// === resizePitchElement (NEW HELPER FUNCTION) END ===
+// === resizePitchElement (MODIFIED) END ===
 function loadLastState() { const savedState = localStorage.getItem(STORAGE_KEY_LAST_STATE); if (savedState) { try { const stateData = JSON.parse(savedState); applyState(stateData); console.log("Siste tilstand lastet."); } catch (e) { console.error("Feil ved parsing av state:", e); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett størrelse også ved feil */ renderUI(); } } else { console.log("Ingen lagret tilstand funnet."); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; // Sørg for at default er ikke-rotert
      if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett default størrelse */ renderUI(); } }
 function clearPitch() { if (!pitchSurface) {console.error("clearPitch: pitchSurface ikke funnet!"); return;} const pieces = pitchSurface.querySelectorAll('.player-piece'); pieces.forEach(piece => piece.remove()); console.log("clearPitch: Fjernet spillerbrikker fra pitchSurface"); }
@@ -473,4 +451,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #68 */
+/* Version: #69 */
