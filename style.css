@@ -1,4 +1,4 @@
-/* Version: #78 */
+/* Version: #80 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -45,57 +45,69 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden; /* Klipper det som går utenfor containeren */
+    overflow: hidden;
 }
 
-/* Pitch: Størrelse settes av JS, får bakgrunnsbilde */
+/* Pitch: Størrelse settes av JS, roterer for landskap */
 #pitch {
-    max-width: 100%;  /* Begrens til container bredde */
-    max-height: 100%; /* Begrens til container høyde */
-    /* width, height, aspect-ratio fjernet - styres av JS */
+    max-width: 100%;
+    max-height: 100%;
     position: relative;
-    overflow: hidden; /* Klipping av innhold skjer her */
-    border: 2px solid white; /* Behold border rundt */
-    /* Transition KUN på transform */
+    overflow: hidden; /* Viktig for å klippe surface/img */
+    border: 2px solid white;
     transition: transform 0.4s ease-in-out;
     transform-origin: center center;
     transform: rotate(0deg); /* Standard */
-    /* Fjernet bakgrunnsfarge */
+    /* Ingen bakgrunn her */
     box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
-
-    /* --- Flyttet bakgrunn hit --- */
-    background-image: url('pitch-background.jpg');
-    background-size: contain;
-    background-position: center center;
-    background-repeat: no-repeat;
-    /* --------------------------- */
 }
-/* Rotert Pitch: Kun transform endres her */
+/* Rotert Pitch: Roterer selve rammen */
 #pitch-container.rotated #pitch {
-    /* aspect-ratio, width, height fjernet */
-    transform: rotate(90deg); /* Roter selve banen (inkludert bakgrunnen) */
+    transform: rotate(90deg);
 }
 
-/* Pitch Surface: Dekker #pitch, transparent, for elementplassering */
+/* Pitch Surface: Dekker #pitch, transparent */
 #pitch-surface {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1;
-    overflow: visible; /* Skal IKKE klippe her */
-    /* Fjernet bakgrunnsbilde herfra */
+    overflow: hidden; /* Må klippe bildet */
 }
 
-/* --- Fjernet ALLE CSS-regler for banelinjer --- */
+/* --- Bakgrunnsbilde --- */
+#pitch-background-img {
+    position: absolute;
+    /* Sentrering og skalering kan bli kompleks pga rotasjon */
+    /* La oss prøve å fylle, og sentrere */
+    top: 50%;
+    left: 50%;
+    /* Vi må sette dimensjoner som er store nok til å dekke */
+    /* når rotert, bruk max av bredde/høyde for sikkerhets skyld */
+    width: 100%; /* Start med 100% */
+    height: 100%;
+    object-fit: cover; /* Fyll elementet, kan klippe */
+    transform-origin: center center;
+    transition: transform 0.4s ease-in-out;
+    z-index: -1; /* Bak elementene på surface */
+
+    /* Standard (Portrett): Roter bildet -90 grader */
+    transform: translate(-50%, -50%) rotate(-90deg);
+}
+/* Landskap: Roter bildet tilbake til 0 grader */
+#pitch-container.rotated #pitch-background-img {
+    transform: translate(-50%, -50%) rotate(0deg);
+     /* Juster width/height her om nødvendig for object-fit:cover */
+     /* width: 100%; height: 100%; kan fungere */
+}
 
 
 /* === Spillerbrikker PÅ BANEN (inne i #pitch-surface) === */
+/* Plasseres relativt til #pitch-surface */
 .player-piece { position: absolute; width: 70px; height: auto; cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; user-select: none; -webkit-user-select: none; opacity: 1;
     transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.4s ease-in-out;
     transform-origin: center center;
-    transform: translate(-50%, -50%) rotate(0deg); /* Standard */
+    /* Viktig: Roteres NÅ relativt til #pitch, som roterer */
+    transform: translate(-50%, -50%) rotate(0deg);
 }
-.player-image-container { width: 55px; height: 55px; border-radius: 50%; border: 3px solid black; background-color: rgba(50, 50, 50, 0.8); overflow: hidden; display: flex; justify-content: center; align-items: center; margin-bottom: 3px; }
-.player-image { width: 100%; height: 100%; background-color: #ccc; background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 50%; }
-.player-name { background-color: rgba(0,0,0,0.7); color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; font-weight: bold; text-align: center; max-width: 65px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Mot-roter spillerbrikker NÅR BANEN (#pitch) ER ROTERT */
 #pitch-container.rotated .player-piece {
     transform: translate(-50%, -50%) rotate(-90deg);
@@ -105,18 +117,20 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #ball { position: absolute; width: 25px; height: 25px; background-color: #fff; border: 1px solid black; border-radius: 50%; cursor: grab; display: flex; justify-content: center; align-items: center; font-size: 9px; color: black; top: 50%; left: 50%; z-index: 15;
     transition: transform 0.4s ease-in-out;
     transform-origin: center center;
-    transform: translate(-50%, -50%) rotate(0deg); /* Standard */
+    /* Roterer NÅ relativt til #pitch */
+    transform: translate(-50%, -50%) rotate(0deg);
 }
 /* Mot-roter ball NÅR BANEN (#pitch) ER ROTERT */
 #pitch-container.rotated #ball {
-    transform: translate(-50%, -50%) rotate(-90deg); /* Mot-roter */
+    transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 /* === Tegning Canvas (inne i #pitch-surface) === */
 #drawing-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;
     transform-origin: center center;
     transition: transform 0.4s ease-in-out;
-    transform: rotate(0deg); /* Standard */
+    /* Roterer NÅ relativt til #pitch */
+    transform: rotate(0deg);
 }
 /* Mot-roter canvas NÅR BANEN (#pitch) ER ROTERT */
 #pitch-container.rotated #drawing-canvas {
@@ -135,25 +149,18 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 
 /* === Spillerbrikke Valg Styling === */
 .player-piece.selected {
-    /* Basis scale, rotasjon håndteres av de mer spesifikke reglene */
-    transform: translate(-50%, -50%) scale(1.1);
+    transform: translate(-50%, -50%) scale(1.1) rotate(0deg); /* Standard, rotasjon styres av .rotated */
     z-index: 25;
 }
-/* Kombiner mot-rotasjon og scale når valgt og rotert */
 #pitch-container.rotated .player-piece.selected {
-    transform: translate(-50%, -50%) scale(1.1) rotate(-90deg);
+    transform: translate(-50%, -50%) scale(1.1) rotate(-90deg); /* Mot-rotert */
 }
-/* Håndter valgt+IKKE-rotert tilstand */
-#pitch-container:not(.rotated) .player-piece.selected {
-     transform: translate(-50%, -50%) scale(1.1) rotate(0deg);
-}
-
 .player-piece.selected .player-image-container {
     box-shadow: 0 0 10px 3px gold;
 }
 
-
 /* === Modaler og Diverse UI (Som før) === */
+/* ... (modal-kode som før) ... */
 .modal { display: none; /* Skjult som standard */ position: fixed; /* Hold deg på plass */ z-index: 1100; /* Over alt annet */ left: 0; top: 0; width: 100%; height: 100%; overflow: auto; /* Scroll hvis nødvendig */ background-color: rgba(0,0,0,0.4); /* Halvgjennomsiktig bakgrunn */ }
 .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; border-radius: 5px; width: 80%; max-width: 500px; position: relative; }
 .modal-content.wide { max-width: 800px; }
@@ -179,4 +186,4 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 label[for="player-border-color"] { display: inline-block; margin-right: 5px; margin-top: 0; }
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-/* Version: #78 */
+/* Version: #80 */
