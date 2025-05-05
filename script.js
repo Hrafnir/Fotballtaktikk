@@ -1,4 +1,4 @@
-/* Version: #55 */
+/* Version: #62 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; // { playerId: element }
@@ -9,7 +9,7 @@ let draggedElement = null;
 let dragSource = null; // 'squad', 'pitch', 'bench', 'ball'
 let selectedPlayerIds = new Set();
 let isSidebarHidden = false;
-let isPitchRotated = false;
+let isPitchRotated = false; // Global variabel for rotasjonsstatus
 
 const MAX_PLAYERS_ON_PITCH = 11;
 
@@ -74,7 +74,7 @@ function renderSquadList() { if (!squadListElement) return; squadListElement.inn
 
 
 // === 4. Spillerbrikke & Ball Håndtering START ===
-function createPlayerPieceElement(player, xPercent, yPercent) { const piece = document.createElement('div'); piece.classList.add('player-piece', 'draggable'); piece.setAttribute('data-player-id', player.id); piece.setAttribute('draggable', true); piece.style.left = `${xPercent}%`; piece.style.top = `${yPercent}%`; piece.style.transform = 'translate(-50%, -50%)'; const imgContainer = document.createElement('div'); imgContainer.classList.add('player-image-container'); imgContainer.style.borderColor = player.borderColor || 'black'; const imgDiv = document.createElement('div'); imgDiv.classList.add('player-image'); if (player.imageUrl && !player.imageUrl.startsWith('placeholder-file:')) imgDiv.style.backgroundImage = `url('${player.imageUrl}')`; else imgDiv.style.backgroundColor = '#aaa'; imgContainer.appendChild(imgDiv); piece.appendChild(imgContainer); const nameDiv = document.createElement('div'); nameDiv.classList.add('player-name'); nameDiv.textContent = player.nickname || player.name; piece.appendChild(nameDiv); piece.addEventListener('dragstart', handleDragStartPiece); piece.addEventListener('dragend', handleDragEnd); piece.addEventListener('dblclick', () => openPlayerDetailModal(player.id)); piece.addEventListener('click', handlePlayerPieceClick); return piece; }
+function createPlayerPieceElement(player, xPercent, yPercent) { const piece = document.createElement('div'); piece.classList.add('player-piece', 'draggable'); piece.setAttribute('data-player-id', player.id); piece.setAttribute('draggable', true); piece.style.left = `${xPercent}%`; piece.style.top = `${yPercent}%`; /* Transform settes nå kun av CSS */ const imgContainer = document.createElement('div'); imgContainer.classList.add('player-image-container'); imgContainer.style.borderColor = player.borderColor || 'black'; const imgDiv = document.createElement('div'); imgDiv.classList.add('player-image'); if (player.imageUrl && !player.imageUrl.startsWith('placeholder-file:')) imgDiv.style.backgroundImage = `url('${player.imageUrl}')`; else imgDiv.style.backgroundColor = '#aaa'; imgContainer.appendChild(imgDiv); piece.appendChild(imgContainer); const nameDiv = document.createElement('div'); nameDiv.classList.add('player-name'); nameDiv.textContent = player.nickname || player.name; piece.appendChild(nameDiv); piece.addEventListener('dragstart', handleDragStartPiece); piece.addEventListener('dragend', handleDragEnd); piece.addEventListener('dblclick', () => openPlayerDetailModal(player.id)); piece.addEventListener('click', handlePlayerPieceClick); return piece; }
 function getPlayerById(playerId) { if (!playerId) return null; return squad.find(p => p.id === playerId) || null; }
 function updateBallPosition(xPercent, yPercent) { if (ballElement) { ballElement.style.left = `${xPercent}%`; ballElement.style.top = `${yPercent}%`; } }
 // === 4. Spillerbrikke & Ball Håndtering END ===
@@ -89,27 +89,232 @@ function handleDragStartPiece(event) { const pieceElement = event.target.closest
 function handleBallDragStart(event) { console.log("handleBallDragStart: Drag startet:", event.target); try { event.dataTransfer.setData('text/x-dragged-item', 'ball'); dragSource = 'ball'; draggedElement = event.target; console.log("handleBallDragStart: setData satt for ball"); event.dataTransfer.effectAllowed = 'move'; event.target.classList.add('dragging'); } catch (e) { console.error("handleBallDragStart: Feil ved setData:", e); event.preventDefault(); } }
 function handleDragOver(event, targetType) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; let targetElement; if (targetType === 'pitch') targetElement = pitchElement; else if (targetType === 'bench') targetElement = benchElement; else if (targetType === 'squad') targetElement = squadListContainer; if(targetElement) targetElement.classList.add('drag-over'); }
 function handleDragLeave(event, targetType) { const relatedTarget = event.relatedTarget; let targetElement; if (targetType === 'pitch') targetElement = pitchElement; else if (targetType === 'bench') targetElement = benchElement; else if (targetType === 'squad') targetElement = squadListContainer; if (!targetElement) return; if (!relatedTarget || !targetElement.contains(relatedTarget)) { targetElement.classList.remove('drag-over'); } }
-function handleDropOnPitch(event) { event.preventDefault(); if (pitchElement) pitchElement.classList.remove('drag-over'); const draggedItemType = event.dataTransfer.getData('text/x-dragged-item'); if (draggedItemType === 'ball') { const pitchRect = pitchElement.getBoundingClientRect(); if (!pitchRect || pitchRect.width === 0 || pitchRect.height === 0) { console.error("handleDropOnPitch (ball): Kan ikke beregne posisjon.", pitchRect); return; } const dropX = event.clientX - pitchRect.left; const dropY = event.clientY - pitchRect.top; const xPercent = Math.max(0, Math.min(100, (dropX / pitchRect.width) * 100)); const yPercent = Math.max(0, Math.min(100, (dropY / pitchRect.height) * 100)); console.log(`handleDropOnPitch (ball): dropY=${dropY.toFixed(1)}, height=${pitchRect.height.toFixed(1)}, yPercent=${yPercent.toFixed(1)}%`); updateBallPosition(xPercent, yPercent); return; } let playerId; try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); return; } if (!playerId) { console.warn("Drop on Pitch: Mottok tom playerId for spiller."); return; } const player = getPlayerById(playerId); if (!player) { console.error("Drop on Pitch: Fant ikke spiller ID:", playerId); return; } if ( (dragSource === 'squad' || dragSource === 'bench') && Object.keys(playersOnPitch).length >= MAX_PLAYERS_ON_PITCH ) { alert(`Maks ${MAX_PLAYERS_ON_PITCH} spillere på banen.`); return; } const pitchRect = pitchElement.getBoundingClientRect(); if (!pitchRect || pitchRect.width === 0 || pitchRect.height === 0) { console.error("handleDropOnPitch (spiller): Kan ikke beregne posisjon.", pitchRect); return; } const dropX = event.clientX - pitchRect.left; const dropY = event.clientY - pitchRect.top; console.log(`handleDropOnPitch: Før beregning - dropY: ${dropY.toFixed(1)}, pitchRect.height: ${pitchRect.height.toFixed(1)}`); const xPercent = Math.max(0, Math.min(100, (dropX / pitchRect.width) * 100)); const yPercent = Math.max(0, Math.min(100, (dropY / pitchRect.height) * 100)); console.log(`handleDropOnPitch: Dropped ${playerId} at raw(${dropX.toFixed(1)}, ${dropY.toFixed(1)}), calculated percent(${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%)`); player.position = { x: xPercent, y: yPercent }; let stateChanged = false; if (playersOnPitch[playerId]) { const piece = playersOnPitch[playerId]; console.log(`handleDropOnPitch: Flytter eksisterende brikke ${playerId} til ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`); piece.style.left = `${xPercent}%`; piece.style.top = `${yPercent}%`; console.log(`handleDropOnPitch: Stiler satt for ${playerId}: left=${piece.style.left}, top=${piece.style.top}`); stateChanged = true; } else { console.log(`handleDropOnPitch: Plasserer ny brikke ${playerId} på ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`); const newPiece = createPlayerPieceElement(player, xPercent, yPercent); if (pitchSurface) pitchSurface.appendChild(newPiece); else console.error("FEIL: pitchSurface ikke funnet ved plassering!"); playersOnPitch[playerId] = newPiece; if (dragSource === 'bench') { const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); } } stateChanged = true; } if (stateChanged) { saveCurrentState(); renderUI(); } }
+// === handleDropOnPitch (MODIFIED) START ===
+function handleDropOnPitch(event) {
+    event.preventDefault();
+    if (pitchElement) pitchElement.classList.remove('drag-over');
+
+    const pitchRect = pitchElement.getBoundingClientRect();
+    if (!pitchRect || pitchRect.width === 0 || pitchRect.height === 0) {
+        console.error("handleDropOnPitch: Kan ikke beregne posisjon.", pitchRect);
+        return;
+    }
+
+    // Få rå drop-koordinater relativt til viewport
+    const dropX_viewport = event.clientX;
+    const dropY_viewport = event.clientY;
+
+    // Konverter til koordinater relativt til pitchElement's øvre venstre hjørne
+    let dropX_relative = dropX_viewport - pitchRect.left;
+    let dropY_relative = dropY_viewport - pitchRect.top;
+
+    let xPercent, yPercent;
+
+    // Korriger beregning hvis banen er rotert
+    if (isPitchRotated) {
+        // Når rotert 90 grader med klokken:
+        // - Viewport X (dropX_relative) tilsvarer den *vertikale* aksen på den *originale* banen (fra bunn til topp).
+        // - Viewport Y (dropY_relative) tilsvarer den *horisontale* aksen på den *originale* banen (fra venstre til høyre).
+        // - pitchRect.width er nå den *korte* siden (original høyde).
+        // - pitchRect.height er nå den *lange* siden (original bredde).
+
+        // Beregn X-prosent (original horisontal akse) basert på dropY_relative og pitchRect.height (som er original bredde)
+        xPercent = (dropY_relative / pitchRect.height) * 100;
+
+        // Beregn Y-prosent (original vertikal akse) basert på dropX_relative og pitchRect.width (som er original høyde)
+        // Siden (0,0) for den originale banen nå er øverst til høyre (etter 90 graders rotasjon), må vi invertere Y-aksen.
+        yPercent = (1 - (dropX_relative / pitchRect.width)) * 100;
+
+        console.log(`handleDropOnPitch (Rotated): drop(rel)(${dropX_relative.toFixed(1)}, ${dropY_relative.toFixed(1)}), rect(w:${pitchRect.width.toFixed(1)}, h:${pitchRect.height.toFixed(1)}), calc%(x:${xPercent.toFixed(1)}, y:${yPercent.toFixed(1)})`);
+
+    } else {
+        // Standard beregning for ikke-rotert bane
+        xPercent = (dropX_relative / pitchRect.width) * 100;
+        yPercent = (dropY_relative / pitchRect.height) * 100;
+        console.log(`handleDropOnPitch (Normal): drop(rel)(${dropX_relative.toFixed(1)}, ${dropY_relative.toFixed(1)}), rect(w:${pitchRect.width.toFixed(1)}, h:${pitchRect.height.toFixed(1)}), calc%(x:${xPercent.toFixed(1)}, y:${yPercent.toFixed(1)})`);
+    }
+
+    // Klem prosentverdiene mellom 0 og 100
+    xPercent = Math.max(0, Math.min(100, xPercent));
+    yPercent = Math.max(0, Math.min(100, yPercent));
+
+
+    // Håndter Ball drop
+    const draggedItemType = event.dataTransfer.getData('text/x-dragged-item');
+    if (draggedItemType === 'ball') {
+        console.log(`handleDropOnPitch (Ball): Oppdaterer posisjon til ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`);
+        updateBallPosition(xPercent, yPercent);
+        // Lagre ballens posisjon (hvis ønskelig, f.eks. i state)
+        // saveCurrentState(); // Vurder om ballposisjon skal lagres
+        return;
+    }
+
+    // Håndter Spiller drop
+    let playerId;
+    try {
+        playerId = event.dataTransfer.getData('text/plain');
+    } catch (e) {
+        console.error("Feil ved henting av dataTransfer (spiller):", e);
+        return;
+    }
+    if (!playerId) {
+        console.warn("Drop on Pitch: Mottok tom playerId for spiller.");
+        return;
+    }
+
+    const player = getPlayerById(playerId);
+    if (!player) {
+        console.error("Drop on Pitch: Fant ikke spiller ID:", playerId);
+        return;
+    }
+
+    // Sjekk maks antall spillere hvis det er fra squad/bench
+    if ((dragSource === 'squad' || dragSource === 'bench') && Object.keys(playersOnPitch).length >= MAX_PLAYERS_ON_PITCH) {
+        alert(`Maks ${MAX_PLAYERS_ON_PITCH} spillere på banen.`);
+        return;
+    }
+
+    // Oppdater spillerens lagrede posisjon
+    player.position = { x: xPercent, y: yPercent };
+    console.log(`handleDropOnPitch (Spiller ${playerId}): Lagret posisjon:`, player.position);
+
+    let stateChanged = false;
+    // Sjekk om spilleren allerede er på banen (flyttes internt)
+    if (playersOnPitch[playerId]) {
+        const piece = playersOnPitch[playerId];
+        console.log(`handleDropOnPitch: Flytter eksisterende brikke ${playerId} til ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`);
+        piece.style.left = `${xPercent}%`;
+        piece.style.top = `${yPercent}%`;
+        stateChanged = true;
+    } else {
+        // Plasser ny spiller på banen
+        console.log(`handleDropOnPitch: Plasserer ny brikke ${playerId} på ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`);
+        const newPiece = createPlayerPieceElement(player, xPercent, yPercent);
+        if (pitchSurface) pitchSurface.appendChild(newPiece);
+        else console.error("FEIL: pitchSurface ikke funnet ved plassering!");
+        playersOnPitch[playerId] = newPiece;
+
+        // Fjern fra benk hvis kilden var benken
+        if (dragSource === 'bench') {
+            const benchIndex = playersOnBench.indexOf(playerId);
+            if (benchIndex > -1) {
+                playersOnBench.splice(benchIndex, 1);
+            }
+        }
+        stateChanged = true;
+    }
+
+    if (stateChanged) {
+        saveCurrentState(); // Lagre den oppdaterte spillerposisjonen
+        renderUI();       // Oppdater listene i sidepanelet
+    }
+}
+// === handleDropOnPitch (MODIFIED) END ===
 function handleDropOnBench(event) { event.preventDefault(); if (benchElement) benchElement.classList.remove('drag-over'); let playerId; try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); return; } if (!playerId) { console.warn("Drop on Bench: Mottok tom playerId."); return; } const player = getPlayerById(playerId); if (!player) { console.error("Drop on Bench: Fant ikke spiller ID:", playerId); return; } let stateChanged = false; if (dragSource === 'pitch') { if (!playersOnBench.includes(playerId)) { playersOnBench.push(playerId); } if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; stateChanged = true; } } if (stateChanged) { saveCurrentState(); renderUI(); } }
 function handleDropOnSquadList(event) { event.preventDefault(); if (squadListContainer) squadListContainer.classList.remove('drag-over'); let playerId; try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); return; } if (!playerId) { console.warn("Drop on Squad List: Mottok tom playerId."); return; } const player = getPlayerById(playerId); if (!player) { console.error("Drop on Squad List: Fant ikke spiller ID:", playerId); return; } let stateChanged = false; if (dragSource === 'pitch') { if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; console.log(`Moved player ${playerId} from pitch to squad list`); stateChanged = true; } } else if (dragSource === 'bench') { const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); console.log(`Moved player ${playerId} from bench to squad list`); stateChanged = true; } } else if (dragSource === 'squad') { console.log("Ignorerer slipp fra tropp til tropp."); } if (stateChanged) { saveCurrentState(); renderUI(); } }
-function handleDragEnd(event) { console.log(`<<<<< handleDragEnd KALT for event target:`, event.target, `>>>>>`); const draggedElementTarget = event.target; setTimeout(() => { console.log(`handleDragEnd (setTimeout): Cleaning up...`); if(pitchElement) pitchElement.classList.remove('drag-over'); if(benchElement) benchElement.classList.remove('drag-over'); if(squadListContainer) squadListContainer.classList.remove('drag-over'); console.log(`handleDragEnd (setTimeout): Removed drag-over classes.`); if (draggedElementTarget && draggedElementTarget.classList.contains('dragging')) { draggedElementTarget.classList.remove('dragging'); console.log(`handleDragEnd (setTimeout): Fjernet .dragging fra event.target`); } else if (draggedElementTarget) { console.log(`handleDragEnd (setTimeout): event.target hadde ikke .dragging klassen.`); } else { console.log(`handleDragEnd (setTimeout): event.target var ikke tilgjengelig?`); } resetDragState(); console.log(`handleDragEnd (setTimeout): Drag state nullstilt.`); }, 0); }
+function handleDragEnd(event) { console.log(`<<<<< handleDragEnd KALT for event target:`, event.target, `>>>>>`); const draggedElementTarget = event.target; setTimeout(() => { console.log(`handleDragEnd (setTimeout): Cleaning up...`); if(pitchElement) pitchElement.classList.remove('drag-over'); if(benchElement) benchElement.classList.remove('drag-over'); if(squadListContainer) squadListContainer.classList.remove('drag-over'); console.log(`handleDragEnd (setTimeout): Removed drag-over classes.`); if (draggedElementTarget && draggedElementTarget.classList.contains('dragging')) { draggedElementTarget.classList.remove('dragging'); console.log(`handleDragEnd (setTimeout): Fjernet .dragging fra event.target`); } else if (draggedElementTarget) { console.log(`handleDragEnd (setTimeout): event.target (${draggedElementTarget.tagName}${draggedElementTarget.className ? '.' + draggedElementTarget.className.replace(/ /g, '.') : ''}) hadde ikke .dragging klassen.`); } else { console.log(`handleDragEnd (setTimeout): event.target var ikke tilgjengelig?`); } resetDragState(); console.log(`handleDragEnd (setTimeout): Drag state nullstilt.`); }, 0); } // Added more detail to logging
 function resetDragState() { draggedPlayerId = null; draggedElement = null; dragSource = null; }
 function handlePlayerPieceClick(event) { const pieceElement = event.currentTarget; const playerId = pieceElement.getAttribute('data-player-id'); if (selectedPlayerIds.has(playerId)) { selectedPlayerIds.delete(playerId); pieceElement.classList.remove('selected'); } else { selectedPlayerIds.add(playerId); pieceElement.classList.add('selected'); } console.log("Valgte spillere:", selectedPlayerIds); }
 function clearPlayerSelection() { selectedPlayerIds.forEach(id => { const piece = playersOnPitch[id]; if (piece) { piece.classList.remove('selected'); } }); selectedPlayerIds.clear(); console.log("Valg nullstilt."); }
 function handleSetSelectedPlayerBorderColor() { const color = playerBorderColorInput.value; if (selectedPlayerIds.size === 0) { alert("Ingen spillere valgt."); return; } let stateChanged = false; selectedPlayerIds.forEach(playerId => { const player = getPlayerById(playerId); const piece = playersOnPitch[playerId]; if (player && piece) { if (player.borderColor !== color) { player.borderColor = color; const imgContainer = piece.querySelector('.player-image-container'); if (imgContainer) { imgContainer.style.borderColor = color; } stateChanged = true; } } }); if (stateChanged) { console.log("Farge oppdatert til:", color); saveCurrentState(); } clearPlayerSelection(); }
 function toggleSidebar() { isSidebarHidden = !isSidebarHidden; if (appContainer) { appContainer.classList.toggle('sidebar-hidden', isSidebarHidden); if (toggleSidebarButton) { toggleSidebarButton.innerHTML = isSidebarHidden ? '>' : '<'; } console.log("Sidebar toggled, hidden:", isSidebarHidden); } }
-function togglePitchRotation() { isPitchRotated = !isPitchRotated; if (pitchContainer) { pitchContainer.classList.toggle('rotated', isPitchRotated); console.log("Pitch rotation toggled, rotated:", isPitchRotated); } }
+// === togglePitchRotation (MODIFIED) START ===
+function togglePitchRotation() {
+    isPitchRotated = !isPitchRotated; // Oppdater global status
+    if (pitchContainer) {
+        pitchContainer.classList.toggle('rotated', isPitchRotated);
+        console.log("Pitch rotation toggled, rotated:", isPitchRotated);
+    }
+     // Ingen manuell re-rendering nødvendig her, CSS håndterer det.
+     saveCurrentState(); // Lagre den nye rotasjonsstatusen
+}
+// === togglePitchRotation (MODIFIED) END ===
 // === 5. Drag and Drop & Valg/Farge/UI Toggles END ===
 
 
 // === 6. Lokal Lagring START ===
 function saveSquad() { console.log("saveSquad: Prøver å lagre squad:", squad); try { const squadJson = JSON.stringify(squad); console.log("saveSquad: squad JSON:", squadJson); localStorage.setItem(STORAGE_KEY_SQUAD, squadJson); console.log("saveSquad: Lagring OK."); } catch (e) { console.error("Feil ved lagring av tropp:", e); alert("Kunne ikke lagre troppen."); } }
-function loadSquad() { const savedSquadJson = localStorage.getItem(STORAGE_KEY_SQUAD); console.log("loadSquad: Hentet rådata:", savedSquadJson); if (savedSquadJson) { try { const parsedSquad = JSON.parse(savedSquadJson); squad = parsedSquad.map(player => ({ ...player, nickname: player.nickname || '', imageUrl: player.imageUrl || '', personalInfo: player.personalInfo || { birthday: '', phone: '', email: '' }, matchStats: player.matchStats || { matchesPlayed: 0, goalsScored: 0 }, comments: player.comments || [], borderColor: player.borderColor || 'black' })); console.log("loadSquad: Parsed and initialized squad:", squad); const maxId = squad.reduce((max, p) => { const idNum = p.id && typeof p.id === 'string' ? parseInt(p.id.split('-')[1]) : 0; return Math.max(max, !isNaN(idNum) ? idNum : 0); }, 0); nextPlayerId = maxId + 1; console.log("loadSquad: Next player ID:", nextPlayerId); return true; } catch (e) { console.error("Feil ved parsing/init av lagret tropp:", e); squad = []; localStorage.removeItem(STORAGE_KEY_SQUAD); return false; } } console.log("Ingen tropp funnet."); squad = []; return false; }
-function getCurrentStateData() { const playersOnPitchData = {}; for (const playerId in playersOnPitch) { const player = getPlayerById(playerId); if (player) { playersOnPitchData[playerId] = { x: player.position.x, y: player.position.y, borderColor: player.borderColor }; } } return { playersOnPitchData: playersOnPitchData, playersOnBenchIds: [...playersOnBench] }; }
-function saveCurrentState() { try { const stateData = getCurrentStateData(); localStorage.setItem(STORAGE_KEY_LAST_STATE, JSON.stringify(stateData)); console.log("Lagret current state.");} catch (e) { console.error("Feil ved lagring av state:", e); } }
-function applyState(stateData) { if (!stateData) return; clearPitch(); playersOnPitch = {}; playersOnBench = []; if (stateData.playersOnPitchData) { for (const playerId in stateData.playersOnPitchData) { const player = getPlayerById(playerId); const positionData = stateData.playersOnPitchData[playerId]; if (player && positionData) { player.position = { x: positionData.x, y: positionData.y }; player.borderColor = positionData.borderColor || 'black'; const piece = createPlayerPieceElement(player, player.position.x, player.position.y); if(pitchSurface) pitchSurface.appendChild(piece); else console.error("FEIL: pitchSurface ikke funnet ved applyState!"); playersOnPitch[playerId] = piece; } else { console.warn(`Kunne ikke plassere spiller ${playerId} fra state.`); } } } if (stateData.playersOnBenchIds) { playersOnBench = stateData.playersOnBenchIds.filter(id => getPlayerById(id)); } renderUI(); console.log("Tilstand anvendt."); }
-function loadLastState() { const savedState = localStorage.getItem(STORAGE_KEY_LAST_STATE); if (savedState) { try { const stateData = JSON.parse(savedState); applyState(stateData); console.log("Siste tilstand lastet."); } catch (e) { console.error("Feil ved parsing av state:", e); clearPitch(); playersOnPitch = {}; playersOnBench = []; renderUI(); } } else { console.log("Ingen lagret tilstand funnet."); clearPitch(); playersOnPitch = {}; playersOnBench = []; renderUI(); } }
-function clearPitch() { if (!pitchSurface) {console.error("clearPitch: pitchSurface ikke funnet!"); return;} /* Fjern KUN spillerbrikker */ const pieces = pitchSurface.querySelectorAll('.player-piece'); pieces.forEach(piece => piece.remove()); console.log("clearPitch: Fjernet spillerbrikker fra pitchSurface"); }
+function loadSquad() { const savedSquadJson = localStorage.getItem(STORAGE_KEY_SQUAD); console.log("loadSquad: Hentet rådata:", savedSquadJson); if (savedSquadJson) { try { const parsedSquad = JSON.parse(savedSquadJson); squad = parsedSquad.map(player => ({ ...player, nickname: player.nickname || '', imageUrl: player.imageUrl || '', personalInfo: player.personalInfo || { birthday: '', phone: '', email: '' }, matchStats: player.matchStats || { matchesPlayed: 0, goalsScored: 0 }, comments: player.comments || [], borderColor: player.borderColor || 'black' // Sørg for at borderColor lastes inn
+                , position: player.position || { x: 50, y: 50 } // Sørg for at posisjon lastes inn
+             })); console.log("loadSquad: Parsed and initialized squad:", squad); const maxId = squad.reduce((max, p) => { const idNum = p.id && typeof p.id === 'string' ? parseInt(p.id.split('-')[1]) : 0; return Math.max(max, !isNaN(idNum) ? idNum : 0); }, 0); nextPlayerId = maxId + 1; console.log("loadSquad: Next player ID:", nextPlayerId); return true; } catch (e) { console.error("Feil ved parsing/init av lagret tropp:", e); squad = []; localStorage.removeItem(STORAGE_KEY_SQUAD); return false; } } console.log("Ingen tropp funnet."); squad = []; return false; }
+// === getCurrentStateData (MODIFIED) START ===
+function getCurrentStateData() {
+    const playersOnPitchData = {};
+    for (const playerId in playersOnPitch) {
+        const player = getPlayerById(playerId);
+        if (player && player.position && typeof player.position.x === 'number' && typeof player.position.y === 'number') { // Forbedret sjekk
+            playersOnPitchData[playerId] = {
+                x: player.position.x,
+                y: player.position.y,
+                borderColor: player.borderColor || 'black'
+            };
+        } else if (player) {
+             console.warn(`getCurrentStateData: Spiller ${playerId} mangler gyldig posisjonsdata. Bruker default. Posisjon:`, player.position);
+              playersOnPitchData[playerId] = { x: 50, y: 50, borderColor: player.borderColor || 'black' };
+        }
+    }
+    // Vurder å lagre ballposisjon også
+    // const ballPos = ballElement ? { x: parseFloat(ballElement.style.left), y: parseFloat(ballElement.style.top) } : { x: 50, y: 50 };
+    return {
+        playersOnPitchData: playersOnPitchData,
+        playersOnBenchIds: [...playersOnBench],
+        // ballPosition: ballPos // Hvis ballposisjon skal lagres
+        isPitchRotated: isPitchRotated // Lagre rotasjonsstatus
+    };
+}
+// === getCurrentStateData (MODIFIED) END ===
+function saveCurrentState() { try { const stateData = getCurrentStateData(); localStorage.setItem(STORAGE_KEY_LAST_STATE, JSON.stringify(stateData)); console.log("Lagret current state:", stateData); } catch (e) { console.error("Feil ved lagring av state:", e); } }
+// === applyState (MODIFIED) START ===
+function applyState(stateData) {
+    if (!stateData) return;
+    clearPitch();
+    playersOnPitch = {};
+    playersOnBench = [];
+
+    // Gjenopprett rotasjonsstatus FØRST
+    isPitchRotated = stateData.isPitchRotated || false;
+    if (pitchContainer) {
+        pitchContainer.classList.toggle('rotated', isPitchRotated);
+        console.log("applyState: Rotasjonsstatus satt til:", isPitchRotated);
+    }
+
+    // Plasser spillere
+    if (stateData.playersOnPitchData) {
+        for (const playerId in stateData.playersOnPitchData) {
+            const player = getPlayerById(playerId);
+            const positionData = stateData.playersOnPitchData[playerId];
+            if (player && positionData && typeof positionData.x === 'number' && typeof positionData.y === 'number') {
+                player.position = { x: positionData.x, y: positionData.y };
+                player.borderColor = positionData.borderColor || 'black';
+                const piece = createPlayerPieceElement(player, player.position.x, player.position.y);
+                if(pitchSurface) pitchSurface.appendChild(piece);
+                else console.error("FEIL: pitchSurface ikke funnet ved applyState!");
+                playersOnPitch[playerId] = piece;
+            } else {
+                console.warn(`Kunne ikke plassere spiller ${playerId} fra state. Data:`, player, positionData);
+            }
+        }
+    }
+
+    // Plasser spillere på benk
+    if (stateData.playersOnBenchIds) {
+        playersOnBench = stateData.playersOnBenchIds.filter(id => getPlayerById(id));
+    }
+
+    // Gjenopprett ballposisjon (hvis lagret)
+    // if (stateData.ballPosition && typeof stateData.ballPosition.x === 'number' && typeof stateData.ballPosition.y === 'number') {
+    //     updateBallPosition(stateData.ballPosition.x, stateData.ballPosition.y);
+    // } else if (ballElement) {
+    //      updateBallPosition(50, 50); // Default ball pos
+    // }
+
+    renderUI();
+    console.log("Tilstand anvendt.");
+}
+// === applyState (MODIFIED) END ===
+function loadLastState() { const savedState = localStorage.getItem(STORAGE_KEY_LAST_STATE); if (savedState) { try { const stateData = JSON.parse(savedState); applyState(stateData); console.log("Siste tilstand lastet."); } catch (e) { console.error("Feil ved parsing av state:", e); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; if (pitchContainer) pitchContainer.classList.remove('rotated'); renderUI(); } } else { console.log("Ingen lagret tilstand funnet."); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; // Sørg for at default er ikke-rotert
+     if (pitchContainer) pitchContainer.classList.remove('rotated'); renderUI(); } }
+function clearPitch() { if (!pitchSurface) {console.error("clearPitch: pitchSurface ikke funnet!"); return;} const pieces = pitchSurface.querySelectorAll('.player-piece'); pieces.forEach(piece => piece.remove()); console.log("clearPitch: Fjernet spillerbrikker fra pitchSurface"); }
 function getSavedSetups() { const setupsJson = localStorage.getItem(STORAGE_KEY_SETUPS); if (setupsJson) { try { return JSON.parse(setupsJson); } catch (e) { console.error("Feil ved parsing av oppsett:", e); return {}; } } return {}; }
 function handleSaveSetup() { if(!setupNameInput || !loadSetupSelect) return; const name = setupNameInput.value.trim(); if (!name) { alert("Skriv inn navn."); return; } const currentSetups = getSavedSetups(); const currentState = getCurrentStateData(); currentSetups[name] = currentState; try { localStorage.setItem(STORAGE_KEY_SETUPS, JSON.stringify(currentSetups)); alert(`Oppsett "${name}" lagret!`); populateSetupDropdown(); setupNameInput.value = ''; } catch (e) { console.error("Feil ved lagring av oppsett:", e); alert("Kunne ikke lagre."); } }
 function handleLoadSetup() { if(!loadSetupSelect) return; const selectedName = loadSetupSelect.value; if (!selectedName) { alert("Velg oppsett."); return; } const savedSetups = getSavedSetups(); const setupToLoad = savedSetups[selectedName]; if (setupToLoad) { applyState(setupToLoad); alert(`Oppsett "${selectedName}" lastet!`); saveCurrentState(); } else { alert(`Fant ikke "${selectedName}".`); } }
@@ -131,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
     playerDetailModal = document.getElementById('player-detail-modal');
     benchElement = document.getElementById('bench');
     console.log("DOMContentLoaded: Modal og bench element references assigned/checked.");
-    loadSquad(); loadLastState(); populateSetupDropdown();
+    loadSquad(); loadLastState(); populateSetupDropdown(); // loadLastState() vil nå sette isPitchRotated korrekt
     if (addPlayerButton) { addPlayerButton.addEventListener('click', openAddPlayerModal); console.log("Listener: addPlayerButton OK"); } else { console.error("addPlayerButton ikke funnet!"); }
     if (closeButton) { closeButton.addEventListener('click', closeAddPlayerModal); console.log("Listener: closeButton OK"); } else { console.error("closeButton ikke funnet!"); }
     if (confirmAddPlayerButton) { confirmAddPlayerButton.addEventListener('click', handleAddPlayerConfirm); console.log('Listener: confirmAddPlayerButton OK'); } else { console.error('confirmAddPlayerButton ikke funnet!'); }
@@ -155,4 +360,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #55 */
+/* Version: #62 */
