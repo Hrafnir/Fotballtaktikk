@@ -105,7 +105,7 @@ function handleDropOnPitch(event) {
     const dropX = event.clientX - pitchRect.left; const dropY = event.clientY - pitchRect.top;
     console.log(`handleDropOnPitch: Før beregning - dropY: ${dropY.toFixed(1)}, pitchRect.height: ${pitchRect.height.toFixed(1)}`);
     const xPercent = Math.max(0, Math.min(100, (dropX / pitchRect.width) * 100));
-    const yPercent = Math.max(0, Math.min(100, (dropY / pitchRect.height) * 100)); // Nå med riktig høyde
+    const yPercent = Math.max(0, Math.min(100, (dropY / pitchRect.height) * 100));
     console.log(`handleDropOnPitch: Dropped ${playerId} at raw(${dropX.toFixed(1)}, ${dropY.toFixed(1)}), calculated percent(${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%)`);
     player.position = { x: xPercent, y: yPercent };
     let stateChanged = false;
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     newPlayerRoleInput = document.getElementById('new-player-role');
     confirmAddPlayerButton = document.getElementById('confirm-add-player');
     playerDetailModal = document.getElementById('player-detail-modal');
-    benchElement = document.getElementById('bench'); // Hentes her
+    benchElement = document.getElementById('bench'); // Hentet her
     console.log("DOMContentLoaded: Modal og bench element references assigned/checked.");
     loadSquad(); loadLastState(); populateSetupDropdown();
     if (addPlayerButton) { addPlayerButton.addEventListener('click', openAddPlayerModal); console.log("Listener: addPlayerButton OK"); } else { console.error("addPlayerButton ikke funnet!"); }
