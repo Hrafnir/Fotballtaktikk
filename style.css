@@ -1,4 +1,4 @@
-/* Version: #70 */
+/* Version: #74 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -35,8 +35,7 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .squad-player-item:hover { background-color: #f5f5f5; }
 
 /* === 2. Hovedområde (Bane) === */
-/* REDUSERT PADDING HER */
-.main-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 5px; /* Redusert fra 20px */ height: 100%; overflow: hidden; background-color: #ededed; position: relative; }
+.main-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 5px; height: 100%; overflow: hidden; background-color: #ededed; position: relative; }
 .rotate-button { position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; }
 
 /* Pitch Container: Fyller plassen og sentrerer #pitch */
@@ -82,17 +81,22 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .line-vertical { width: 2px; height: 100%; top: 0; }
 .line-horizontal { height: 2px; width: 100%; left: 0; }
 .line-halfway { top: 50%; transform: translateY(-50%); }
-.circle-center { position: absolute; top: 50%; left: 50%; width: 17.4%; /* Basert på diameter / lengde */ padding-bottom: 17.4%; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translate(-50%, -50%); z-index: 2;}
+.circle-center { position: absolute; top: 50%; left: 50%; width: 17.4%; /* Diameter 18.3m / Lengde 105m */ padding-bottom: 17.4%; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translate(-50%, -50%); z-index: 2;}
 .spot-center { position: absolute; top: 50%; left: 50%; width: 1%; padding-bottom: 1%; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translate(-50%, -50%); z-index: 3; }
 .penalty-area { position: absolute; border: 2px solid rgba(255, 255, 255, 0.8); z-index: 2; }
-.penalty-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 59.3%; height: 15.7%; border-top: none;}
+.penalty-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 59.3%; height: 15.7%; border-top: none;} /* 40.32/68, 16.5/105 */
 .penalty-area-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 59.3%; height: 15.7%; border-bottom: none; }
 .goal-area { position: absolute; border: 2px solid rgba(255, 255, 255, 0.8); z-index: 2; }
-.goal-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 26.9%; height: 5.2%; border-top: none; }
+.goal-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 26.9%; height: 5.2%; border-top: none;} /* 18.32/68, 5.5/105 */
 .goal-area-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 26.9%; height: 5.2%; border-bottom: none; }
 .penalty-spot { position: absolute; width: 0.8%; padding-bottom: 0.8%; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translateX(-50%); z-index: 3; }
-.penalty-spot-top { top: 10.5%; left: 50%; }
+.penalty-spot-top { top: 10.5%; left: 50%; } /* 11/105 */
 .penalty-spot-bottom { bottom: 10.5%; left: 50%; }
+/* Straffesparkbue ("D") */
+.penalty-arc { position: absolute; left: 50%; width: 26.9%; /* Diameter 18.3m / Bredde 68m */ padding-bottom: 26.9%; /* Gjør den sirkulær ift bredde */ border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.8); z-index: 2; }
+.penalty-arc-top { top: 10.5%; /* Sentrert på straffemerket */ transform: translate(-50%, -50%); /* Sentrer horisontalt og vertikalt */ border-color: transparent; /* Skjul hele sirkelborderen */ border-top: 2px solid white; /* Vis kun øvre del */ /* Klipp vekk delen innenfor straffefeltet */ clip-path: polygon(0% 50%, 100% 50%, 100% 0%, 0% 0%); }
+.penalty-arc-bottom { bottom: 10.5%; /* Sentrert på straffemerket */ transform: translate(-50%, 50%); /* Sentrer horisontalt og vertikalt */ border-color: transparent; /* Skjul hele sirkelborderen */ border-bottom: 2px solid white; /* Vis kun nedre del */ /* Klipp vekk delen innenfor straffefeltet */ clip-path: polygon(0% 50%, 100% 50%, 100% 100%, 0% 100%); }
+/* Cornerbuer */
 .corner-arc { position: absolute; width: 2%; /* Basert på 1m radius / 105m lengde */ height: 2%; /* Bruker samme for enkelhet */ border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; z-index: 2; }
 .corner-top-left { top: -1%; /* Justert offset pga mindre boks */ left: -1%; border-top-color: transparent; border-left-color: transparent; }
 .corner-top-right { top: -1%; right: -1%; border-top-color: transparent; border-right-color: transparent; }
@@ -192,4 +196,4 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 label[for="player-border-color"] { display: inline-block; margin-right: 5px; margin-top: 0; }
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-/* Version: #70 */
+/* Version: #74 */
