@@ -1,4 +1,4 @@
-/* Version: #51 */
+/* Version: #53 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -39,16 +39,16 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .rotate-button { position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; }
 #pitch-container { width: 100%; max-width: calc(90vh * (68 / 105)); max-height: 90vh; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; transition: max-width 0.4s ease-in-out, max-height 0.4s ease-in-out; }
 #pitch-container.rotated { max-width: calc(95vh * (105 / 68)); }
-#pitch { width: 100%; height: 100%; position: relative; overflow: hidden; aspect-ratio: 68 / 105; max-width: 100%; max-height: 100%; border: 2px solid white; /* Flyttet border hit */ transition: aspect-ratio 0.4s ease-in-out; /* La denne styre formen */ /* Fjern bakgrunn her */ }
+#pitch { width: 100%; height: 100%; position: relative; overflow: hidden; aspect-ratio: 68 / 105; max-width: 100%; max-height: 100%; border: 2px solid white; /* Ytre ramme */ transition: aspect-ratio 0.4s ease-in-out; /* Fjern bakgrunn, la surface ha den */ }
 #pitch-container.rotated #pitch { aspect-ratio: 105 / 68; }
 
-/* Pitch Surface: Har bakgrunn, roteres, inneholder ALT dynamisk */
+/* Pitch Surface: Roterer, har bakgrunn, inneholder alt */
 #pitch-surface {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: #287a33; /* Gressfarge her */
-    box-shadow: inset 0 0 15px rgba(0,0,0,0.3); /* Innebygd skygge her */
+    background-color: #287a33; /* Gressfarge */
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
     transform-origin: center center; transition: transform 0.4s ease-in-out;
-    z-index: 1; /* Under linjer etc. */
+    z-index: 1;
 }
 #pitch-container.rotated #pitch-surface { transform: rotate(90deg); }
 
@@ -75,13 +75,13 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .corner-bottom-right { bottom: -2%; right: -2%; border-bottom-color: transparent; border-right-color: transparent; }
 
 /* === Spillerbrikker PÅ BANEN (inne i #pitch-surface) === */
-.player-piece { position: absolute; width: 70px; height: auto; cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; user-select: none; -webkit-user-select: none; opacity: 1; transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.4s ease-in-out; /* La transform animere */ transform-origin: center center; transform: translate(-50%, -50%); /* Standard posisjonering */ }
+.player-piece { position: absolute; width: 70px; height: auto; cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; user-select: none; -webkit-user-select: none; opacity: 1; transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.4s ease-in-out; /* Animer transform */ transform-origin: center center; transform: translate(-50%, -50%); }
 .player-image-container { width: 55px; height: 55px; border-radius: 50%; border: 3px solid black; background-color: rgba(50, 50, 50, 0.8); overflow: hidden; display: flex; justify-content: center; align-items: center; margin-bottom: 3px; }
 .player-image { width: 100%; height: 100%; background-color: #ccc; background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 50%; }
 .player-name { background-color: rgba(0,0,0,0.7); color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; font-weight: bold; text-align: center; max-width: 65px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Mot-roter spillerbrikker NÅR BANEN ER ROTERT */
 #pitch-container.rotated #pitch-surface .player-piece {
-    transform: translate(-50%, -50%) rotate(-90deg); /* Legg til mot-rotasjon */
+    transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 /* === Ball (inne i #pitch-surface) === */
@@ -97,19 +97,18 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 /* === Drag and Drop Styling === */
 .draggable { cursor: grab; }
 .dragging { cursor: grabbing !important; opacity: 0.5 !important; z-index: 1000 !important; }
-.player-piece.dragging { background-color: transparent !important; opacity: 1 !important; } /* Ikke gjør selve brikken gjennomsiktig */
-.player-piece.dragging .player-image-container, .player-piece.dragging .player-name { opacity: 0.6; } /* Gjør innholdet gjennomsiktig */
+.player-piece.dragging { background-color: transparent !important; opacity: 1 !important; }
+.player-piece.dragging .player-image-container, .player-piece.dragging .player-name { opacity: 0.6; }
 .drop-target.drag-over { border-style: solid; border-width: 2px; }
-#pitch.drag-over { /* Kan fjernes/endres da surface tar drop */ }
+#pitch.drag-over { /* Kan evt. gi #pitch en indre skygge eller lignende */ }
 #bench.drag-over { background-color: rgba(255, 235, 150, 0.3); border-color: #ffcc66; }
 #squad-list-container.drag-over { background-color: rgba(200, 200, 200, 0.2); border-color: #999999; }
 
 /* === Spillerbrikke Valg Styling === */
 .player-piece.selected .player-image-container { box-shadow: 0 0 10px 3px gold; }
-.player-piece.selected { transform: translate(-50%, -50%) scale(1.1); z-index: 25; } /* Kombinerer translate og scale */
-/* Korrigering for transform når valgt OG rotert */
+.player-piece.selected { transform: translate(-50%, -50%) scale(1.1); z-index: 25; }
 #pitch-container.rotated #pitch-surface .player-piece.selected {
-    transform: translate(-50%, -50%) rotate(-90deg) scale(1.1); /* Kombiner alle transformasjoner */
+    transform: translate(-50%, -50%) rotate(-90deg) scale(1.1);
 }
 
 /* === Modal Generelt === */
@@ -145,4 +144,4 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 label[for="player-border-color"] { display: inline-block; margin-right: 5px; margin-top: 0; }
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-/* Version: #51 */
+/* Version: #53 */
