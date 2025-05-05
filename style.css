@@ -1,4 +1,4 @@
-/* Version: #76 */
+/* Version: #77 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -55,12 +55,12 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     /* width, height, aspect-ratio fjernet - styres av JS */
     position: relative;
     overflow: hidden; /* Klipping av innhold skjer her */
-    border: 2px solid white;
+    border: 2px solid white; /* Behold border rundt */
     /* Transition KUN på transform */
     transition: transform 0.4s ease-in-out;
     transform-origin: center center;
     transform: rotate(0deg); /* Standard */
-    background-color: #287a33;
+    background-color: #333; /* Endret bakgrunnsfarge til mørk grå */
     box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
 }
 /* Rotert Pitch: Kun transform endres her */
@@ -69,59 +69,19 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     transform: rotate(90deg); /* Roter selve banen */
 }
 
-/* Pitch Surface: Dekker #pitch, roterer IKKE selv, INGEN overflow */
+/* Pitch Surface: Dekker #pitch, får bakgrunnsbilde */
 #pitch-surface {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1;
     overflow: visible; /* Skal IKKE klippe her */
+    background-image: url('pitch-background.jpg'); /* Legg til bildet */
+    background-size: contain; /* Skaler bildet til å passe, bevar AR */
+    background-position: center center; /* Sentrer bildet */
+    background-repeat: no-repeat; /* Ikke gjenta bildet */
 }
 
-/* --- Banelinjer (inne i #pitch-surface) --- */
-.pitch-line { position: absolute; background-color: rgba(255, 255, 255, 0.8); z-index: 2; }
-.line-vertical { width: 2px; height: 100%; top: 0; }
-.line-horizontal { height: 2px; width: 100%; left: 0; }
-.line-halfway { top: 50%; transform: translateY(-50%); }
-.circle-center { position: absolute; top: 50%; left: 50%; width: 17.4%; /* Diameter 18.3m / Lengde 105m */ padding-bottom: 17.4%; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translate(-50%, -50%); z-index: 2; box-sizing: border-box;}
-.spot-center { position: absolute; top: 50%; left: 50%; width: 1%; padding-bottom: 1%; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translate(-50%, -50%); z-index: 3; box-sizing: border-box;}
-.penalty-area { position: absolute; border: 2px solid rgba(255, 255, 255, 0.8); z-index: 2; box-sizing: border-box;}
-.penalty-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 59.3%; height: 15.7%; border-top: none;} /* 40.32/68, 16.5/105 */
-.penalty-area-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 59.3%; height: 15.7%; border-bottom: none; }
-.goal-area { position: absolute; border: 2px solid rgba(255, 255, 255, 0.8); z-index: 2; box-sizing: border-box;}
-.goal-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 26.9%; height: 5.2%; border-top: none;} /* 18.32/68, 5.5/105 */
-.goal-area-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 26.9%; height: 5.2%; border-bottom: none; }
-.penalty-spot { position: absolute; width: 0.8%; padding-bottom: 0.8%; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translateX(-50%); z-index: 3; box-sizing: border-box;}
-.penalty-spot-top { top: 10.5%; left: 50%; } /* 11/105 */
-.penalty-spot-bottom { bottom: 10.5%; left: 50%; }
-
-/* Straffesparkbue ("D") - Korrigert */
-.penalty-arc {
-    position: absolute;
-    left: 50%; /* Senter horisontalt */
-    width: 26.9%; /* Diameter 18.3m / Bredde 68m */
-    padding-bottom: 26.9%; /* Gjør den kvadratisk ift bredde */
-    border-radius: 50%;
-    border: 2px solid transparent; /* Default transparent */
-    z-index: 2; /* Samme nivå som andre linjer */
-    box-sizing: border-box;
-}
-.penalty-arc-top {
-    top: 10.5%; /* Sentrert på straffemerket vertikalt */
-    transform: translate(-50%, -50%); /* Sentrer boksen */
-    border-bottom-color: white; /* Vis KUN den nedre buen (lengst fra topp-mål) */
-}
-.penalty-arc-bottom {
-    bottom: 10.5%; /* Sentrert på straffemerket vertikalt */
-    transform: translate(-50%, 50%); /* Sentrer boksen */
-    border-top-color: white; /* Vis KUN den øvre buen (lengst fra bunn-mål) */
-}
-
-
-/* Cornerbuer */
-.corner-arc { position: absolute; width: 2%; /* Basert på 1m radius / 105m lengde */ height: 2%; /* Bruker samme for enkelhet */ border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; z-index: 2; box-sizing: border-box;}
-.corner-top-left { top: -1%; /* Justert offset pga mindre boks */ left: -1%; border-top-color: transparent; border-left-color: transparent; }
-.corner-top-right { top: -1%; right: -1%; border-top-color: transparent; border-right-color: transparent; }
-.corner-bottom-left { bottom: -1%; left: -1%; border-bottom-color: transparent; border-left-color: transparent; }
-.corner-bottom-right { bottom: -1%; right: -1%; border-bottom-color: transparent; border-right-color: transparent; }
+/* --- Fjernet ALLE CSS-regler for banelinjer --- */
+/* .pitch-line, .circle-center, .penalty-area, .goal-area, .penalty-spot, .penalty-arc, .corner-arc etc. er fjernet */
 
 
 /* === Spillerbrikker PÅ BANEN (inne i #pitch-surface) === */
@@ -216,4 +176,4 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 label[for="player-border-color"] { display: inline-block; margin-right: 5px; margin-top: 0; }
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-/* Version: #76 */
+/* Version: #77 */
