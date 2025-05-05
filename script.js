@@ -1,4 +1,4 @@
-/* Version: #73 */
+/* Version: #80 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; // { playerId: element }
@@ -12,9 +12,10 @@ let isSidebarHidden = false;
 let isPitchRotated = false; // Global variabel for rotasjonsstatus
 
 const MAX_PLAYERS_ON_PITCH = 11;
-// --- ØNSKEDE VISUELLE SIDEFORHOLD (W/H) ---
-const DESIRED_ASPECT_RATIO_PORTRAIT = 3 / 4;       // Bredere portrett (ca. 0.75)
-const DESIRED_ASPECT_RATIO_LANDSCAPE = 105 / 68;   // Standard landskap (ca. 1.544)
+// --- BRUK BILDETS SIDEFORHOLD (Landskap) ---
+// Antar at bildet har ca. 105:68-proporsjoner. Juster om nødvendig!
+const IMAGE_ASPECT_RATIO_LANDSCAPE = 105 / 68; // ca 1.544
+const IMAGE_ASPECT_RATIO_PORTRAIT = 68 / 105;  // ca 0.648 (invers)
 // ---------------------------------------------
 
 const STORAGE_KEY_SQUAD = 'fotballtaktiker_squad';
@@ -24,6 +25,7 @@ const STORAGE_KEY_SETUPS = 'fotballtaktiker_setups';
 
 
 // === 1. DOM Element Referanser START ===
+// ... (som før) ...
 const appContainer = document.querySelector('.app-container');
 const sidebar = document.querySelector('.sidebar');
 const toggleSidebarButton = document.getElementById('toggle-sidebar-button');
@@ -58,7 +60,7 @@ let benchElement;
 
 
 // === 2. Modal Håndtering START ===
-// Uendret fra v72 -> Beholdt for komplett fil
+// ... (som før) ...
 function openAddPlayerModal() { console.log('openAddPlayerModal: Funksjonen startet.'); if (!addPlayerModal) { console.error('openAddPlayerModal: FEIL - addPlayerModal elementet er null!'); return; } addPlayerModal.style.display = 'block'; console.log('openAddPlayerModal: Display satt til block.'); if (newPlayerNameInput) newPlayerNameInput.value = ''; if (newPlayerImageUpload) newPlayerImageUpload.value = ''; if (newPlayerImageUrlInput) newPlayerImageUrlInput.value = ''; if (newPlayerRoleInput) newPlayerRoleInput.value = ''; if (newPlayerNameInput) newPlayerNameInput.focus(); console.log('openAddPlayerModal: Funksjonen ferdig.'); }
 function closeAddPlayerModal() { if (addPlayerModal) { addPlayerModal.style.display = 'none'; } else { console.error("closeAddPlayerModal: addPlayerModal elementet er null!"); } }
 function handleAddPlayerConfirm() { console.log('handleAddPlayerConfirm: Funksjonen startet.'); if (!newPlayerNameInput || !newPlayerImageUrlInput || !newPlayerRoleInput || !newPlayerImageUpload) { console.error("handleAddPlayerConfirm: Ett eller flere input-elementer mangler!"); return; } const name = newPlayerNameInput.value.trim(); const imageFile = newPlayerImageUpload.files[0]; let imageUrl = newPlayerImageUrlInput.value.trim(); const role = newPlayerRoleInput.value.trim(); if (!name) { alert('Spillernavn må fylles ut.'); return; } let finalImageUrl = imageUrl; if (!finalImageUrl && imageFile) { console.warn("Filopplasting støttes ikke for lagring enda."); } const maxId = squad.reduce((max, p) => Math.max(max, parseInt(p.id.split('-')[1]) || 0), 0); nextPlayerId = maxId + 1; const newPlayer = { id: `player-${nextPlayerId}`, name: name, imageUrl: finalImageUrl, role: role, nickname: '', position: { x: 50, y: 50 }, borderColor: 'black', personalInfo: { birthday: '', phone: '', email: '' }, matchStats: { matchesPlayed: 0, goalsScored: 0 }, comments: [] }; squad.push(newPlayer); saveSquad(); renderUI(); closeAddPlayerModal(); console.log("Spiller lagt til:", newPlayer.id); }
@@ -71,7 +73,7 @@ function handleSavePlayerDetails() { const modalElement = document.getElementByI
 
 
 // === 3. UI Rendering START ===
-// Uendret fra v72 -> Beholdt for komplett fil
+// ... (som før) ...
 function renderUI() { renderOnPitchList(); renderBench(); renderSquadList(); if(onPitchCountElement) onPitchCountElement.textContent = Object.keys(playersOnPitch).length; if(onBenchCountElement) onBenchCountElement.textContent = playersOnBench.length; }
 function renderOnPitchList() { if (!onPitchListElement) return; onPitchListElement.innerHTML = ''; const playerIdsOnPitch = Object.keys(playersOnPitch); if (playerIdsOnPitch.length === 0) { onPitchListElement.innerHTML = '<li><i>Ingen spillere på banen.</i></li>'; return; } const sortedPlayers = playerIdsOnPitch.map(id => getPlayerById(id)).filter(p => p).sort((a, b) => a.name.localeCompare(b.name)); sortedPlayers.forEach(player => { const listItem = document.createElement('li'); listItem.textContent = (player.nickname || player.name) + (player.role ? ` (${player.role})` : ''); listItem.setAttribute('data-player-id', player.id); listItem.classList.add('on-pitch-player-item'); onPitchListElement.appendChild(listItem); }); }
 function renderBench() { if (!benchListElement) return; benchListElement.innerHTML = ''; if (playersOnBench.length === 0) { benchListElement.innerHTML = '<li><i>Benken er tom.</i></li>'; return; } const sortedPlayers = playersOnBench.map(id => getPlayerById(id)).filter(p => p).sort((a, b) => a.name.localeCompare(b.name)); sortedPlayers.forEach(player => { const listItem = document.createElement('li'); listItem.textContent = (player.nickname || player.name) + (player.role ? ` (${player.role})` : ''); listItem.setAttribute('data-player-id', player.id); listItem.classList.add('bench-player-item', 'draggable'); listItem.setAttribute('draggable', true); benchListElement.appendChild(listItem); }); addDragListenersToBenchItems(); }
@@ -80,7 +82,7 @@ function renderSquadList() { if (!squadListElement) return; squadListElement.inn
 
 
 // === 4. Spillerbrikke & Ball Håndtering START ===
-// Uendret fra v72 -> Beholdt for komplett fil
+// ... (som før) ...
 function createPlayerPieceElement(player, xPercent, yPercent) { const piece = document.createElement('div'); piece.classList.add('player-piece', 'draggable'); piece.setAttribute('data-player-id', player.id); piece.setAttribute('draggable', true); piece.style.left = `${xPercent}%`; piece.style.top = `${yPercent}%`; /* Transform settes nå kun av CSS */ const imgContainer = document.createElement('div'); imgContainer.classList.add('player-image-container'); imgContainer.style.borderColor = player.borderColor || 'black'; const imgDiv = document.createElement('div'); imgDiv.classList.add('player-image'); if (player.imageUrl && !player.imageUrl.startsWith('placeholder-file:')) imgDiv.style.backgroundImage = `url('${player.imageUrl}')`; else imgDiv.style.backgroundColor = '#aaa'; imgContainer.appendChild(imgDiv); piece.appendChild(imgContainer); const nameDiv = document.createElement('div'); nameDiv.classList.add('player-name'); nameDiv.textContent = player.nickname || player.name; piece.appendChild(nameDiv); piece.addEventListener('dragstart', handleDragStartPiece); piece.addEventListener('dragend', handleDragEnd); piece.addEventListener('dblclick', () => openPlayerDetailModal(player.id)); piece.addEventListener('click', handlePlayerPieceClick); return piece; }
 function getPlayerById(playerId) { if (!playerId) return null; return squad.find(p => p.id === playerId) || null; }
 function updateBallPosition(xPercent, yPercent) { if (ballElement) { ballElement.style.left = `${xPercent}%`; ballElement.style.top = `${yPercent}%`; } }
@@ -88,7 +90,7 @@ function updateBallPosition(xPercent, yPercent) { if (ballElement) { ballElement
 
 
 // === 5. Drag and Drop & Valg/Farge/UI Toggles START ===
-// Uendret fra v72 -> Beholdt for komplett fil
+// ... (som før) ...
 function addDragListenersToSquadItems() { if (!squadListElement) return; const items = squadListElement.querySelectorAll('.squad-player-item.draggable'); console.log(`addDragListenersToSquadItems: Fant ${items.length} squad items.`); items.forEach(item => { item.removeEventListener('dragstart', handleDragStart); item.addEventListener('dragstart', handleDragStart); item.removeEventListener('dragend', handleDragEnd); item.addEventListener('dragend', handleDragEnd); }); }
 function addDragListenersToBenchItems() { if (!benchListElement) return; const items = benchListElement.querySelectorAll('.bench-player-item.draggable'); items.forEach(item => { item.removeEventListener('dragstart', handleDragStartBench); item.addEventListener('dragstart', handleDragStartBench); item.removeEventListener('dragend', handleDragEnd); item.addEventListener('dragend', handleDragEnd); }); }
 function handleDragStart(event) { console.log("handleDragStart: Drag startet:", event.target); draggedPlayerId = event.target.getAttribute('data-player-id'); console.log("handleDragStart: ID:", draggedPlayerId); const player = getPlayerById(draggedPlayerId); if (!player) { console.error("handleDragStart: Fant ikke spiller ID:", draggedPlayerId); event.preventDefault(); return; } console.log("handleDragStart: Fant spiller:", player); draggedElement = event.target; dragSource = 'squad'; try { event.dataTransfer.setData('text/plain', draggedPlayerId); console.log("handleDragStart: setData satt for", draggedPlayerId); } catch (e) { console.error("handleDragStart: Feil ved setData:", e); event.preventDefault(); return; } event.dataTransfer.effectAllowed = 'move'; setTimeout(() => { if(draggedElement) draggedElement.classList.add('dragging') }, 0); }
@@ -122,13 +124,13 @@ function handleDropOnPitch(event) {
         // Når rotert 90 grader med klokken:
         // - Viewport X (dropX_relative) tilsvarer den *vertikale* aksen på den *originale* banen (fra bunn til topp).
         // - Viewport Y (dropY_relative) tilsvarer den *horisontale* aksen på den *originale* banen (fra venstre til høyre).
-        // - pitchRect.width er nå den *korte* siden (original høyde).
-        // - pitchRect.height er nå den *lange* siden (original bredde).
+        // - pitchRect.width er nå den *visuelle HØYDEN* på den roterte banen.
+        // - pitchRect.height er nå den *visuelle BREDDEN* på den roterte banen.
 
-        // Beregn X-prosent (original horisontal akse) basert på dropY_relative og pitchRect.height (som er original bredde)
+        // Beregn X-prosent (original horisontal akse) basert på dropY_relative og pitchRect.height (visuell bredde)
         xPercent = (dropY_relative / pitchRect.height) * 100;
 
-        // Beregn Y-prosent (original vertikal akse) basert på dropX_relative og pitchRect.width (som er original høyde)
+        // Beregn Y-prosent (original vertikal akse) basert på dropX_relative og pitchRect.width (visuell høyde)
         // Siden (0,0) for den originale banen nå er øverst til høyre (etter 90 graders rotasjon), må vi invertere Y-aksen.
         yPercent = (1 - (dropX_relative / pitchRect.width)) * 100;
 
@@ -244,17 +246,17 @@ function togglePitchRotation() {
             const width = pitchElement.offsetWidth;
             const height = pitchElement.offsetHeight;
             const actualAR = width > 0 && height > 0 ? width / height : 0;
-            // Bruk de NYE konstantene for forventet verdi
-            const expectedAR = isPitchRotated ? DESIRED_ASPECT_RATIO_LANDSCAPE : DESIRED_ASPECT_RATIO_PORTRAIT;
+            // Bruk bildets AR for forventet verdi
+            const expectedAR = isPitchRotated ? IMAGE_ASPECT_RATIO_LANDSCAPE : IMAGE_ASPECT_RATIO_PORTRAIT;
 
-            console.log(`Pitch Dimensions AFTER JS Resize (${isPitchRotated ? 'Rotated' : 'Normal'}):`);
+            console.log(`Pitch Dimensions AFTER JS Resize (${isPitchRotated ? 'Rotated' : 'Normal'} View):`);
             console.log(`  - OffsetWidth: ${width}px`);
             console.log(`  - OffsetHeight: ${height}px`);
             console.log(`  - Actual AR (W/H): ${actualAR.toFixed(3)}`);
-            console.log(`  - Expected AR: ${expectedAR.toFixed(3)}`);
-            // Øk toleransen litt siden vi bruker egendefinerte AR
+            console.log(`  - Expected AR (Image based): ${expectedAR.toFixed(3)}`);
+            // Sjekk mot bildets AR
             if (Math.abs(actualAR - expectedAR) > 0.02) {
-                console.warn("  - AR MISMATCH DETECTED!");
+                console.warn("  - AR MISMATCH DETECTED vs Image AR!");
             }
         } else {
             console.error("togglePitchRotation log: pitchElement not found!");
@@ -267,7 +269,7 @@ function togglePitchRotation() {
 
 
 // === 6. Lokal Lagring START ===
-// Uendret fra v72 -> Beholdt for komplett fil
+// ... (som før) ...
 function saveSquad() { console.log("saveSquad: Prøver å lagre squad:", squad); try { const squadJson = JSON.stringify(squad); console.log("saveSquad: squad JSON:", squadJson); localStorage.setItem(STORAGE_KEY_SQUAD, squadJson); console.log("saveSquad: Lagring OK."); } catch (e) { console.error("Feil ved lagring av tropp:", e); alert("Kunne ikke lagre troppen."); } }
 function loadSquad() { const savedSquadJson = localStorage.getItem(STORAGE_KEY_SQUAD); console.log("loadSquad: Hentet rådata:", savedSquadJson); if (savedSquadJson) { try { const parsedSquad = JSON.parse(savedSquadJson); squad = parsedSquad.map(player => ({ ...player, nickname: player.nickname || '', imageUrl: player.imageUrl || '', personalInfo: player.personalInfo || { birthday: '', phone: '', email: '' }, matchStats: player.matchStats || { matchesPlayed: 0, goalsScored: 0 }, comments: player.comments || [], borderColor: player.borderColor || 'black' // Sørg for at borderColor lastes inn
                 , position: player.position || { x: 50, y: 50 } // Sørg for at posisjon lastes inn
@@ -346,6 +348,7 @@ function applyState(stateData) {
     console.log("Tilstand anvendt.");
 }
 // === resizePitchElement (MODIFIED) START ===
+// Bruker nå bildets AR uavhengig av rotasjon for beregning
 function resizePitchElement() {
      if (!pitchContainer || !pitchElement) {
         console.error("resizePitchElement: pitchContainer or pitchElement not found!");
@@ -353,43 +356,31 @@ function resizePitchElement() {
     }
     const containerWidth = pitchContainer.clientWidth;
     const containerHeight = pitchContainer.clientHeight;
-    let targetWidth, targetHeight; // Beregnede *visuelle* dimensjoner
-    let currentAR; // Hvilket AR skal vi bruke for beregningen?
+    let targetWidth, targetHeight; // Beregnede dimensjoner for #pitch for å matche bildets AR
 
-     if (isPitchRotated) { // LANDSKAP
-        currentAR = DESIRED_ASPECT_RATIO_LANDSCAPE; // Bruk ønsket landskap AR
-        const heightFromWidth = containerWidth / currentAR;
-        const widthFromHeight = containerHeight * currentAR;
+    // Beregn dimensjoner basert på container og bildets *landskaps*-AR
+    const heightFromWidth = containerWidth / IMAGE_ASPECT_RATIO_LANDSCAPE;
+    const widthFromHeight = containerHeight * IMAGE_ASPECT_RATIO_LANDSCAPE;
 
-        if (heightFromWidth <= containerHeight) {
-            targetWidth = containerWidth; targetHeight = heightFromWidth;
-             console.log("JS Resize Calc (Landscape): Width limited");
-        } else {
-            targetWidth = widthFromHeight; targetHeight = containerHeight;
-             console.log("JS Resize Calc (Landscape): Height limited");
-        }
-        // *** SWAP for transform: rotate(90deg) ***
-        pitchElement.style.width = `${targetHeight}px`; // Sett bredde til beregnet HØYDE
-        pitchElement.style.height = `${targetWidth}px`; // Sett høyde til beregnet BREDDE
-        console.log(`JS Resize SET (Landscape): Style W=${targetHeight.toFixed(0)}px, H=${targetWidth.toFixed(0)}px`);
-
-    } else { // PORTRETT
-        currentAR = DESIRED_ASPECT_RATIO_PORTRAIT; // Bruk ønsket portrett AR
-        const widthFromHeight = containerHeight * currentAR;
-        const heightFromWidth = containerWidth / currentAR;
-
-        if (widthFromHeight <= containerWidth) {
-            targetWidth = widthFromHeight; targetHeight = containerHeight;
-             console.log("JS Resize Calc (Portrait): Height limited");
-        } else {
-            targetWidth = containerWidth; targetHeight = heightFromWidth;
-             console.log("JS Resize Calc (Portrait): Width limited");
-        }
-        // Sett dimensjoner direkte
-        pitchElement.style.width = `${targetWidth}px`;
-        pitchElement.style.height = `${targetHeight}px`;
-        console.log(`JS Resize SET (Portrait): Style W=${targetWidth.toFixed(0)}px, H=${targetHeight.toFixed(0)}px`);
+    // Finn ut om bredde eller høyde er begrensende for landskaps-AR
+    if (heightFromWidth <= containerHeight) {
+        // Bredden er begrensende ift landskaps-AR
+        targetWidth = containerWidth;
+        targetHeight = heightFromWidth;
+        console.log("JS Resize Calc: Width limited (Landscape AR)");
+    } else {
+        // Høyden er begrensende ift landskaps-AR
+        targetWidth = widthFromHeight;
+        targetHeight = containerHeight;
+        console.log("JS Resize Calc: Height limited (Landscape AR)");
     }
+
+    // Sett ALLTID #pitch sine style-dimensjoner basert på disse landskaps-beregningene
+    // "Swap"-logikken for landskap håndteres av CSS transform på #pitch
+    // og CSS transform på #pitch-background-img
+    pitchElement.style.width = `${targetWidth}px`;
+    pitchElement.style.height = `${targetHeight}px`;
+    console.log(`JS Resize SET: Style W=${targetWidth.toFixed(0)}px, H=${targetHeight.toFixed(0)}px (using Landscape AR: ${IMAGE_ASPECT_RATIO_LANDSCAPE.toFixed(3)})`);
 }
 // === resizePitchElement (MODIFIED) END ===
 function loadLastState() { const savedState = localStorage.getItem(STORAGE_KEY_LAST_STATE); if (savedState) { try { const stateData = JSON.parse(savedState); applyState(stateData); console.log("Siste tilstand lastet."); } catch (e) { console.error("Feil ved parsing av state:", e); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett størrelse også ved feil */ renderUI(); } } else { console.log("Ingen lagret tilstand funnet."); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; // Sørg for at default er ikke-rotert
@@ -444,4 +435,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #73 */
+/* Version: #80 */
