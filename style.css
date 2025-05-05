@@ -1,4 +1,4 @@
-/* Version: #65 */
+/* Version: #66 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -58,18 +58,18 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     position: relative;
     overflow: hidden; /* Klipping av innhold skjer her */
     border: 2px solid white;
-    transition: aspect-ratio 0.4s ease-in-out, transform 0.4s ease-in-out;
+    transition: aspect-ratio 0.4s ease-in-out, transform 0.4s ease-in-out, width 0.4s ease-in-out, height 0.4s ease-in-out; /* Transition på alt */
     transform-origin: center center;
     transform: rotate(0deg); /* Standard */
     background-color: #287a33;
     box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
 }
-/* Pitch (Rotert - Landskap): Fyll bredde, AR setter høyde */
+/* Pitch (Rotert - Landskap): Fyll HØYDE (!), AR setter BREDDE */
 #pitch-container.rotated #pitch {
     aspect-ratio: 105 / 68; /* Landskap AR */
-    width: 100%;  /* Fyll bredden */
-    height: auto; /* La AR bestemme høyden */
-    /* max-width/max-height gjelder fortsatt for å unngå overflow */
+    height: 100%; /* Fyll HØYDEN */
+    width: auto;  /* La AR bestemme BREDDEN */
+    /* max-width/max-height gjelder fortsatt */
     transform: rotate(90deg); /* Roter selve banen */
 }
 
@@ -195,4 +195,4 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 label[for="player-border-color"] { display: inline-block; margin-right: 5px; margin-top: 0; }
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-/* Version: #65 */
+/* Version: #66 */
