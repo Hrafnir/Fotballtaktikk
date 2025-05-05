@@ -1,11 +1,11 @@
-<!-- Version: #57 -->
+<!-- Version: #60 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fotballtaktiker</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link til Version: #57 -->
+    <link rel="stylesheet" href="style.css"> <!-- Link til Version: #60 -->
 </head>
 <body>
 
@@ -61,7 +61,22 @@
             <div id="pitch-container">
                  <div id="pitch" class="drop-target">
                      <div id="pitch-surface">
-                        <!-- Fjernet linje-divs herfra -->
+                        <!-- === Banelinjer START === -->
+                        <div class="pitch-line line-horizontal line-halfway"></div>
+                        <div class="circle-center"></div>
+                        <div class="spot-center"></div>
+                        <div class="penalty-area penalty-area-top"></div>
+                        <div class="penalty-area penalty-area-bottom"></div>
+                        <div class="goal-area goal-area-top"></div>
+                        <div class="goal-area goal-area-bottom"></div>
+                        <div class="penalty-spot penalty-spot-top"></div>
+                        <div class="penalty-spot penalty-spot-bottom"></div>
+                        <div class="corner-arc corner-top-left"></div>
+                        <div class="corner-arc corner-top-right"></div>
+                        <div class="corner-arc corner-bottom-left"></div>
+                        <div class="corner-arc corner-bottom-right"></div>
+                        <!-- === Banelinjer END === -->
+
                         <!-- Canvas, Ball, og Spillerbrikker -->
                         <canvas id="drawing-canvas"></canvas>
                         <div id="ball" class="draggable" draggable="true">Ball</div>
@@ -134,8 +149,8 @@
     </div>
     <!-- === Modaler/Dialoger END === -->
 
-    <script src="script.js"></script> <!-- Link til Version: #51 -->
+    <script src="script.js"></script> <!-- Link til Version: #55 -->
 
 </body>
 </html>
-<!-- Version: #57 -->
+<!-- Version: #60 -->
