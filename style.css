@@ -1,4 +1,4 @@
-/* Version: #64 */
+/* Version: #65 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -48,13 +48,13 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     overflow: hidden; /* Klipper det som går utenfor containeren */
 }
 
-/* Pitch: Styrer sin egen størrelse med aspect-ratio, begrenset av container */
+/* Pitch (Standard - Portrett): Fyll høyde, AR setter bredde */
 #pitch {
-    max-width: 100%;  /* Begrens til container bredde */
-    max-height: 100%; /* Begrens til container høyde */
-    height: 100%;     /* Forsøk å fylle container høyde */
-    width: auto;      /* La aspect-ratio bestemme bredden */
-    aspect-ratio: 68 / 105; /* Standard PORTRETT */
+    max-width: 100%;
+    max-height: 100%;
+    height: 100%; /* Fyll høyden */
+    width: auto;   /* La AR bestemme bredden */
+    aspect-ratio: 68 / 105; /* Standard PORTRETT AR */
     position: relative;
     overflow: hidden; /* Klipping av innhold skjer her */
     border: 2px solid white;
@@ -64,11 +64,12 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     background-color: #287a33;
     box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
 }
-/* Roter #pitch og endre aspect-ratio når containeren er rotert */
+/* Pitch (Rotert - Landskap): Fyll bredde, AR setter høyde */
 #pitch-container.rotated #pitch {
-    aspect-ratio: 105 / 68; /* Landskap */
-    /* height: 100% arves, width justeres av aspect-ratio */
-    /* max-width/max-height gjelder fortsatt */
+    aspect-ratio: 105 / 68; /* Landskap AR */
+    width: 100%;  /* Fyll bredden */
+    height: auto; /* La AR bestemme høyden */
+    /* max-width/max-height gjelder fortsatt for å unngå overflow */
     transform: rotate(90deg); /* Roter selve banen */
 }
 
@@ -194,4 +195,4 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 label[for="player-border-color"] { display: inline-block; margin-right: 5px; margin-top: 0; }
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-/* Version: #64 */
+/* Version: #65 */
