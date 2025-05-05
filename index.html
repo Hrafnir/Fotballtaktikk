@@ -1,11 +1,11 @@
-<!-- Version: #49 -->
+<!-- Version: #51 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fotballtaktiker</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css"> <!-- Link til Version: #51 -->
 </head>
 <body>
 
@@ -16,6 +16,7 @@
         <!-- === 1. Kontrollpanel / Sidepanel START === -->
         <aside class="sidebar">
             <h2>Kontrollpanel</h2>
+            <!-- Innholdet i sidepanelet -->
             <div id="on-pitch-section" class="control-section">
                 <h3>På Banen (<span id="on-pitch-count">0</span>/11)</h3>
                 <ul id="on-pitch-list"><li><i>Ingen spillere på banen.</i></li></ul>
@@ -60,26 +61,27 @@
              <button id="rotate-pitch-button" class="rotate-button" title="Roter bane">↻</button>
             <div id="pitch-container">
                  <div id="pitch" class="drop-target">
-                     <!-- Surface KUN for brikker, ball, canvas -->
                      <div id="pitch-surface">
+                        <!-- Banelinjer INNE i surface -->
+                        <div class="pitch-line line-horizontal line-halfway"></div>
+                        <div class="circle-center"></div>
+                        <div class="spot-center"></div>
+                        <div class="penalty-area penalty-area-top"></div>
+                        <div class="penalty-area penalty-area-bottom"></div>
+                        <div class="goal-area goal-area-top"></div>
+                        <div class="goal-area goal-area-bottom"></div>
+                        <div class="penalty-spot penalty-spot-top"></div>
+                        <div class="penalty-spot penalty-spot-bottom"></div>
+                        <div class="corner-arc corner-top-left"></div>
+                        <div class="corner-arc corner-top-right"></div>
+                        <div class="corner-arc corner-bottom-left"></div>
+                        <div class="corner-arc corner-bottom-right"></div>
+                        <!-- Canvas, Ball, og Spillerbrikker -->
                         <canvas id="drawing-canvas"></canvas>
                         <div id="ball" class="draggable" draggable="true">Ball</div>
                         <!-- Spillerbrikker legges til her av JS -->
-                     </div>
-                     <!-- Banelinjer DIREKTE i #pitch -->
-                     <div class="pitch-line line-horizontal line-halfway"></div>
-                     <div class="circle-center"></div>
-                     <div class="spot-center"></div>
-                     <div class="penalty-area penalty-area-top"></div>
-                     <div class="penalty-area penalty-area-bottom"></div>
-                     <div class="goal-area goal-area-top"></div>
-                     <div class="goal-area goal-area-bottom"></div>
-                     <div class="penalty-spot penalty-spot-top"></div>
-                     <div class="penalty-spot penalty-spot-bottom"></div>
-                     <div class="corner-arc corner-top-left"></div>
-                     <div class="corner-arc corner-top-right"></div>
-                     <div class="corner-arc corner-bottom-left"></div>
-                     <div class="corner-arc corner-bottom-right"></div>
+                    </div>
+                    <!-- Linjene er flyttet inn i pitch-surface -->
                  </div>
             </div>
         </main>
@@ -147,8 +149,8 @@
     </div>
     <!-- === Modaler/Dialoger END === -->
 
-    <script src="script.js"></script>
+    <script src="script.js"></script> <!-- Link til Version: #51 -->
 
 </body>
 </html>
-<!-- Version: #49 -->
+<!-- Version: #51 -->
