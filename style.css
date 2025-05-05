@@ -1,4 +1,4 @@
-/* Version: #62 */
+/* Version: #63 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -37,15 +37,32 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 /* === 2. Hovedområde (Bane) === */
 .main-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; height: 100%; overflow: hidden; background-color: #ededed; position: relative; }
 .rotate-button { position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; }
-#pitch-container { width: 100%; max-width: calc(90vh * (68 / 105)); /* Start portrett */ max-height: 90vh; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; transition: max-width 0.4s ease-in-out, max-height 0.4s ease-in-out; }
-#pitch-container.rotated { max-width: calc(95vh * (105 / 68)); /* Gå tilbake til 95vh for landskap AR */ }
 
-/* Pitch: Endrer form OG roterer, håndterer klipping */
+/* Pitch Container: Mer fleksibel, sentrerer innholdet */
+#pitch-container {
+    width: 100%; /* Fyll tilgjengelig bredde */
+    height: 100%; /* Fyll tilgjengelig høyde */
+    max-width: none; /* Fjern fast maks bredde */
+    max-height: none; /* Fjern fast maks høyde */
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Klipper fortsatt det som går utenfor containeren */
+    transition: none; /* Ingen transition på selve containeren */
+}
+/* Ingen .rotated spesifikk regel for containeren lenger */
+
+/* Pitch: Styrer sin egen størrelse med aspect-ratio innenfor containeren */
 #pitch {
-    width: 100%; height: 100%; position: relative;
+    /* Bruk max-width og max-height for å begrense innenfor containeren */
+    max-width: 100%;
+    max-height: 100%;
+    width: auto; /* La aspect-ratio bestemme bredde basert på høyde */
+    height: auto; /* La aspect-ratio bestemme høyde basert på bredde */
+    position: relative;
     overflow: hidden; /* Klipping skjer her */
     aspect-ratio: 68 / 105; /* Standard PORTRETT */
-    max-width: 100%; max-height: 100%;
     border: 2px solid white;
     transition: aspect-ratio 0.4s ease-in-out, transform 0.4s ease-in-out;
     transform-origin: center center;
@@ -57,6 +74,7 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #pitch-container.rotated #pitch {
     aspect-ratio: 105 / 68; /* Landskap */
     transform: rotate(90deg); /* Roter selve banen */
+    /* width/height/max-width/max-height arves/beregnes */
 }
 
 /* Pitch Surface: Dekker #pitch, roterer IKKE selv, INGEN overflow */
@@ -98,9 +116,9 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .player-image-container { width: 55px; height: 55px; border-radius: 50%; border: 3px solid black; background-color: rgba(50, 50, 50, 0.8); overflow: hidden; display: flex; justify-content: center; align-items: center; margin-bottom: 3px; }
 .player-image { width: 100%; height: 100%; background-color: #ccc; background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 50%; }
 .player-name { background-color: rgba(0,0,0,0.7); color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; font-weight: bold; text-align: center; max-width: 65px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* Mot-roter spillerbrikker NÅR BANEN (#pitch) ER ROTERT - Normal spesifisitet */
+/* Mot-roter spillerbrikker NÅR BANEN (#pitch) ER ROTERT */
 #pitch-container.rotated .player-piece {
-    transform: translate(-50%, -50%) rotate(-90deg); /* Fjernet !important */
+    transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 /* === Ball (inne i #pitch-surface) === */
@@ -120,9 +138,9 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     transition: transform 0.4s ease-in-out;
     transform: rotate(0deg); /* Standard */
 }
-/* Mot-roter canvas NÅR BANEN (#pitch) ER ROTERT - Normal spesifisitet */
+/* Mot-roter canvas NÅR BANEN (#pitch) ER ROTERT */
 #pitch-container.rotated #drawing-canvas {
-    transform: rotate(-90deg); /* Fjernet !important */
+    transform: rotate(-90deg);
 }
 
 /* === Drag and Drop Styling === */
@@ -143,11 +161,11 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 }
 /* Kombiner mot-rotasjon og scale når valgt og rotert */
 #pitch-container.rotated .player-piece.selected {
-    transform: translate(-50%, -50%) scale(1.1) rotate(-90deg); /* Fjernet !important */
+    transform: translate(-50%, -50%) scale(1.1) rotate(-90deg);
 }
-/* Håndter valgt+IKKE-rotert tilstand (trengs kanskje ikke pga standard .player-piece.selected) */
+/* Håndter valgt+IKKE-rotert tilstand */
 #pitch-container:not(.rotated) .player-piece.selected {
-     transform: translate(-50%, -50%) scale(1.1) rotate(0deg); /* Standard - fjernet !important */
+     transform: translate(-50%, -50%) scale(1.1) rotate(0deg);
 }
 
 .player-piece.selected .player-image-container {
@@ -181,4 +199,4 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 label[for="player-border-color"] { display: inline-block; margin-right: 5px; margin-top: 0; }
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-/* Version: #62 */
+/* Version: #63 */
