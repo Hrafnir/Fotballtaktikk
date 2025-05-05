@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fotballtaktiker</title>
     <link rel="stylesheet" href="style.css">
-    <!-- IKKE legg script.js her -->
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-container"> <!-- Klassen .sidebar-hidden legges til her -->
 
         <!-- === 1. Kontrollpanel / Sidepanel START === -->
         <aside class="sidebar">
+            <button id="toggle-sidebar-button" class="sidebar-toggle-button" title="Skjul/Vis sidepanel"><</button>
+
             <h2>Kontrollpanel</h2>
 
             <!-- 1.0 På Banen (Visning) -->
@@ -76,11 +77,15 @@
 
         <!-- === 2. Hovedområde (Bane) START === -->
         <main class="main-content">
+             <button id="rotate-pitch-button" class="rotate-button" title="Roter bane">↻</button>
+
             <div id="pitch-container">
                  <div id="pitch" class="drop-target">
-                    <canvas id="drawing-canvas"></canvas>
-                    <div id="ball" class="draggable">Ball</div>
-                    <!-- Spillerbrikker legges til her av JS -->
+                     <div id="pitch-surface">
+                        <canvas id="drawing-canvas"></canvas>
+                        <div id="ball" class="draggable" draggable="true">Ball</div>
+                        <!-- Spillerbrikker legges til her av JS -->
+                    </div>
                  </div>
             </div>
         </main>
@@ -89,7 +94,6 @@
     </div> <!-- /.app-container -->
 
     <!-- === Modaler/Dialoger START === -->
-
     <!-- Add Player Modal -->
     <div id="add-player-modal" class="modal" style="display: none;">
         <div class="modal-content">
@@ -111,64 +115,63 @@
         <div class="modal-content wide">
             <span class="close-detail-button close-button">×</span>
             <h3 id="detail-modal-title">Spillerdetaljer</h3>
-            <input type="hidden" id="detail-player-id"> <!-- ID: detail-player-id -->
+            <input type="hidden" id="detail-player-id">
 
             <div class="modal-columns">
                 <!-- Kolonne 1: Bilde & Personlig Info -->
                 <div class="modal-column">
                     <h4>Bilde</h4>
-                    <div id="detail-player-image-display" class="detail-image-display"> <!-- ID: detail-player-image-display -->
+                    <div id="detail-player-image-display" class="detail-image-display">
                         <span>Ingen bilde-URL</span>
                     </div>
                     <label for="detail-player-image-url">Bilde-URL:</label>
-                    <input type="text" id="detail-player-image-url" placeholder="Lim inn URL til bilde..."> <!-- ID: detail-player-image-url -->
+                    <input type="text" id="detail-player-image-url" placeholder="Lim inn URL til bilde...">
 
                     <h4>Personlig Info</h4>
                     <label for="detail-player-name">Navn:</label>
-                    <input type="text" id="detail-player-name"> <!-- ID: detail-player-name -->
+                    <input type="text" id="detail-player-name">
 
                     <label for="detail-player-nickname">Kallenavn (vises på brikke):</label>
-                    <input type="text" id="detail-player-nickname" placeholder="F.eks. Myggen"> <!-- ID: detail-player-nickname -->
+                    <input type="text" id="detail-player-nickname" placeholder="F.eks. Myggen">
 
                     <label for="detail-player-role">Posisjon/Rolle:</label>
-                    <input type="text" id="detail-player-role"> <!-- ID: detail-player-role -->
+                    <input type="text" id="detail-player-role">
 
                     <label for="detail-player-birthday">Fødselsdato:</label>
-                    <input type="date" id="detail-player-birthday"> <!-- ID: detail-player-birthday -->
+                    <input type="date" id="detail-player-birthday">
 
                     <label for="detail-player-phone">Telefon:</label>
-                    <input type="tel" id="detail-player-phone" placeholder="Eks: 12345678"> <!-- ID: detail-player-phone -->
+                    <input type="tel" id="detail-player-phone" placeholder="Eks: 12345678">
 
                     <label for="detail-player-email">E-post:</label>
-                    <input type="email" id="detail-player-email" placeholder="navn@example.com"> <!-- ID: detail-player-email -->
+                    <input type="email" id="detail-player-email" placeholder="navn@example.com">
                 </div>
 
                 <!-- Kolonne 2: Kommentarer & Statistikk -->
                 <div class="modal-column">
                     <h4>Kamp-kommentar (Denne økten)</h4>
-                    <textarea id="detail-match-comment" rows="4" placeholder="Notater..."></textarea> <!-- ID: detail-match-comment -->
-                    <button id="add-comment-to-history-button">Legg til i historikk</button> <!-- ID: add-comment-to-history-button -->
+                    <textarea id="detail-match-comment" rows="4" placeholder="Notater..."></textarea>
+                    <button id="add-comment-to-history-button">Legg til i historikk</button>
 
                     <h4>Kommentarhistorikk</h4>
-                    <div id="detail-comment-history" class="comment-history"><p><i>Ingen historikk.</i></p></div> <!-- ID: detail-comment-history -->
+                    <div id="detail-comment-history" class="comment-history"><p><i>Ingen historikk.</i></p></div>
 
                     <h4>Sesongstatistikk (Manuell)</h4>
                     <label for="detail-matches-played">Kamper spilt:</label>
-                    <input type="number" id="detail-matches-played" min="0" value="0"> <!-- ID: detail-matches-played -->
+                    <input type="number" id="detail-matches-played" min="0" value="0">
 
                     <label for="detail-goals-scored">Mål scoret:</label>
-                    <input type="number" id="detail-goals-scored" min="0" value="0"> <!-- ID: detail-goals-scored -->
+                    <input type="number" id="detail-goals-scored" min="0" value="0">
                 </div>
             </div>
 
             <div class="modal-footer">
-                 <button id="save-details-button">Lagre Endringer</button> <!-- ID: save-details-button -->
+                 <button id="save-details-button">Lagre Endringer</button>
             </div>
         </div>
     </div>
     <!-- === Modaler/Dialoger END === -->
 
-    <!-- ==========> SCRIPT SKAL HELT TIL SLUTT HER <========== -->
     <script src="script.js"></script>
 
 </body>
