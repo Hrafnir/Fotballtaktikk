@@ -1,4 +1,4 @@
-/* Version: #68 */
+/* Version: #69 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -76,27 +76,27 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     overflow: visible; /* Skal IKKE klippe her */
 }
 
-/* --- Banelinjer (inne i #pitch-surface) --- */
+/* --- Banelinjer (inne i #pitch-surface) - OPPDATERTE PROSENTER --- */
 .pitch-line { position: absolute; background-color: rgba(255, 255, 255, 0.8); z-index: 2; }
 .line-vertical { width: 2px; height: 100%; top: 0; }
 .line-horizontal { height: 2px; width: 100%; left: 0; }
 .line-halfway { top: 50%; transform: translateY(-50%); }
-.circle-center { position: absolute; top: 50%; left: 50%; width: 18%; padding-bottom: 18%; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translate(-50%, -50%); z-index: 2;}
+.circle-center { position: absolute; top: 50%; left: 50%; width: 17.4%; /* Basert på diameter / lengde */ padding-bottom: 17.4%; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translate(-50%, -50%); z-index: 2;}
 .spot-center { position: absolute; top: 50%; left: 50%; width: 1%; padding-bottom: 1%; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translate(-50%, -50%); z-index: 3; }
 .penalty-area { position: absolute; border: 2px solid rgba(255, 255, 255, 0.8); z-index: 2; }
-.penalty-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 59%; height: 15.7%; border-top: none;}
-.penalty-area-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 59%; height: 15.7%; border-bottom: none; }
+.penalty-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 59.3%; height: 15.7%; border-top: none;}
+.penalty-area-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 59.3%; height: 15.7%; border-bottom: none; }
 .goal-area { position: absolute; border: 2px solid rgba(255, 255, 255, 0.8); z-index: 2; }
-.goal-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 26.5%; height: 5.2%; border-top: none; }
-.goal-area-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 26.5%; height: 5.2%; border-bottom: none; }
+.goal-area-top { top: 0; left: 50%; transform: translateX(-50%); width: 26.9%; height: 5.2%; border-top: none; }
+.goal-area-bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 26.9%; height: 5.2%; border-bottom: none; }
 .penalty-spot { position: absolute; width: 0.8%; padding-bottom: 0.8%; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; transform: translateX(-50%); z-index: 3; }
 .penalty-spot-top { top: 10.5%; left: 50%; }
 .penalty-spot-bottom { bottom: 10.5%; left: 50%; }
-.corner-arc { position: absolute; width: 4%; height: 4%; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; z-index: 2; }
-.corner-top-left { top: -2%; left: -2%; border-top-color: transparent; border-left-color: transparent; }
-.corner-top-right { top: -2%; right: -2%; border-top-color: transparent; border-right-color: transparent; }
-.corner-bottom-left { bottom: -2%; left: -2%; border-bottom-color: transparent; border-left-color: transparent; }
-.corner-bottom-right { bottom: -2%; right: -2%; border-bottom-color: transparent; border-right-color: transparent; }
+.corner-arc { position: absolute; width: 2%; /* Basert på 1m radius / 105m lengde */ height: 2%; /* Bruker samme for enkelhet */ border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; z-index: 2; }
+.corner-top-left { top: -1%; /* Justert offset pga mindre boks */ left: -1%; border-top-color: transparent; border-left-color: transparent; }
+.corner-top-right { top: -1%; right: -1%; border-top-color: transparent; border-right-color: transparent; }
+.corner-bottom-left { bottom: -1%; left: -1%; border-bottom-color: transparent; border-left-color: transparent; }
+.corner-bottom-right { bottom: -1%; right: -1%; border-bottom-color: transparent; border-right-color: transparent; }
 
 
 /* === Spillerbrikker PÅ BANEN (inne i #pitch-surface) === */
@@ -191,4 +191,4 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 label[for="player-border-color"] { display: inline-block; margin-right: 5px; margin-top: 0; }
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-/* Version: #68 */
+/* Version: #69 */
