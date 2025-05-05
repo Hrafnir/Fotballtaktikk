@@ -180,60 +180,103 @@ function handleDragStartBench(event) { draggedPlayerId = event.target.getAttribu
 function handleDragStartPiece(event) { const pieceElement = event.target.closest('.player-piece'); if (!pieceElement) return; draggedPlayerId = pieceElement.getAttribute('data-player-id'); if (!getPlayerById(draggedPlayerId)) { console.error("handleDragStartPiece: Fant ikke spiller ID:", draggedPlayerId); event.preventDefault(); return; } draggedElement = pieceElement; dragSource = 'pitch'; event.dataTransfer.setData('text/plain', draggedPlayerId); event.dataTransfer.effectAllowed = 'move'; setTimeout(() => { if(draggedElement) draggedElement.classList.add('dragging') }, 0); event.stopPropagation(); }
 function handleDragOver(event, targetType) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; let targetElement; if (targetType === 'pitch') targetElement = pitchElement; else if (targetType === 'bench') targetElement = benchElement; else if (targetType === 'squad') targetElement = squadListContainer; if(targetElement) targetElement.classList.add('drag-over'); }
 function handleDragLeave(event, targetType) { const relatedTarget = event.relatedTarget; let targetElement; if (targetType === 'pitch') targetElement = pitchElement; else if (targetType === 'bench') targetElement = benchElement; else if (targetType === 'squad') targetElement = squadListContainer; if (!targetElement) return; if (!relatedTarget || !targetElement.contains(relatedTarget)) { targetElement.classList.remove('drag-over'); } }
-function handleDropOnPitch(event) { event.preventDefault(); if (pitchElement) pitchElement.classList.remove('drag-over'); let playerId; try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); resetDragState(); return; } if (!playerId) { console.warn("Drop on Pitch: Mottok tom playerId."); resetDragState(); return; } const player = getPlayerById(playerId); if (!player) { console.error("Drop on Pitch: Fant ikke spiller ID:", playerId); resetDragState(); return; } if ( (dragSource === 'squad' || dragSource === 'bench') && Object.keys(playersOnPitch).length >= MAX_PLAYERS_ON_PITCH ) { alert(`Maks ${MAX_PLAYERS_ON_PITCH} spillere på banen.`); resetDragState(); return; } const pitchRect = pitchElement.getBoundingClientRect(); const dropX = event.clientX - pitchRect.left; const dropY = event.clientY - pitchRect.top; const xPercent = Math.max(0, Math.min(100, (dropX / pitchRect.width) * 100)); const yPercent = Math.max(0, Math.min(100, (dropY / pitchRect.height) * 100)); player.position = { x: xPercent, y: yPercent }; let stateChanged = false; if (playersOnPitch[playerId]) { const piece = playersOnPitch[playerId]; piece.style.left = `${xPercent}%`; piece.style.top = `${yPercent}%`; stateChanged = true; } else { const newPiece = createPlayerPieceElement(player, xPercent, yPercent); if (pitchElement) pitchElement.appendChild(newPiece); playersOnPitch[playerId] = newPiece; if (dragSource === 'bench') { const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); } } stateChanged = true; } if (stateChanged) { saveCurrentState(); renderUI(); } resetDragState(); }
-function handleDropOnBench(event) { event.preventDefault(); if (benchElement) benchElement.classList.remove('drag-over'); let playerId; try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); resetDragState(); return; } if (!playerId) { console.warn("Drop on Bench: Mottok tom playerId."); resetDragState(); return; } const player = getPlayerById(playerId); if (!player) { console.error("Drop on Bench: Fant ikke spiller ID:", playerId); resetDragState(); return; } let stateChanged = false; if (dragSource === 'pitch') { if (!playersOnBench.includes(playerId)) { playersOnBench.push(playerId); } if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; stateChanged = true; } } if (stateChanged) { saveCurrentState(); renderUI(); } resetDragState(); }
-function handleDropOnSquadList(event) { event.preventDefault(); if (squadListContainer) squadListContainer.classList.remove('drag-over'); let playerId; try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); resetDragState(); return; } if (!playerId) { console.warn("Drop on Squad List: Mottok tom playerId."); resetDragState(); return; } const player = getPlayerById(playerId); if (!player) { console.error("Drop on Squad List: Fant ikke spiller ID:", playerId); resetDragState(); return; } let stateChanged = false; if (dragSource === 'pitch') { if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; console.log(`Moved player ${playerId} from pitch to squad list`); stateChanged = true; } } else if (dragSource === 'bench') { const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); console.log(`Moved player ${playerId} from bench to squad list`); stateChanged = true; } } else if (dragSource === 'squad') { console.log("Ignorerer slipp fra tropp til tropp."); } if (stateChanged) { saveCurrentState(); renderUI(); } resetDragState(); }
+function handleDropOnPitch(event) {
+    event.preventDefault();
+    if (pitchElement) pitchElement.classList.remove('drag-over');
+    let playerId;
+    try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); /* FJERNES resetDragState(); */ return; }
+    if (!playerId) { console.warn("Drop on Pitch: Mottok tom playerId."); /* FJERNES resetDragState(); */ return; }
+    const player = getPlayerById(playerId);
+    if (!player) { console.error("Drop on Pitch: Fant ikke spiller ID:", playerId); /* FJERNES resetDragState(); */ return; }
+    if ( (dragSource === 'squad' || dragSource === 'bench') && Object.keys(playersOnPitch).length >= MAX_PLAYERS_ON_PITCH ) {
+        alert(`Maks ${MAX_PLAYERS_ON_PITCH} spillere på banen.`); /* FJERNES resetDragState(); */ return;
+    }
+    const pitchRect = pitchElement.getBoundingClientRect();
+    const dropX = event.clientX - pitchRect.left; const dropY = event.clientY - pitchRect.top;
+    const xPercent = Math.max(0, Math.min(100, (dropX / pitchRect.width) * 100));
+    const yPercent = Math.max(0, Math.min(100, (dropY / pitchRect.height) * 100));
+    player.position = { x: xPercent, y: yPercent };
+    let stateChanged = false;
+    if (playersOnPitch[playerId]) {
+        const piece = playersOnPitch[playerId]; piece.style.left = `${xPercent}%`; piece.style.top = `${yPercent}%`; stateChanged = true;
+    } else {
+        const newPiece = createPlayerPieceElement(player, xPercent, yPercent);
+        if (pitchElement) pitchElement.appendChild(newPiece); playersOnPitch[playerId] = newPiece;
+        if (dragSource === 'bench') { const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); } }
+        stateChanged = true;
+    }
+    if (stateChanged) { saveCurrentState(); renderUI(); }
+    // resetDragState(); // <<< FJERNES HER
+}
+function handleDropOnBench(event) {
+    event.preventDefault();
+    if (benchElement) benchElement.classList.remove('drag-over');
+    let playerId;
+    try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); /* FJERNES resetDragState(); */ return; }
+    if (!playerId) { console.warn("Drop on Bench: Mottok tom playerId."); /* FJERNES resetDragState(); */ return; }
+    const player = getPlayerById(playerId);
+    if (!player) { console.error("Drop on Bench: Fant ikke spiller ID:", playerId); /* FJERNES resetDragState(); */ return; }
+    let stateChanged = false;
+    if (dragSource === 'pitch') {
+        if (!playersOnBench.includes(playerId)) { playersOnBench.push(playerId); }
+        if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; stateChanged = true; }
+    }
+    if (stateChanged) { saveCurrentState(); renderUI(); }
+    // resetDragState(); // <<< FJERNES HER
+}
+function handleDropOnSquadList(event) {
+    event.preventDefault();
+    if (squadListContainer) squadListContainer.classList.remove('drag-over');
+    let playerId;
+    try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); /* FJERNES resetDragState(); */ return; }
+    if (!playerId) { console.warn("Drop on Squad List: Mottok tom playerId."); /* FJERNES resetDragState(); */ return; }
+    const player = getPlayerById(playerId);
+    if (!player) { console.error("Drop on Squad List: Fant ikke spiller ID:", playerId); /* FJERNES resetDragState(); */ return; }
+    let stateChanged = false;
+    if (dragSource === 'pitch') {
+        if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; console.log(`Moved player ${playerId} from pitch to squad list`); stateChanged = true; }
+    } else if (dragSource === 'bench') {
+        const benchIndex = playersOnBench.indexOf(playerId);
+        if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); console.log(`Moved player ${playerId} from bench to squad list`); stateChanged = true; }
+    } else if (dragSource === 'squad') { console.log("Ignorerer slipp fra tropp til tropp."); }
+    if (stateChanged) { saveCurrentState(); renderUI(); }
+    // resetDragState(); // <<< FJERNES HER
+}
 
-// --- DETALJERT handleDragEnd ---
+// --- KORRIGERT handleDragEnd ---
 function handleDragEnd(event) {
-    // === ALLER FØRSTE LINJE FOR DEBUGGING ===
     console.log(`<<<<< handleDragEnd KALT for event target:`, event.target, `>>>>>`);
-    // ========================================
 
-    const endedDragPlayerId = draggedPlayerId; // Lagre ID før timeout
+    // Få tak i elementet som fyrte av eventet
+    const draggedElementTarget = event.target;
+
     setTimeout(() => {
-        console.log(`handleDragEnd (setTimeout): Cleaning up for ${endedDragPlayerId}`);
+        console.log(`handleDragEnd (setTimeout): Cleaning up...`);
 
-        // Alltid prøv å fjerne 'drag-over' fra alle potensielle mål
+        // Fjern drag-over klasser
         if(pitchElement) pitchElement.classList.remove('drag-over');
         if(benchElement) benchElement.classList.remove('drag-over');
         if(squadListContainer) squadListContainer.classList.remove('drag-over');
         console.log(`handleDragEnd (setTimeout): Removed drag-over classes.`);
 
-        // --- Forsøk å fjerne .dragging class ---
-
-        // 1. Prøv elementet som ble dratt (hvis det finnes og har klassen)
-        const originalElement = draggedElement; // Bruk global variabel som ble satt i dragstart
-        if (originalElement && originalElement.classList.contains('dragging')) {
-           originalElement.classList.remove('dragging');
-           console.log(`handleDragEnd (setTimeout): Fjernet .dragging fra original draggedElement (id: ${endedDragPlayerId})`);
-        } else if (originalElement) {
-             console.log(`handleDragEnd (setTimeout): Original draggedElement finnes, men har ikke .dragging.`);
+        // --- Fjern .dragging class ---
+        // Bruk event.target som vi fanget opp utenfor timeout
+        if (draggedElementTarget && draggedElementTarget.classList.contains('dragging')) {
+           draggedElementTarget.classList.remove('dragging');
+           console.log(`handleDragEnd (setTimeout): Fjernet .dragging fra event.target`);
+        } else if (draggedElementTarget) {
+             console.log(`handleDragEnd (setTimeout): event.target hadde ikke .dragging klassen.`);
         } else {
-             console.log(`handleDragEnd (setTimeout): Original draggedElement er null/udefinert (kan skje hvis drag avbrytes tidlig).`);
-        }
-
-        // 2. Eksplisitt sjekk brikken på banen hvis ID finnes
-        // Viktig for å fjerne klassen fra brikken som nettopp ble plassert
-        if (endedDragPlayerId && playersOnPitch[endedDragPlayerId]) {
-            const pieceOnPitch = playersOnPitch[endedDragPlayerId];
-            if (pieceOnPitch && pieceOnPitch.classList.contains('dragging')) {
-                 pieceOnPitch.classList.remove('dragging');
-                 console.log(`handleDragEnd (setTimeout): FORCE Fjernet .dragging fra brikke på banen (id: ${endedDragPlayerId})`);
-            } else if (pieceOnPitch) {
-                 console.log(`handleDragEnd (setTimeout): Brikke på banen finnes for ${endedDragPlayerId}, men har ikke .dragging.`);
-            }
-        } else if (endedDragPlayerId) {
-             console.log(`handleDragEnd (setTimeout): Ingen brikke funnet på banen for ${endedDragPlayerId}.`);
+             console.log(`handleDragEnd (setTimeout): event.target var ikke tilgjengelig?`);
         }
 
         // Til slutt, nullstill global state
-        resetDragState(); // Kall reset ETTER opprydding
+        resetDragState(); // Skal KUN kalles her
         console.log(`handleDragEnd (setTimeout): Drag state nullstilt.`);
 
-    }, 0); // Kjør litt etter at nåværende kallstakk er tom
+    }, 0);
 }
-// --- SLUTT DETALJERT handleDragEnd ---
+// --- SLUTT KORRIGERT handleDragEnd ---
 
 function resetDragState() { draggedPlayerId = null; draggedElement = null; dragSource = null; }
 function handlePlayerPieceClick(event) { const pieceElement = event.currentTarget; const playerId = pieceElement.getAttribute('data-player-id'); if (selectedPlayerIds.has(playerId)) { selectedPlayerIds.delete(playerId); pieceElement.classList.remove('selected'); } else { selectedPlayerIds.add(playerId); pieceElement.classList.add('selected'); } console.log("Valgte spillere:", selectedPlayerIds); }
