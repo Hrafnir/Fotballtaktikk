@@ -1,4 +1,4 @@
-/* Version: #81 */
+/* Version: #82 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; // { playerId: element }
@@ -9,13 +9,12 @@ let draggedElement = null;
 let dragSource = null; // 'squad', 'pitch', 'bench', 'ball'
 let selectedPlayerIds = new Set();
 let isSidebarHidden = false;
-let isPitchRotated = false; // Global variabel for rotasjonsstatus
+let isPitchRotated = false; // Styrer container-rotasjon
 
 const MAX_PLAYERS_ON_PITCH = 11;
-// --- BRUK BILDENES SIDEFORHOLD ---
-const PITCH_ASPECT_RATIO_PORTRAIT = 2 / 3; // Fra pitch-background-portrait.jpg
-const PITCH_ASPECT_RATIO_LANDSCAPE = 3 / 2; // Fra pitch-background.jpg
-// ---------------------------------------------
+// --- BRUK PORTRETT-BILDETS SIDEFORHOLD ---
+const PITCH_ASPECT_RATIO = 2 / 3; // AR for pitch-background-portrait.jpg
+// -----------------------------------------
 
 const STORAGE_KEY_SQUAD = 'fotballtaktiker_squad';
 const STORAGE_KEY_LAST_STATE = 'fotballtaktiker_lastState';
@@ -24,7 +23,6 @@ const STORAGE_KEY_SETUPS = 'fotballtaktiker_setups';
 
 
 // === 1. DOM Element Referanser START ===
-// ... (som før) ...
 const appContainer = document.querySelector('.app-container');
 const sidebar = document.querySelector('.sidebar');
 const toggleSidebarButton = document.getElementById('toggle-sidebar-button');
@@ -89,7 +87,7 @@ function updateBallPosition(xPercent, yPercent) { if (ballElement) { ballElement
 
 
 // === 5. Drag and Drop & Valg/Farge/UI Toggles START ===
-// ... (som før) ...
+// ... (Drag start/end/over/leave som før) ...
 function addDragListenersToSquadItems() { if (!squadListElement) return; const items = squadListElement.querySelectorAll('.squad-player-item.draggable'); console.log(`addDragListenersToSquadItems: Fant ${items.length} squad items.`); items.forEach(item => { item.removeEventListener('dragstart', handleDragStart); item.addEventListener('dragstart', handleDragStart); item.removeEventListener('dragend', handleDragEnd); item.addEventListener('dragend', handleDragEnd); }); }
 function addDragListenersToBenchItems() { if (!benchListElement) return; const items = benchListElement.querySelectorAll('.bench-player-item.draggable'); items.forEach(item => { item.removeEventListener('dragstart', handleDragStartBench); item.addEventListener('dragstart', handleDragStartBench); item.removeEventListener('dragend', handleDragEnd); item.addEventListener('dragend', handleDragEnd); }); }
 function handleDragStart(event) { console.log("handleDragStart: Drag startet:", event.target); draggedPlayerId = event.target.getAttribute('data-player-id'); console.log("handleDragStart: ID:", draggedPlayerId); const player = getPlayerById(draggedPlayerId); if (!player) { console.error("handleDragStart: Fant ikke spiller ID:", draggedPlayerId); event.preventDefault(); return; } console.log("handleDragStart: Fant spiller:", player); draggedElement = event.target; dragSource = 'squad'; try { event.dataTransfer.setData('text/plain', draggedPlayerId); console.log("handleDragStart: setData satt for", draggedPlayerId); } catch (e) { console.error("handleDragStart: Feil ved setData:", e); event.preventDefault(); return; } event.dataTransfer.effectAllowed = 'move'; setTimeout(() => { if(draggedElement) draggedElement.classList.add('dragging') }, 0); }
@@ -98,125 +96,120 @@ function handleDragStartPiece(event) { const pieceElement = event.target.closest
 function handleBallDragStart(event) { console.log("handleBallDragStart: Drag startet:", event.target); try { event.dataTransfer.setData('text/x-dragged-item', 'ball'); dragSource = 'ball'; draggedElement = event.target; console.log("handleBallDragStart: setData satt for ball"); event.dataTransfer.effectAllowed = 'move'; event.target.classList.add('dragging'); } catch (e) { console.error("handleBallDragStart: Feil ved setData:", e); event.preventDefault(); } }
 function handleDragOver(event, targetType) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; let targetElement; if (targetType === 'pitch') targetElement = pitchElement; else if (targetType === 'bench') targetElement = benchElement; else if (targetType === 'squad') targetElement = squadListContainer; if(targetElement) targetElement.classList.add('drag-over'); }
 function handleDragLeave(event, targetType) { const relatedTarget = event.relatedTarget; let targetElement; if (targetType === 'pitch') targetElement = pitchElement; else if (targetType === 'bench') targetElement = benchElement; else if (targetType === 'squad') targetElement = squadListContainer; if (!targetElement) return; if (!relatedTarget || !targetElement.contains(relatedTarget)) { targetElement.classList.remove('drag-over'); } }
+
+// === handleDropOnPitch (MODIFIED) START ===
 function handleDropOnPitch(event) {
     event.preventDefault();
     if (pitchElement) pitchElement.classList.remove('drag-over');
 
-    const pitchRect = pitchElement.getBoundingClientRect();
-    if (!pitchRect || pitchRect.width === 0 || pitchRect.height === 0) {
-        console.error("handleDropOnPitch: Kan ikke beregne posisjon.", pitchRect);
+    // Bruk pitchContainer for koordinatberegning siden den nå roterer
+    const containerRect = pitchContainer.getBoundingClientRect();
+    if (!containerRect || containerRect.width === 0 || containerRect.height === 0) {
+        console.error("handleDropOnPitch: Kan ikke beregne posisjon fra container.", containerRect);
         return;
     }
 
-    // Få rå drop-koordinater relativt til viewport
+    // Få drop-koordinater relativt til viewport
     const dropX_viewport = event.clientX;
     const dropY_viewport = event.clientY;
 
-    // Konverter til koordinater relativt til pitchElement's øvre venstre hjørne
-    let dropX_relative = dropX_viewport - pitchRect.left;
-    let dropY_relative = dropY_viewport - pitchRect.top;
+    // Konverter til koordinater relativt til containerens øvre venstre hjørne
+    let dropX_relative_container = dropX_viewport - containerRect.left;
+    let dropY_relative_container = dropY_viewport - containerRect.top;
 
-    let xPercent, yPercent;
+    let xPercent_on_pitch, yPercent_on_pitch;
 
-    // Korriger beregning hvis banen er rotert
-    if (isPitchRotated) {
-        // Når rotert 90 grader med klokken:
-        // - Viewport X (dropX_relative) tilsvarer den *vertikale* aksen på den *originale* banen (fra bunn til topp).
-        // - Viewport Y (dropY_relative) tilsvarer den *horisontale* aksen på den *originale* banen (fra venstre til høyre).
-        // - pitchRect.width er nå den *visuelle HØYDEN* på den roterte banen.
-        // - pitchRect.height er nå den *visuelle BREDDEN* på den roterte banen.
+    // Finn pitchElement sine dimensjoner (satt av JS)
+    const pitchWidth = pitchElement.offsetWidth;
+    const pitchHeight = pitchElement.offsetHeight;
 
-        // Beregn X-prosent (original horisontal akse) basert på dropY_relative og pitchRect.height (visuell bredde)
-        xPercent = (dropY_relative / pitchRect.height) * 100;
+    if (isPitchRotated) { // CONTAINER er rotert 90 grader
+        // Beregn posisjonen *innenfor den roterte containeren*
+        const x_in_rotated_container = dropX_relative_container;
+        const y_in_rotated_container = dropY_relative_container;
 
-        // Beregn Y-prosent (original vertikal akse) basert på dropX_relative og pitchRect.width (visuell høyde)
-        // Siden (0,0) for den originale banen nå er øverst til høyre (etter 90 graders rotasjon), må vi invertere Y-aksen.
-        yPercent = (1 - (dropX_relative / pitchRect.width)) * 100;
+        // Map dette til prosentandel av den *u-roterte* banen (#pitch)
+        // Den *visuelle* bredden på banen tilsvarer nå pitchHeight
+        // Den *visuelle* høyden på banen tilsvarer nå pitchWidth
 
-        console.log(`handleDropOnPitch (Rotated): drop(rel)(${dropX_relative.toFixed(1)}, ${dropY_relative.toFixed(1)}), rect(w:${pitchRect.width.toFixed(1)}, h:${pitchRect.height.toFixed(1)}), calc%(x:${xPercent.toFixed(1)}, y:${yPercent.toFixed(1)})`);
+        // Horisontal posisjon (X %) på den logiske banen bestemmes av vertikal posisjon i container
+        xPercent_on_pitch = (y_in_rotated_container / containerRect.height) * 100;
 
-    } else {
-        // Standard beregning for ikke-rotert bane
-        xPercent = (dropX_relative / pitchRect.width) * 100;
-        yPercent = (dropY_relative / pitchRect.height) * 100;
-        console.log(`handleDropOnPitch (Normal): drop(rel)(${dropX_relative.toFixed(1)}, ${dropY_relative.toFixed(1)}), rect(w:${pitchRect.width.toFixed(1)}, h:${pitchRect.height.toFixed(1)}), calc%(x:${xPercent.toFixed(1)}, y:${yPercent.toFixed(1)})`);
+        // Vertikal posisjon (Y %) på den logiske banen bestemmes av horisontal posisjon i container (invertert)
+        yPercent_on_pitch = (1 - (x_in_rotated_container / containerRect.width)) * 100;
+
+        console.log(`handleDropOnPitch (Rotated Container): drop(cont)(${dropX_relative_container.toFixed(1)}, ${dropY_relative_container.toFixed(1)}), contRect(w:${containerRect.width.toFixed(1)}, h:${containerRect.height.toFixed(1)}), calc%(x:${xPercent_on_pitch.toFixed(1)}, y:${yPercent_on_pitch.toFixed(1)})`);
+
+    } else { // CONTAINER er IKKE rotert
+        // Beregn posisjonen relativt til #pitch innenfor containeren
+        const pitchOffsetX = (containerRect.width - pitchWidth) / 2;
+        const pitchOffsetY = (containerRect.height - pitchHeight) / 2;
+
+        const dropX_relative_pitch = dropX_relative_container - pitchOffsetX;
+        const dropY_relative_pitch = dropY_relative_container - pitchOffsetY;
+
+        xPercent_on_pitch = (dropX_relative_pitch / pitchWidth) * 100;
+        yPercent_on_pitch = (dropY_relative_pitch / pitchHeight) * 100;
+
+        console.log(`handleDropOnPitch (Normal Container): drop(pitch)(${dropX_relative_pitch.toFixed(1)}, ${dropY_relative_pitch.toFixed(1)}), pitchRect(w:${pitchWidth.toFixed(1)}, h:${pitchHeight.toFixed(1)}), calc%(x:${xPercent_on_pitch.toFixed(1)}, y:${yPercent_on_pitch.toFixed(1)})`);
     }
 
     // Klem prosentverdiene mellom 0 og 100
-    xPercent = Math.max(0, Math.min(100, xPercent));
-    yPercent = Math.max(0, Math.min(100, yPercent));
+    xPercent_on_pitch = Math.max(0, Math.min(100, xPercent_on_pitch));
+    yPercent_on_pitch = Math.max(0, Math.min(100, yPercent_on_pitch));
 
 
-    // Håndter Ball drop
+    // --- Resten av logikken for ball/spiller er lik, men bruker *_on_pitch prosentene ---
     const draggedItemType = event.dataTransfer.getData('text/x-dragged-item');
     if (draggedItemType === 'ball') {
-        console.log(`handleDropOnPitch (Ball): Oppdaterer posisjon til ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`);
-        updateBallPosition(xPercent, yPercent);
-        // Lagre ballens posisjon (hvis ønskelig, f.eks. i state)
-        // saveCurrentState(); // Vurder om ballposisjon skal lagres
+        console.log(`handleDropOnPitch (Ball): Oppdaterer posisjon til ${xPercent_on_pitch.toFixed(1)}%, ${yPercent_on_pitch.toFixed(1)}%`);
+        updateBallPosition(xPercent_on_pitch, yPercent_on_pitch);
         return;
     }
 
-    // Håndter Spiller drop
     let playerId;
     try {
         playerId = event.dataTransfer.getData('text/plain');
-    } catch (e) {
-        console.error("Feil ved henting av dataTransfer (spiller):", e);
-        return;
-    }
-    if (!playerId) {
-        console.warn("Drop on Pitch: Mottok tom playerId for spiller.");
-        return;
-    }
-
+    } catch (e) { console.error("Feil ved henting av dataTransfer (spiller):", e); return; }
+    if (!playerId) { console.warn("Drop on Pitch: Mottok tom playerId for spiller."); return; }
     const player = getPlayerById(playerId);
-    if (!player) {
-        console.error("Drop on Pitch: Fant ikke spiller ID:", playerId);
-        return;
-    }
+    if (!player) { console.error("Drop on Pitch: Fant ikke spiller ID:", playerId); return; }
 
-    // Sjekk maks antall spillere hvis det er fra squad/bench
     if ((dragSource === 'squad' || dragSource === 'bench') && Object.keys(playersOnPitch).length >= MAX_PLAYERS_ON_PITCH) {
         alert(`Maks ${MAX_PLAYERS_ON_PITCH} spillere på banen.`);
         return;
     }
 
-    // Oppdater spillerens lagrede posisjon
-    player.position = { x: xPercent, y: yPercent };
+    player.position = { x: xPercent_on_pitch, y: yPercent_on_pitch };
     console.log(`handleDropOnPitch (Spiller ${playerId}): Lagret posisjon:`, player.position);
 
     let stateChanged = false;
-    // Sjekk om spilleren allerede er på banen (flyttes internt)
     if (playersOnPitch[playerId]) {
         const piece = playersOnPitch[playerId];
-        console.log(`handleDropOnPitch: Flytter eksisterende brikke ${playerId} til ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`);
-        piece.style.left = `${xPercent}%`;
-        piece.style.top = `${yPercent}%`;
+        console.log(`handleDropOnPitch: Flytter eksisterende brikke ${playerId} til ${xPercent_on_pitch.toFixed(1)}%, ${yPercent_on_pitch.toFixed(1)}%`);
+        piece.style.left = `${xPercent_on_pitch}%`;
+        piece.style.top = `${yPercent_on_pitch}%`;
         stateChanged = true;
     } else {
-        // Plasser ny spiller på banen
-        console.log(`handleDropOnPitch: Plasserer ny brikke ${playerId} på ${xPercent.toFixed(1)}%, ${yPercent.toFixed(1)}%`);
-        const newPiece = createPlayerPieceElement(player, xPercent, yPercent);
+        console.log(`handleDropOnPitch: Plasserer ny brikke ${playerId} på ${xPercent_on_pitch.toFixed(1)}%, ${yPercent_on_pitch.toFixed(1)}%`);
+        const newPiece = createPlayerPieceElement(player, xPercent_on_pitch, yPercent_on_pitch);
         if (pitchSurface) pitchSurface.appendChild(newPiece);
         else console.error("FEIL: pitchSurface ikke funnet ved plassering!");
         playersOnPitch[playerId] = newPiece;
-
-        // Fjern fra benk hvis kilden var benken
         if (dragSource === 'bench') {
             const benchIndex = playersOnBench.indexOf(playerId);
-            if (benchIndex > -1) {
-                playersOnBench.splice(benchIndex, 1);
-            }
+            if (benchIndex > -1) playersOnBench.splice(benchIndex, 1);
         }
         stateChanged = true;
     }
 
     if (stateChanged) {
-        saveCurrentState(); // Lagre den oppdaterte spillerposisjonen
-        renderUI();       // Oppdater listene i sidepanelet
+        saveCurrentState();
+        renderUI();
     }
 }
+// === handleDropOnPitch (MODIFIED) END ===
+
 function handleDropOnBench(event) { event.preventDefault(); if (benchElement) benchElement.classList.remove('drag-over'); let playerId; try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); return; } if (!playerId) { console.warn("Drop on Bench: Mottok tom playerId."); return; } const player = getPlayerById(playerId); if (!player) { console.error("Drop on Bench: Fant ikke spiller ID:", playerId); return; } let stateChanged = false; if (dragSource === 'pitch') { if (!playersOnBench.includes(playerId)) { playersOnBench.push(playerId); } if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; stateChanged = true; } } if (stateChanged) { saveCurrentState(); renderUI(); } }
 function handleDropOnSquadList(event) { event.preventDefault(); if (squadListContainer) squadListContainer.classList.remove('drag-over'); let playerId; try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); return; } if (!playerId) { console.warn("Drop on Squad List: Mottok tom playerId."); return; } const player = getPlayerById(playerId); if (!player) { console.error("Drop on Squad List: Fant ikke spiller ID:", playerId); return; } let stateChanged = false; if (dragSource === 'pitch') { if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; console.log(`Moved player ${playerId} from pitch to squad list`); stateChanged = true; } } else if (dragSource === 'bench') { const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); console.log(`Moved player ${playerId} from bench to squad list`); stateChanged = true; } } else if (dragSource === 'squad') { console.log("Ignorerer slipp fra tropp til tropp."); } if (stateChanged) { saveCurrentState(); renderUI(); } }
 function handleDragEnd(event) { console.log(`<<<<< handleDragEnd KALT for event target:`, event.target, `>>>>>`); const draggedElementTarget = event.target; setTimeout(() => { console.log(`handleDragEnd (setTimeout): Cleaning up...`); if(pitchElement) pitchElement.classList.remove('drag-over'); if(benchElement) benchElement.classList.remove('drag-over'); if(squadListContainer) squadListContainer.classList.remove('drag-over'); console.log(`handleDragEnd (setTimeout): Removed drag-over classes.`); if (draggedElementTarget && draggedElementTarget.classList.contains('dragging')) { draggedElementTarget.classList.remove('dragging'); console.log(`handleDragEnd (setTimeout): Fjernet .dragging fra event.target`); } else if (draggedElementTarget) { console.log(`handleDragEnd (setTimeout): event.target (${draggedElementTarget.tagName}${draggedElementTarget.className ? '.' + draggedElementTarget.className.replace(/ /g, '.') : ''}) hadde ikke .dragging klassen.`); } else { console.log(`handleDragEnd (setTimeout): event.target var ikke tilgjengelig?`); } resetDragState(); console.log(`handleDragEnd (setTimeout): Drag state nullstilt.`); }, 0); } // Added more detail to logging
@@ -225,6 +218,7 @@ function handlePlayerPieceClick(event) { const pieceElement = event.currentTarge
 function clearPlayerSelection() { selectedPlayerIds.forEach(id => { const piece = playersOnPitch[id]; if (piece) { piece.classList.remove('selected'); } }); selectedPlayerIds.clear(); console.log("Valg nullstilt."); }
 function handleSetSelectedPlayerBorderColor() { const color = playerBorderColorInput.value; if (selectedPlayerIds.size === 0) { alert("Ingen spillere valgt."); return; } let stateChanged = false; selectedPlayerIds.forEach(playerId => { const player = getPlayerById(playerId); const piece = playersOnPitch[playerId]; if (player && piece) { if (player.borderColor !== color) { player.borderColor = color; const imgContainer = piece.querySelector('.player-image-container'); if (imgContainer) { imgContainer.style.borderColor = color; } stateChanged = true; } } }); if (stateChanged) { console.log("Farge oppdatert til:", color); saveCurrentState(); } clearPlayerSelection(); }
 function toggleSidebar() { isSidebarHidden = !isSidebarHidden; if (appContainer) { appContainer.classList.toggle('sidebar-hidden', isSidebarHidden); if (toggleSidebarButton) { toggleSidebarButton.innerHTML = isSidebarHidden ? '>' : '<'; } console.log("Sidebar toggled, hidden:", isSidebarHidden); } }
+// === togglePitchRotation (MODIFIED) START ===
 function togglePitchRotation() {
     isPitchRotated = !isPitchRotated; // Oppdater global status
 
@@ -237,6 +231,7 @@ function togglePitchRotation() {
     console.log("Pitch rotation toggled, rotated:", isPitchRotated);
 
     // Beregn og sett størrelse manuelt (kaller den nye funksjonen)
+    // Denne trenger IKKE endres, da den alltid skal beregne for portrett-AR
     resizePitchElement();
 
     // Logg dimensjoner etter en kort forsinkelse for å verifisere
@@ -245,17 +240,16 @@ function togglePitchRotation() {
             const width = pitchElement.offsetWidth;
             const height = pitchElement.offsetHeight;
             const actualAR = width > 0 && height > 0 ? width / height : 0;
-            // Bruk bildets AR for forventet verdi
-            const expectedAR = isPitchRotated ? PITCH_ASPECT_RATIO_LANDSCAPE : PITCH_ASPECT_RATIO_PORTRAIT;
+            // Bruk ALLTID portrett-AR for sammenligning av selve #pitch elementet
+            const expectedAR = PITCH_ASPECT_RATIO;
 
-            console.log(`Pitch Dimensions AFTER JS Resize (${isPitchRotated ? 'Rotated' : 'Normal'} View):`);
+            console.log(`Pitch Element Dimensions AFTER JS Resize (Rotated: ${isPitchRotated}):`);
             console.log(`  - OffsetWidth: ${width}px`);
             console.log(`  - OffsetHeight: ${height}px`);
             console.log(`  - Actual AR (W/H): ${actualAR.toFixed(3)}`);
-            console.log(`  - Expected AR (Image based): ${expectedAR.toFixed(3)}`);
-            // Sjekk mot bildets AR
+            console.log(`  - Expected AR (Portrait Image based): ${expectedAR.toFixed(3)}`);
             if (Math.abs(actualAR - expectedAR) > 0.02) {
-                console.warn("  - AR MISMATCH DETECTED vs Image AR!");
+                console.warn("  - AR MISMATCH DETECTED vs Portrait Image AR!");
             }
         } else {
             console.error("togglePitchRotation log: pitchElement not found!");
@@ -264,6 +258,7 @@ function togglePitchRotation() {
 
     saveCurrentState(); // Lagre den nye rotasjonsstatusen
 }
+// === togglePitchRotation (MODIFIED) END ===
 // === 5. Drag and Drop & Valg/Farge/UI Toggles END ===
 
 
@@ -298,6 +293,7 @@ function getCurrentStateData() {
     };
 }
 function saveCurrentState() { try { const stateData = getCurrentStateData(); localStorage.setItem(STORAGE_KEY_LAST_STATE, JSON.stringify(stateData)); console.log("Lagret current state:", stateData); } catch (e) { console.error("Feil ved lagring av state:", e); } }
+// === applyState (MODIFIED) START ===
 function applyState(stateData) {
     if (!stateData) return;
     clearPitch();
@@ -309,7 +305,7 @@ function applyState(stateData) {
     if (pitchContainer) {
         pitchContainer.classList.toggle('rotated', isPitchRotated);
         // VIKTIG: Kall resize her også for å sette korrekt størrelse ved last
-        resizePitchElement();
+        resizePitchElement(); // Denne bruker nå alltid portrett-AR
         console.log("applyState: Rotasjonsstatus satt til:", isPitchRotated);
     }
 
@@ -346,8 +342,9 @@ function applyState(stateData) {
     renderUI();
     console.log("Tilstand anvendt.");
 }
+// === applyState (MODIFIED) END ===
 // === resizePitchElement (MODIFIED) START ===
-// Beregner størrelsen for #pitch basert på *bildets* AR for den *aktuelle* visningen
+// Beregner ALLTID størrelsen for #pitch basert på PORTRETT-AR
 function resizePitchElement() {
      if (!pitchContainer || !pitchElement) {
         console.error("resizePitchElement: pitchContainer or pitchElement not found!");
@@ -356,29 +353,29 @@ function resizePitchElement() {
     const containerWidth = pitchContainer.clientWidth;
     const containerHeight = pitchContainer.clientHeight;
     let targetWidth, targetHeight;
-    // Velg hvilket bildes AR som skal brukes for beregning
-    const currentImageAR = isPitchRotated ? PITCH_ASPECT_RATIO_LANDSCAPE : PITCH_ASPECT_RATIO_PORTRAIT;
 
-    console.log(`JS Resize Calc: Using AR ${currentImageAR.toFixed(3)} (Rotated: ${isPitchRotated})`);
+    // Bruk ALLTID portrett-AR for beregning
+    const currentAR = PITCH_ASPECT_RATIO; // = 2/3
 
-    // Beregn dimensjoner basert på container og valgt AR
-    const heightFromWidth = containerWidth / currentImageAR;
-    const widthFromHeight = containerHeight * currentImageAR;
+    console.log(`JS Resize Calc: Using AR ${currentAR.toFixed(3)} (Portrait)`);
 
-    // Finn ut om bredde eller høyde er begrensende
-    if (heightFromWidth <= containerHeight) {
-        // Bredden er begrensende
-        targetWidth = containerWidth;
-        targetHeight = heightFromWidth;
-        console.log("JS Resize Calc: Width limited");
-    } else {
-        // Høyden er begrensende
+    // Beregn dimensjoner basert på container og portrett-AR
+    const widthFromHeight = containerHeight * currentAR; // Bredde hvis høyden fyller
+    const heightFromWidth = containerWidth / currentAR;  // Høyde hvis bredden fyller
+
+    if (widthFromHeight <= containerWidth) {
+        // Høyden er begrensende for portrett-AR
         targetWidth = widthFromHeight;
         targetHeight = containerHeight;
         console.log("JS Resize Calc: Height limited");
+    } else {
+        // Bredden er begrensende for portrett-AR
+        targetWidth = containerWidth;
+        targetHeight = heightFromWidth;
+        console.log("JS Resize Calc: Width limited");
     }
 
-    // Sett dimensjonene direkte. CSS håndterer bytte av bakgrunnsbilde.
+    // Sett dimensjonene direkte på #pitch
     pitchElement.style.width = `${targetWidth}px`;
     pitchElement.style.height = `${targetHeight}px`;
     console.log(`JS Resize SET: Style W=${targetWidth.toFixed(0)}px, H=${targetHeight.toFixed(0)}px`);
@@ -436,4 +433,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #81 */
+/* Version: #82 */
