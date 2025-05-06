@@ -1,11 +1,11 @@
-<!-- Version: #81 -->
+<!-- Version: #83 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fotballtaktiker</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link til Version: #81 -->
+    <link rel="stylesheet" href="style.css"> <!-- Link til Version: #83 -->
 </head>
 <body>
 
@@ -33,10 +33,19 @@
             </div>
             <div class="control-section" id="display-options">
                 <h3>Visning (Brikker)</h3>
-                <label for="player-border-color">Merkingsfarge:</label>
-                <input type="color" id="player-border-color" value="#FFFF00">
-                <button id="set-border-color-button">Sett Farge</button>
-                <p>(Velg spiller(e) på banen først)</p>
+                <div> <!-- Group color controls -->
+                    <label for="player-border-color">Egendefinert:</label>
+                    <input type="color" id="player-border-color" value="#FFFF00" title="Velg egendefinert farge">
+                    <button id="set-border-color-button" title="Bruk egendefinert farge">Sett Farge</button>
+                </div>
+                 <div style="margin-top: 10px;"> <!-- Group preset colors -->
+                     <label>Standard:</label>
+                     <button id="set-color-red" class="preset-color-button" data-color="red" title="Sett til rød (Angrep)"></button>
+                     <button id="set-color-yellow" class="preset-color-button" data-color="yellow" title="Sett til gul (Midtbane)"></button>
+                     <button id="set-color-green" class="preset-color-button" data-color="lime" title="Sett til grønn (Forsvar)"></button>
+                     <button id="set-color-default" class="preset-color-button" data-color="black" title="Sett til svart (Standard)">⚫</button> <!-- Added default black -->
+                 </div>
+                 <p>(Velg spiller(e) på banen først)</p>
                 <button id="toggle-draw-mode-button">Tegn Piler (Av)</button>
                 <button id="clear-drawings-button">Fjern Piler</button>
             </div>
@@ -65,7 +74,7 @@
 
                         <!-- Canvas, Ball, og Spillerbrikker -->
                         <canvas id="drawing-canvas"></canvas>
-                        <div id="ball" class="draggable" draggable="true">Ball</div>
+                        <div id="ball" class="draggable" draggable="true"></div> <!-- Fjernet tekst inni ballen -->
                         <!-- Spillerbrikker legges til her av JS -->
                     </div>
                  </div>
@@ -136,8 +145,8 @@
     </div>
     <!-- === Modaler/Dialoger END === -->
 
-    <script src="script.js"></script> <!-- Link til Version: #81 -->
+    <script src="script.js"></script> <!-- Link til Version: #83 -->
 
 </body>
 </html>
-<!-- Version: #81 -->
+<!-- Version: #83 -->
