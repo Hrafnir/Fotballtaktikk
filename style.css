@@ -61,16 +61,17 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     transform-origin: center center;
     transform: rotate(0deg); /* Standard */
     box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+
+    /* Bruk ALLTID portrettbildet som default */
+    background-image: url('pitch-background-portrait.jpg');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    /* Standard (Portrett): Bruk portrettbildet */
-    background-image: url('pitch-background-portrait.jpg');
 }
 /* Rotert Pitch: Roter elementet OG bytt bakgrunnsbilde */
 #pitch-container.rotated #pitch {
     transform: rotate(90deg);
-    background-image: url('pitch-background.jpg'); /* Bruk landskapsbildet */
+    background-image: url('pitch-background.jpg'); /* Bytt til landskapsbildet */
 }
 
 /* Pitch Surface: Transparent, holder elementer */
@@ -216,5 +217,4 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 /* label[for="player-border-color"] har egen stil over */
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-
 /* Version: #84 */
