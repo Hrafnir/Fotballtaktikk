@@ -1,4 +1,4 @@
-/* Version: #83 */
+/* Version: #84 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -48,10 +48,9 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    /* Ingen transform her */
 }
 
-/* Pitch: Størrelse settes av JS, roterer for landskap, har portrettbilde */
+/* Pitch: Størrelse settes av JS, roterer for landskap, har bakgrunnsbilde */
 #pitch {
     max-width: 100%;
     max-height: 100%;
@@ -62,20 +61,19 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     transform-origin: center center;
     transform: rotate(0deg); /* Standard */
     box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
-
-    /* Bruk ALLTID portrettbildet */
-    background-image: url('pitch-background-portrait.jpg');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
+    /* Standard (Portrett): Bruk portrettbildet */
+    background-image: url('pitch-background-portrait.jpg');
 }
-/* Rotert Pitch: Roter selve #pitch-elementet */
+/* Rotert Pitch: Roter elementet OG bytt bakgrunnsbilde */
 #pitch-container.rotated #pitch {
     transform: rotate(90deg);
-    /* Bakgrunnsbildet arves fra #pitch-regelen */
+    background-image: url('pitch-background.jpg'); /* Bruk landskapsbildet */
 }
 
-/* Pitch Surface: Dekker #pitch, transparent */
+/* Pitch Surface: Transparent, holder elementer */
 #pitch-surface {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1;
@@ -89,12 +87,11 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     /* Mot-roteres relativt til #pitch */
     transform: translate(-50%, -50%) rotate(0deg);
 }
-/* Mot-roter spillerbrikker NÅR PITCH er rotert */
 #pitch-container.rotated .player-piece {
     transform: translate(-50%, -50%) rotate(-90deg);
 }
 
-/* Spillerbilde Container og Bilde (Gjenopprettet fra tidligere) */
+/* Spillerbilde Container og Bilde */
 .player-image-container { width: 55px; height: 55px; border-radius: 50%; border: 3px solid black; background-color: rgba(50, 50, 50, 0.8); overflow: hidden; display: flex; justify-content: center; align-items: center; margin-bottom: 3px; }
 .player-image { width: 100%; height: 100%; background-color: #aaa; /* Fallback farge */ background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 50%; }
 .player-name { background-color: rgba(0,0,0,0.7); color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; font-weight: bold; text-align: center; max-width: 65px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -103,8 +100,7 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 /* === Ball (inne i #pitch-surface) === */
 #ball {
     position: absolute;
-    width: 35px; /* Økt størrelse */
-    height: 35px; /* Økt størrelse */
+    width: 35px; height: 35px;
     border: 1px solid black;
     border-radius: 50%;
     cursor: grab;
@@ -112,7 +108,6 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     z-index: 15;
     transition: transform 0.4s ease-in-out;
     transform-origin: center center;
-    /* Mot-roteres relativt til #pitch */
     transform: translate(-50%, -50%) rotate(0deg);
     /* Fotballmønster */
     background: radial-gradient(circle at 65% 65%, white 4px, black 5px 8px, transparent 8px),
@@ -123,7 +118,6 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
                 radial-gradient(circle at 50% 50%, white 8px, transparent 8px);
     background-color: white;
 }
-/* Mot-roter ball NÅR PITCH er rotert */
 #pitch-container.rotated #ball {
     transform: translate(-50%, -50%) rotate(-90deg);
 }
@@ -132,10 +126,8 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #drawing-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;
     transform-origin: center center;
     transition: transform 0.4s ease-in-out;
-    /* Mot-roteres relativt til #pitch */
     transform: rotate(0deg);
 }
-/* Mot-roter canvas NÅR PITCH er rotert */
 #pitch-container.rotated #drawing-canvas {
     transform: rotate(-90deg);
 }
@@ -224,4 +216,5 @@ input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 /* label[for="player-border-color"] har egen stil over */
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
-/* Version: #83 */
+
+/* Version: #84 */
