@@ -39,12 +39,10 @@ const rotatePitchButton = document.getElementById('rotate-pitch-button');
 const addPlayerButton = document.getElementById('add-player-button');
 const playerBorderColorInput = document.getElementById('player-border-color');
 const setBorderColorButton = document.getElementById('set-border-color-button');
-// --- Nye knapper ---
 const setColorRedButton = document.getElementById('set-color-red');
 const setColorYellowButton = document.getElementById('set-color-yellow');
 const setColorGreenButton = document.getElementById('set-color-green');
 const setColorDefaultButton = document.getElementById('set-color-default');
-// --------------------
 const toggleDrawModeButton = document.getElementById('toggle-draw-mode-button');
 const clearDrawingsButton = document.getElementById('clear-drawings-button');
 const setupNameInput = document.getElementById('setup-name');
@@ -64,7 +62,6 @@ let benchElement;
 
 
 // === 2. Modal Håndtering START ===
-// ... (som før) ...
 function openAddPlayerModal() { console.log('openAddPlayerModal: Funksjonen startet.'); if (!addPlayerModal) { console.error('openAddPlayerModal: FEIL - addPlayerModal elementet er null!'); return; } addPlayerModal.style.display = 'block'; console.log('openAddPlayerModal: Display satt til block.'); if (newPlayerNameInput) newPlayerNameInput.value = ''; if (newPlayerImageUpload) newPlayerImageUpload.value = ''; if (newPlayerImageUrlInput) newPlayerImageUrlInput.value = ''; if (newPlayerRoleInput) newPlayerRoleInput.value = ''; if (newPlayerNameInput) newPlayerNameInput.focus(); console.log('openAddPlayerModal: Funksjonen ferdig.'); }
 function closeAddPlayerModal() { if (addPlayerModal) { addPlayerModal.style.display = 'none'; } else { console.error("closeAddPlayerModal: addPlayerModal elementet er null!"); } }
 function handleAddPlayerConfirm() { console.log('handleAddPlayerConfirm: Funksjonen startet.'); if (!newPlayerNameInput || !newPlayerImageUrlInput || !newPlayerRoleInput || !newPlayerImageUpload) { console.error("handleAddPlayerConfirm: Ett eller flere input-elementer mangler!"); return; } const name = newPlayerNameInput.value.trim(); const imageFile = newPlayerImageUpload.files[0]; let imageUrl = newPlayerImageUrlInput.value.trim(); const role = newPlayerRoleInput.value.trim(); if (!name) { alert('Spillernavn må fylles ut.'); return; } let finalImageUrl = imageUrl; if (!finalImageUrl && imageFile) { console.warn("Filopplasting støttes ikke for lagring enda."); } const maxId = squad.reduce((max, p) => Math.max(max, parseInt(p.id.split('-')[1]) || 0), 0); nextPlayerId = maxId + 1; const newPlayer = { id: `player-${nextPlayerId}`, name: name, imageUrl: finalImageUrl, role: role, nickname: '', position: { x: 50, y: 50 }, borderColor: 'black', personalInfo: { birthday: '', phone: '', email: '' }, matchStats: { matchesPlayed: 0, goalsScored: 0 }, comments: [] }; squad.push(newPlayer); saveSquad(); renderUI(); closeAddPlayerModal(); console.log("Spiller lagt til:", newPlayer.id); }
@@ -77,7 +74,6 @@ function handleSavePlayerDetails() { const modalElement = document.getElementByI
 
 
 // === 3. UI Rendering START ===
-// ... (som før) ...
 function renderUI() { renderOnPitchList(); renderBench(); renderSquadList(); if(onPitchCountElement) onPitchCountElement.textContent = Object.keys(playersOnPitch).length; if(onBenchCountElement) onBenchCountElement.textContent = playersOnBench.length; }
 function renderOnPitchList() { if (!onPitchListElement) return; onPitchListElement.innerHTML = ''; const playerIdsOnPitch = Object.keys(playersOnPitch); if (playerIdsOnPitch.length === 0) { onPitchListElement.innerHTML = '<li><i>Ingen spillere på banen.</i></li>'; return; } const sortedPlayers = playerIdsOnPitch.map(id => getPlayerById(id)).filter(p => p).sort((a, b) => a.name.localeCompare(b.name)); sortedPlayers.forEach(player => { const listItem = document.createElement('li'); listItem.textContent = (player.nickname || player.name) + (player.role ? ` (${player.role})` : ''); listItem.setAttribute('data-player-id', player.id); listItem.classList.add('on-pitch-player-item'); onPitchListElement.appendChild(listItem); }); }
 function renderBench() { if (!benchListElement) return; benchListElement.innerHTML = ''; if (playersOnBench.length === 0) { benchListElement.innerHTML = '<li><i>Benken er tom.</i></li>'; return; } const sortedPlayers = playersOnBench.map(id => getPlayerById(id)).filter(p => p).sort((a, b) => a.name.localeCompare(b.name)); sortedPlayers.forEach(player => { const listItem = document.createElement('li'); listItem.textContent = (player.nickname || player.name) + (player.role ? ` (${player.role})` : ''); listItem.setAttribute('data-player-id', player.id); listItem.classList.add('bench-player-item', 'draggable'); listItem.setAttribute('draggable', true); benchListElement.appendChild(listItem); }); addDragListenersToBenchItems(); }
@@ -86,13 +82,14 @@ function renderSquadList() { if (!squadListElement) return; squadListElement.inn
 
 
 // === 4. Spillerbrikke & Ball Håndtering START ===
-// ... (som før) ...
 function createPlayerPieceElement(player, xPercent, yPercent) { const piece = document.createElement('div'); piece.classList.add('player-piece', 'draggable'); piece.setAttribute('data-player-id', player.id); piece.setAttribute('draggable', true); piece.style.left = `${xPercent}%`; piece.style.top = `${yPercent}%`; /* Transform settes nå kun av CSS */ const imgContainer = document.createElement('div'); imgContainer.classList.add('player-image-container'); imgContainer.style.borderColor = player.borderColor || 'black'; const imgDiv = document.createElement('div'); imgDiv.classList.add('player-image'); if (player.imageUrl && player.imageUrl.trim() !== '') { // Sjekk om URL finnes og ikke er tom
      imgDiv.style.backgroundImage = `url('${player.imageUrl}')`;
      imgDiv.style.backgroundColor = 'transparent'; // Fjern fallback hvis bilde finnes
+     console.log(`Player ${player.id}: Setting background image to ${player.imageUrl}`);
  } else {
      imgDiv.style.backgroundImage = 'none'; // Fjern evt. gammelt bilde
      imgDiv.style.backgroundColor = '#aaa'; // Vis fallback farge
+     console.log(`Player ${player.id}: No image URL found, using fallback color.`);
  } imgContainer.appendChild(imgDiv); piece.appendChild(imgContainer); const nameDiv = document.createElement('div'); nameDiv.classList.add('player-name'); nameDiv.textContent = player.nickname || player.name; piece.appendChild(nameDiv); piece.addEventListener('dragstart', handleDragStartPiece); piece.addEventListener('dragend', handleDragEnd); piece.addEventListener('dblclick', () => openPlayerDetailModal(player.id)); piece.addEventListener('click', handlePlayerPieceClick); return piece; }
 function getPlayerById(playerId) { if (!playerId) return null; return squad.find(p => p.id === playerId) || null; }
 function updateBallPosition(xPercent, yPercent) { if (ballElement) { ballElement.style.left = `${xPercent}%`; ballElement.style.top = `${yPercent}%`; } }
@@ -110,7 +107,7 @@ function handleBallDragStart(event) { console.log("handleBallDragStart: Drag sta
 function handleDragOver(event, targetType) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; let targetElement; if (targetType === 'pitch') targetElement = pitchElement; else if (targetType === 'bench') targetElement = benchElement; else if (targetType === 'squad') targetElement = squadListContainer; if(targetElement) targetElement.classList.add('drag-over'); }
 function handleDragLeave(event, targetType) { const relatedTarget = event.relatedTarget; let targetElement; if (targetType === 'pitch') targetElement = pitchElement; else if (targetType === 'bench') targetElement = benchElement; else if (targetType === 'squad') targetElement = squadListContainer; if (!targetElement) return; if (!relatedTarget || !targetElement.contains(relatedTarget)) { targetElement.classList.remove('drag-over'); } }
 
-// === handleDropOnPitch (TILBAKE til V82-logikk) START ===
+// === handleDropOnPitch (Fra V84) START ===
 function handleDropOnPitch(event) {
     event.preventDefault();
     if (pitchElement) pitchElement.classList.remove('drag-over');
@@ -188,7 +185,7 @@ function handleDropOnPitch(event) {
         renderUI();
     }
 }
-// === handleDropOnPitch (TILBAKE til V82-logikk) END ===
+// === handleDropOnPitch (Fra V84) END ===
 
 function handleDropOnBench(event) { event.preventDefault(); if (benchElement) benchElement.classList.remove('drag-over'); let playerId; try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); return; } if (!playerId) { console.warn("Drop on Bench: Mottok tom playerId."); return; } const player = getPlayerById(playerId); if (!player) { console.error("Drop on Bench: Fant ikke spiller ID:", playerId); return; } let stateChanged = false; if (dragSource === 'pitch') { if (!playersOnBench.includes(playerId)) { playersOnBench.push(playerId); } if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; stateChanged = true; } } if (stateChanged) { saveCurrentState(); renderUI(); } }
 function handleDropOnSquadList(event) { event.preventDefault(); if (squadListContainer) squadListContainer.classList.remove('drag-over'); let playerId; try { playerId = event.dataTransfer.getData('text/plain'); } catch (e) { console.error("Feil ved henting av dataTransfer:", e); return; } if (!playerId) { console.warn("Drop on Squad List: Mottok tom playerId."); return; } const player = getPlayerById(playerId); if (!player) { console.error("Drop on Squad List: Fant ikke spiller ID:", playerId); return; } let stateChanged = false; if (dragSource === 'pitch') { if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; console.log(`Moved player ${playerId} from pitch to squad list`); stateChanged = true; } } else if (dragSource === 'bench') { const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); console.log(`Moved player ${playerId} from bench to squad list`); stateChanged = true; } } else if (dragSource === 'squad') { console.log("Ignorerer slipp fra tropp til tropp."); } if (stateChanged) { saveCurrentState(); renderUI(); } }
@@ -197,7 +194,6 @@ function resetDragState() { draggedPlayerId = null; draggedElement = null; dragS
 function handlePlayerPieceClick(event) { const pieceElement = event.currentTarget; const playerId = pieceElement.getAttribute('data-player-id'); if (selectedPlayerIds.has(playerId)) { selectedPlayerIds.delete(playerId); pieceElement.classList.remove('selected'); } else { selectedPlayerIds.add(playerId); pieceElement.classList.add('selected'); } console.log("Valgte spillere:", selectedPlayerIds); }
 function clearPlayerSelection() { selectedPlayerIds.forEach(id => { const piece = playersOnPitch[id]; if (piece) { piece.classList.remove('selected'); } }); selectedPlayerIds.clear(); console.log("Valg nullstilt."); }
 
-// === Funksjon for å sette farge (fra V83) ===
 function applyBorderColorToSelection(color) {
     if (selectedPlayerIds.size === 0) {
         alert("Ingen spillere valgt. Klikk på en eller flere spillere på banen først.");
@@ -224,8 +220,6 @@ function applyBorderColorToSelection(color) {
     }
     clearPlayerSelection(); // Fjern markering etterpå
 }
-
-// === Handler for egendefinert fargeknapp (fra V83) ===
 function handleSetSelectedPlayerBorderColor() {
     const color = playerBorderColorInput.value;
     console.log("handleSetSelectedPlayerBorderColor called with color:", color);
@@ -233,7 +227,7 @@ function handleSetSelectedPlayerBorderColor() {
 }
 
 function toggleSidebar() { isSidebarHidden = !isSidebarHidden; if (appContainer) { appContainer.classList.toggle('sidebar-hidden', isSidebarHidden); if (toggleSidebarButton) { toggleSidebarButton.innerHTML = isSidebarHidden ? '>' : '<'; } console.log("Sidebar toggled, hidden:", isSidebarHidden); } }
-// === togglePitchRotation (Tilbake til V81-logikk) START ===
+// === togglePitchRotation (Fra V84) START ===
 function togglePitchRotation() {
     isPitchRotated = !isPitchRotated; // Oppdater global status
 
@@ -273,7 +267,7 @@ function togglePitchRotation() {
 
     saveCurrentState(); // Lagre den nye rotasjonsstatusen
 }
-// === togglePitchRotation (Tilbake til V81-logikk) END ===
+// === togglePitchRotation (Fra V84) END ===
 // === 5. Drag and Drop & Valg/Farge/UI Toggles END ===
 
 
@@ -305,7 +299,7 @@ function getCurrentStateData() {
     };
 }
 function saveCurrentState() { try { const stateData = getCurrentStateData(); localStorage.setItem(STORAGE_KEY_LAST_STATE, JSON.stringify(stateData)); console.log("Lagret current state:", stateData); } catch (e) { console.error("Feil ved lagring av state:", e); } }
-// === applyState (Tilbake til V81-logikk) START ===
+// === applyState (Fra V84) START ===
 function applyState(stateData) {
     if (!stateData) return;
     clearPitch();
@@ -342,8 +336,8 @@ function applyState(stateData) {
     renderUI();
     console.log("Tilstand anvendt.");
 }
-// === applyState (Tilbake til V81-logikk) END ===
-// === resizePitchElement (Tilbake til V81-logikk + "swap") START ===
+// === applyState (Fra V84) END ===
+// === resizePitchElement (Fra V84 - med swap) START ===
 function resizePitchElement() {
      if (!pitchContainer || !pitchElement) {
         console.error("resizePitchElement: pitchContainer or pitchElement not found!");
@@ -360,12 +354,12 @@ function resizePitchElement() {
     const widthFromHeight = containerHeight * currentAR;
     const heightFromWidth = containerWidth / currentAR;
 
-    if (isPitchRotated) { // Må beregne ut fra rotert container
-        const rotatedContainerWidth = containerHeight; // Visuell bredde
-        const rotatedContainerHeight = containerWidth; // Visuell høyde
+    if (isPitchRotated) {
+         const rotatedContainerWidth = containerHeight; // Visuell bredde
+         const rotatedContainerHeight = containerWidth; // Visuell høyde
 
-        const widthFromRotatedHeight = rotatedContainerHeight * currentAR;
-        const heightFromRotatedWidth = rotatedContainerWidth / currentAR;
+        const widthFromRotatedHeight = rotatedContainerHeight * PITCH_ASPECT_RATIO_INVERSE; // Bruk invers for landskap
+        const heightFromRotatedWidth = rotatedContainerWidth / PITCH_ASPECT_RATIO_INVERSE;
 
          if (widthFromRotatedHeight <= rotatedContainerWidth) {
              targetWidth = widthFromRotatedHeight; targetHeight = rotatedContainerHeight;
@@ -378,6 +372,7 @@ function resizePitchElement() {
          pitchElement.style.width = `${targetHeight}px`; // Sett bredde til beregnet HØYDE
          pitchElement.style.height = `${targetWidth}px`; // Sett høyde til beregnet BREDDE
          console.log(`JS Resize SET (Rotated View): Style W=${targetHeight.toFixed(0)}px, H=${targetWidth.toFixed(0)}px`);
+
     } else {
          // Normal beregning for portrett-visning
          if (widthFromHeight <= containerWidth) {
@@ -393,10 +388,10 @@ function resizePitchElement() {
          console.log(`JS Resize SET (Normal View): Style W=${targetWidth.toFixed(0)}px, H=${targetHeight.toFixed(0)}px`);
     }
 }
-// === resizePitchElement (Tilbake til V81-logikk + "swap") END ===
+// === resizePitchElement (Fra V84 - med swap) END ===
 function loadLastState() { const savedState = localStorage.getItem(STORAGE_KEY_LAST_STATE); if (savedState) { try { const stateData = JSON.parse(savedState); applyState(stateData); console.log("Siste tilstand lastet."); } catch (e) { console.error("Feil ved parsing av state:", e); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett størrelse også ved feil */ renderUI(); } } else { console.log("Ingen lagret tilstand funnet."); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; // Sørg for at default er ikke-rotert
      if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett default størrelse */ renderUI(); } }
-function clearPitch() { if (!pitchSurface) {console.error("clearPitch: pitchSurface ikke funnet!"); return;} /* Fjern KUN spillerbrikker og ball */ const pieces = pitchSurface.querySelectorAll('.player-piece'); pieces.forEach(piece => piece.remove()); /* Vi beholder ball og canvas nå */ console.log("clearPitch: Fjernet spillerbrikker fra pitchSurface"); } // Justert for å ikke fjerne ball
+function clearPitch() { if (!pitchSurface) {console.error("clearPitch: pitchSurface ikke funnet!"); return;} const pieces = pitchSurface.querySelectorAll('.player-piece'); pieces.forEach(piece => piece.remove()); /* Vi beholder ball og canvas nå */ console.log("clearPitch: Fjernet spillerbrikker fra pitchSurface"); }
 function getSavedSetups() { const setupsJson = localStorage.getItem(STORAGE_KEY_SETUPS); if (setupsJson) { try { return JSON.parse(setupsJson); } catch (e) { console.error("Feil ved parsing av oppsett:", e); return {}; } } return {}; }
 function handleSaveSetup() { if(!setupNameInput || !loadSetupSelect) return; const name = setupNameInput.value.trim(); if (!name) { alert("Skriv inn navn."); return; } const currentSetups = getSavedSetups(); const currentState = getCurrentStateData(); currentSetups[name] = currentState; try { localStorage.setItem(STORAGE_KEY_SETUPS, JSON.stringify(currentSetups)); alert(`Oppsett "${name}" lagret!`); populateSetupDropdown(); setupNameInput.value = ''; } catch (e) { console.error("Feil ved lagring av oppsett:", e); alert("Kunne ikke lagre."); } }
 function handleLoadSetup() { if(!loadSetupSelect) return; const selectedName = loadSetupSelect.value; if (!selectedName) { alert("Velg oppsett."); return; } const savedSetups = getSavedSetups(); const setupToLoad = savedSetups[selectedName]; if (setupToLoad) { applyState(setupToLoad); alert(`Oppsett "${selectedName}" lastet!`); saveCurrentState(); } else { alert(`Fant ikke "${selectedName}".`); } }
