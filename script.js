@@ -28,13 +28,13 @@ const appContainer = document.querySelector('.app-container');
 const sidebar = document.querySelector('.sidebar');
 const toggleSidebarButton = document.getElementById('toggle-sidebar-button');
 const onPitchListElement = document.getElementById('on-pitch-list');
-const benchListElement = document.getElementById('bench-list'); // Trengs kanskje ikke globalt nå
+const benchListElement = document.getElementById('bench-list');
 const squadListElement = document.getElementById('squad-list');
 const squadListContainer = document.getElementById('squad-list-container');
 const onPitchCountElement = document.getElementById('on-pitch-count');
 const onBenchCountElement = document.getElementById('on-bench-count');
-const pitchElement = document.getElementById('pitch'); // Brukes for størrelse/posisjon
-const pitchSurface = document.getElementById('pitch-surface'); // Brukes for å legge til elementer
+const pitchElement = document.getElementById('pitch');
+const pitchSurface = document.getElementById('pitch-surface');
 const rotatePitchButton = document.getElementById('rotate-pitch-button');
 const addPlayerButton = document.getElementById('add-player-button');
 const playerBorderColorInput = document.getElementById('player-border-color');
@@ -83,7 +83,7 @@ function renderSquadList() { if (!squadListElement) return; squadListElement.inn
 
 // === 4. Spillerbrikke & Ball Håndtering START ===
 function createPlayerPieceElement(player, xPercent, yPercent) {
-    console.log(`createPlayerPieceElement for ${player.id}, Name: ${player.name}, ImageURL: '${player.imageUrl}'`); // Logg info
+    console.log(`createPlayerPieceElement for ${player.id}, Name: ${player.name}, ImageURL: '${player.imageUrl}'`);
     const piece = document.createElement('div');
     piece.classList.add('player-piece', 'draggable');
     piece.setAttribute('data-player-id', player.id);
@@ -128,7 +128,6 @@ function updateBallPosition(xPercent, yPercent) { if (ballElement) { ballElement
 
 
 // === 5. Drag and Drop & Valg/Farge/UI Toggles START ===
-// ... (Drag start/end/over/leave som før) ...
 function addDragListenersToSquadItems() { if (!squadListElement) return; const items = squadListElement.querySelectorAll('.squad-player-item.draggable'); console.log(`addDragListenersToSquadItems: Fant ${items.length} squad items.`); items.forEach(item => { item.removeEventListener('dragstart', handleDragStart); item.addEventListener('dragstart', handleDragStart); item.removeEventListener('dragend', handleDragEnd); item.addEventListener('dragend', handleDragEnd); }); }
 function addDragListenersToBenchItems() { if (!benchListElement) return; const items = benchListElement.querySelectorAll('.bench-player-item.draggable'); items.forEach(item => { item.removeEventListener('dragstart', handleDragStartBench); item.addEventListener('dragstart', handleDragStartBench); item.removeEventListener('dragend', handleDragEnd); item.addEventListener('dragend', handleDragEnd); }); }
 function handleDragStart(event) { console.log("handleDragStart: Drag startet:", event.target); draggedPlayerId = event.target.getAttribute('data-player-id'); console.log("handleDragStart: ID:", draggedPlayerId); const player = getPlayerById(draggedPlayerId); if (!player) { console.error("handleDragStart: Fant ikke spiller ID:", draggedPlayerId); event.preventDefault(); return; } console.log("handleDragStart: Fant spiller:", player); draggedElement = event.target; dragSource = 'squad'; try { event.dataTransfer.setData('text/plain', draggedPlayerId); console.log("handleDragStart: setData satt for", draggedPlayerId); } catch (e) { console.error("handleDragStart: Feil ved setData:", e); event.preventDefault(); return; } event.dataTransfer.effectAllowed = 'move'; setTimeout(() => { if(draggedElement) draggedElement.classList.add('dragging') }, 0); }
@@ -279,7 +278,7 @@ function togglePitchRotation() {
             const height = pitchElement.offsetHeight;
             const actualAR = width > 0 && height > 0 ? width / height : 0;
             // Bruk riktig AR for forventet verdi
-            const expectedAR = isPitchRotated ? PITCH_ASPECT_RATIO_INVERSE : PITCH_ASPECT_RATIO;
+            const expectedAR = isPitchRotated ? PITCH_ASPECT_RATIO_LANDSCAPE : PITCH_ASPECT_RATIO_PORTRAIT; // Korrigert konstantnavn
 
             console.log(`Pitch Element Dimensions AFTER JS Resize (Rotated View: ${isPitchRotated}):`);
             console.log(`  - OffsetWidth: ${width}px`);
@@ -365,7 +364,8 @@ function applyState(stateData) {
     console.log("Tilstand anvendt.");
 }
 // === applyState (Fra V84) END ===
-// === resizePitchElement (Fra V84 - med swap) START ===
+// === resizePitchElement (MODIFIED) START ===
+// Korrigert for å bruke riktig AR i beregning for hver modus
 function resizePitchElement() {
      if (!pitchContainer || !pitchElement) {
         console.error("resizePitchElement: pitchContainer or pitchElement not found!");
@@ -375,33 +375,20 @@ function resizePitchElement() {
     const containerHeight = pitchContainer.clientHeight;
     let targetWidth, targetHeight; // Beregnede *visuelle* dimensjoner
 
-     // Bruk ALLTID portrett-AR for beregning av #pitch
-    const currentAR = PITCH_ASPECT_RATIO;
-    const inverseAR = PITCH_ASPECT_RATIO_INVERSE;
+     if (isPitchRotated) { // Landskapsvisning (rotert #pitch)
+        // Beregn dimensjoner basert på LANDSKAPS-AR (3:2)
+        const currentAR = PITCH_ASPECT_RATIO_LANDSCAPE;
+        console.log(`JS Resize Calc: Using AR ${currentAR.toFixed(3)} (Landscape)`);
 
-     console.log(`JS Resize Calc: Using base AR ${currentAR.toFixed(3)} (Portrait)`);
+        const heightFromWidth = containerWidth / currentAR;
+        const widthFromHeight = containerHeight * currentAR;
 
-    // Beregn dimensjoner basert på container og portrett-AR
-    const widthBasedOnContainerHeight = containerHeight * currentAR;
-    const heightBasedOnContainerWidth = containerWidth / currentAR;
-
-    // Beregn dimensjoner basert på container og landskaps-AR (for swap)
-    const widthBasedOnContainerWidth_Landscape = containerWidth; // For landskap AR
-    const heightBasedOnContainerWidth_Landscape = containerWidth / inverseAR; // For landskap AR
-    const widthBasedOnContainerHeight_Landscape = containerHeight * inverseAR; // For landskap AR
-    const heightBasedOnContainerHeight_Landscape = containerHeight; // For landskap AR
-
-
-    if (isPitchRotated) { // Landskapsvisning (rotert #pitch)
-         // Finn dimensjoner som passer LANDSKAPS-AR (3:2) i container
-        if (heightBasedOnContainerWidth_Landscape <= containerHeight) {
-             targetWidth = widthBasedOnContainerWidth_Landscape; // Visuell bredde
-             targetHeight = heightBasedOnContainerWidth_Landscape; // Visuell høyde
-              console.log("JS Resize Calc (Rotated View): Width limited by container");
+        if (heightFromWidth <= containerHeight) {
+             targetWidth = containerWidth; targetHeight = heightFromWidth;
+              console.log("JS Resize Calc (Rotated View): Width limited");
          } else {
-             targetWidth = widthBasedOnContainerHeight_Landscape; // Visuell bredde
-             targetHeight = heightBasedOnContainerHeight_Landscape; // Visuell høyde
-              console.log("JS Resize Calc (Rotated View): Height limited by container");
+             targetWidth = widthFromHeight; targetHeight = containerHeight;
+              console.log("JS Resize Calc (Rotated View): Height limited");
          }
          // *** SWAP for transform: rotate(90deg) på #pitch ***
          pitchElement.style.width = `${targetHeight}px`; // Sett style.width til VISUELL HØYDE
@@ -409,12 +396,18 @@ function resizePitchElement() {
          console.log(`JS Resize SET (Rotated View): Style W=${targetHeight.toFixed(0)}px, H=${targetWidth.toFixed(0)}px`);
 
     } else { // Portrettvisning (ikke rotert #pitch)
-         // Finn dimensjoner som passer PORTRETT-AR (2:3) i container
-         if (widthBasedOnContainerHeight <= containerWidth) {
-             targetWidth = widthBasedOnContainerHeight; targetHeight = containerHeight;
+        // Beregn dimensjoner basert på PORTRETT-AR (2:3)
+         const currentAR = PITCH_ASPECT_RATIO_PORTRAIT;
+         console.log(`JS Resize Calc: Using AR ${currentAR.toFixed(3)} (Portrait)`);
+
+        const widthFromHeight = containerHeight * currentAR;
+        const heightFromWidth = containerWidth / currentAR;
+
+         if (widthFromHeight <= containerWidth) {
+             targetWidth = widthFromHeight; targetHeight = containerHeight;
              console.log("JS Resize Calc (Normal View): Height limited");
          } else {
-             targetWidth = containerWidth; targetHeight = heightBasedOnContainerWidth;
+             targetWidth = containerWidth; targetHeight = heightFromWidth;
              console.log("JS Resize Calc (Normal View): Width limited");
          }
          // Sett dimensjonene direkte
@@ -423,7 +416,7 @@ function resizePitchElement() {
          console.log(`JS Resize SET (Normal View): Style W=${targetWidth.toFixed(0)}px, H=${targetHeight.toFixed(0)}px`);
     }
 }
-// === resizePitchElement (Fra V84 - med swap) END ===
+// === resizePitchElement (MODIFIED) END ===
 function loadLastState() { const savedState = localStorage.getItem(STORAGE_KEY_LAST_STATE); if (savedState) { try { const stateData = JSON.parse(savedState); applyState(stateData); console.log("Siste tilstand lastet."); } catch (e) { console.error("Feil ved parsing av state:", e); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett størrelse også ved feil */ renderUI(); } } else { console.log("Ingen lagret tilstand funnet."); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; // Sørg for at default er ikke-rotert
      if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett default størrelse */ renderUI(); } }
 function clearPitch() { if (!pitchSurface) {console.error("clearPitch: pitchSurface ikke funnet!"); return;} const pieces = pitchSurface.querySelectorAll('.player-piece'); pieces.forEach(piece => piece.remove()); /* Vi beholder ball og canvas nå */ console.log("clearPitch: Fjernet spillerbrikker fra pitchSurface"); }
@@ -483,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else { console.error("setColorYellowButton ikke funnet!"); }
 
     if(setColorGreenButton) {
-        setColorGreenButton.addEventListener('click', () => applyBorderColorToSelection('lime')); // Bruker lime
+        setColorGreenButton.addEventListener('click', () => applyBorderColorToSelection('lime'));
         console.log("Listener: setColorGreenButton OK");
     } else { console.error("setColorGreenButton ikke funnet!"); }
 
@@ -503,4 +496,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #85 */
+/* Version: #86 */
