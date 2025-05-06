@@ -1,4 +1,4 @@
-/* Version: #80 */
+/* Version: #81 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; // { playerId: element }
@@ -12,10 +12,9 @@ let isSidebarHidden = false;
 let isPitchRotated = false; // Global variabel for rotasjonsstatus
 
 const MAX_PLAYERS_ON_PITCH = 11;
-// --- BRUK BILDETS SIDEFORHOLD (Landskap) ---
-// Antar at bildet har ca. 105:68-proporsjoner. Juster om nødvendig!
-const IMAGE_ASPECT_RATIO_LANDSCAPE = 105 / 68; // ca 1.544
-const IMAGE_ASPECT_RATIO_PORTRAIT = 68 / 105;  // ca 0.648 (invers)
+// --- BRUK BILDENES SIDEFORHOLD ---
+const PITCH_ASPECT_RATIO_PORTRAIT = 2 / 3; // Fra pitch-background-portrait.jpg
+const PITCH_ASPECT_RATIO_LANDSCAPE = 3 / 2; // Fra pitch-background.jpg
 // ---------------------------------------------
 
 const STORAGE_KEY_SQUAD = 'fotballtaktiker_squad';
@@ -247,7 +246,7 @@ function togglePitchRotation() {
             const height = pitchElement.offsetHeight;
             const actualAR = width > 0 && height > 0 ? width / height : 0;
             // Bruk bildets AR for forventet verdi
-            const expectedAR = isPitchRotated ? IMAGE_ASPECT_RATIO_LANDSCAPE : IMAGE_ASPECT_RATIO_PORTRAIT;
+            const expectedAR = isPitchRotated ? PITCH_ASPECT_RATIO_LANDSCAPE : PITCH_ASPECT_RATIO_PORTRAIT;
 
             console.log(`Pitch Dimensions AFTER JS Resize (${isPitchRotated ? 'Rotated' : 'Normal'} View):`);
             console.log(`  - OffsetWidth: ${width}px`);
@@ -348,7 +347,7 @@ function applyState(stateData) {
     console.log("Tilstand anvendt.");
 }
 // === resizePitchElement (MODIFIED) START ===
-// Bruker nå bildets AR uavhengig av rotasjon for beregning
+// Beregner størrelsen for #pitch basert på *bildets* AR for den *aktuelle* visningen
 function resizePitchElement() {
      if (!pitchContainer || !pitchElement) {
         console.error("resizePitchElement: pitchContainer or pitchElement not found!");
@@ -356,31 +355,33 @@ function resizePitchElement() {
     }
     const containerWidth = pitchContainer.clientWidth;
     const containerHeight = pitchContainer.clientHeight;
-    let targetWidth, targetHeight; // Beregnede dimensjoner for #pitch for å matche bildets AR
+    let targetWidth, targetHeight;
+    // Velg hvilket bildes AR som skal brukes for beregning
+    const currentImageAR = isPitchRotated ? PITCH_ASPECT_RATIO_LANDSCAPE : PITCH_ASPECT_RATIO_PORTRAIT;
 
-    // Beregn dimensjoner basert på container og bildets *landskaps*-AR
-    const heightFromWidth = containerWidth / IMAGE_ASPECT_RATIO_LANDSCAPE;
-    const widthFromHeight = containerHeight * IMAGE_ASPECT_RATIO_LANDSCAPE;
+    console.log(`JS Resize Calc: Using AR ${currentImageAR.toFixed(3)} (Rotated: ${isPitchRotated})`);
 
-    // Finn ut om bredde eller høyde er begrensende for landskaps-AR
+    // Beregn dimensjoner basert på container og valgt AR
+    const heightFromWidth = containerWidth / currentImageAR;
+    const widthFromHeight = containerHeight * currentImageAR;
+
+    // Finn ut om bredde eller høyde er begrensende
     if (heightFromWidth <= containerHeight) {
-        // Bredden er begrensende ift landskaps-AR
+        // Bredden er begrensende
         targetWidth = containerWidth;
         targetHeight = heightFromWidth;
-        console.log("JS Resize Calc: Width limited (Landscape AR)");
+        console.log("JS Resize Calc: Width limited");
     } else {
-        // Høyden er begrensende ift landskaps-AR
+        // Høyden er begrensende
         targetWidth = widthFromHeight;
         targetHeight = containerHeight;
-        console.log("JS Resize Calc: Height limited (Landscape AR)");
+        console.log("JS Resize Calc: Height limited");
     }
 
-    // Sett ALLTID #pitch sine style-dimensjoner basert på disse landskaps-beregningene
-    // "Swap"-logikken for landskap håndteres av CSS transform på #pitch
-    // og CSS transform på #pitch-background-img
+    // Sett dimensjonene direkte. CSS håndterer bytte av bakgrunnsbilde.
     pitchElement.style.width = `${targetWidth}px`;
     pitchElement.style.height = `${targetHeight}px`;
-    console.log(`JS Resize SET: Style W=${targetWidth.toFixed(0)}px, H=${targetHeight.toFixed(0)}px (using Landscape AR: ${IMAGE_ASPECT_RATIO_LANDSCAPE.toFixed(3)})`);
+    console.log(`JS Resize SET: Style W=${targetWidth.toFixed(0)}px, H=${targetHeight.toFixed(0)}px`);
 }
 // === resizePitchElement (MODIFIED) END ===
 function loadLastState() { const savedState = localStorage.getItem(STORAGE_KEY_LAST_STATE); if (savedState) { try { const stateData = JSON.parse(savedState); applyState(stateData); console.log("Siste tilstand lastet."); } catch (e) { console.error("Feil ved parsing av state:", e); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; if (pitchContainer) pitchContainer.classList.remove('rotated'); resizePitchElement(); /* Sett størrelse også ved feil */ renderUI(); } } else { console.log("Ingen lagret tilstand funnet."); clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = false; // Sørg for at default er ikke-rotert
@@ -435,4 +436,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #80 */
+/* Version: #81 */
