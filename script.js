@@ -1,4 +1,4 @@
-/* Version: #89 */
+/* Version: #92 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; // { playerId: element }
@@ -72,7 +72,7 @@ const pitchContainer = document.getElementById('pitch-container');
 const drawingCanvas = document.getElementById('drawing-canvas');
 const ballElement = document.getElementById('ball');
 
-let addPlayerModal; let closeButton; let newPlayerNameInput; let newPlayerImageUpload; let newPlayerImageUrlInput; let newPlayerMainRoleInput; /* Endret */ let confirmAddPlayerButton;
+let addPlayerModal; let closeButton; let newPlayerNameInput; let newPlayerImageUpload; let newPlayerImageUrlInput; let newPlayerMainRoleInput; let confirmAddPlayerButton;
 let playerDetailModal;
 let ballSettingsModal;
 let benchElement;
@@ -108,14 +108,14 @@ function openAddPlayerModal() {
     if (newPlayerNameInput) newPlayerNameInput.value = '';
     if (newPlayerImageUpload) newPlayerImageUpload.value = '';
     if (newPlayerImageUrlInput) newPlayerImageUrlInput.value = '';
-    if (newPlayerMainRoleInput) newPlayerMainRoleInput.value = ''; // Endret
+    if (newPlayerMainRoleInput) newPlayerMainRoleInput.value = ''; // Hovedposisjon
     populateRolesCheckboxes('new-player-roles-checkboxes'); // Populer roller
     if (newPlayerNameInput) newPlayerNameInput.focus();
     console.log('openAddPlayerModal: Funksjonen ferdig.');
 }
 function closeAddPlayerModal() { if (addPlayerModal) { addPlayerModal.style.display = 'none'; } else { console.error("closeAddPlayerModal: addPlayerModal elementet er null!"); } }
 
-// === handleAddPlayerConfirm (MODIFIED) START ===
+// === handleAddPlayerConfirm (MODIFIED FOR ROLES) START ===
 function handleAddPlayerConfirm() {
     console.log('handleAddPlayerConfirm: Funksjonen startet.');
     if (!newPlayerNameInput || !newPlayerImageUrlInput || !newPlayerMainRoleInput || !newPlayerImageUpload) {
@@ -125,7 +125,7 @@ function handleAddPlayerConfirm() {
     const name = newPlayerNameInput.value.trim();
     const imageFile = newPlayerImageUpload.files[0];
     let imageUrl = newPlayerImageUrlInput.value.trim();
-    const mainRole = newPlayerMainRoleInput.value.trim(); // Endret
+    const mainRole = newPlayerMainRoleInput.value.trim(); // Hovedposisjon
 
     if (!name) {
         alert('Spillernavn må fylles ut.');
@@ -170,9 +170,9 @@ function handleAddPlayerConfirm() {
     closeAddPlayerModal();
     console.log("Spiller lagt til:", newPlayer);
 }
-// === handleAddPlayerConfirm (MODIFIED) END ===
+// === handleAddPlayerConfirm (MODIFIED FOR ROLES) END ===
 
-// === openPlayerDetailModal (MODIFIED) START ===
+// === openPlayerDetailModal (MODIFIED FOR ROLES) START ===
 function openPlayerDetailModal(playerId) {
     console.log("openPlayerDetailModal for:", playerId);
     const player = getPlayerById(playerId);
@@ -194,7 +194,7 @@ function openPlayerDetailModal(playerId) {
     const detailNicknameInput = modalElement.querySelector('#detail-player-nickname');
     const detailImageUrlInput = modalElement.querySelector('#detail-player-image-url');
     const detailImageDisplay = modalElement.querySelector('#detail-player-image-display');
-    const detailMainRoleInput = modalElement.querySelector('#detail-player-main-role'); // Endret
+    const detailMainRoleInput = modalElement.querySelector('#detail-player-main-role'); // Hovedposisjon
     const detailBirthdayInput = modalElement.querySelector('#detail-player-birthday');
     const detailPhoneInput = modalElement.querySelector('#detail-player-phone');
     const detailEmailInput = modalElement.querySelector('#detail-player-email');
@@ -211,7 +211,7 @@ function openPlayerDetailModal(playerId) {
     detailTitle.textContent = `Detaljer for ${player.name}`;
     detailNameInput.value = player.name || '';
     detailNicknameInput.value = player.nickname;
-    detailMainRoleInput.value = player.mainRole || ''; // Endret
+    detailMainRoleInput.value = player.mainRole || ''; // Hovedposisjon
     detailImageUrlInput.value = player.imageUrl;
     if (player.imageUrl) {
         detailImageDisplay.style.backgroundImage = `url('${player.imageUrl}')`; detailImageDisplay.innerHTML = '';
@@ -230,13 +230,13 @@ function openPlayerDetailModal(playerId) {
     detailMatchComment.value = '';
     modalElement.style.display = 'block';
 }
-// === openPlayerDetailModal (MODIFIED) END ===
+// === openPlayerDetailModal (MODIFIED FOR ROLES) END ===
 
 function renderCommentHistory(comments, historyDivElement) { if (!historyDivElement) { console.warn("renderCommentHistory: historyDivElement mangler."); return; } historyDivElement.innerHTML = ''; if (!comments || comments.length === 0) { historyDivElement.innerHTML = '<p><i>Ingen historikk.</i></p>'; return; } const sortedComments = [...comments].sort((a, b) => new Date(b.date) - new Date(a.date)); sortedComments.forEach(comment => { const p = document.createElement('p'); const dateSpan = document.createElement('span'); dateSpan.classList.add('comment-date'); try { dateSpan.textContent = new Date(comment.date).toLocaleString('no-NO', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { dateSpan.textContent = comment.date; } const textNode = document.createTextNode(comment.text); p.appendChild(dateSpan); p.appendChild(textNode); historyDivElement.appendChild(p); }); }
 function closePlayerDetailModal() { const modalElement = document.getElementById('player-detail-modal'); if (modalElement) { modalElement.style.display = 'none'; } }
 function handleAddCommentToHistory() { const modalElement = document.getElementById('player-detail-modal'); if (!modalElement) return; const detailIdInput = modalElement.querySelector('#detail-player-id'); const detailMatchCommentInput = modalElement.querySelector('#detail-match-comment'); const detailCommentHistoryDiv = modalElement.querySelector('#detail-comment-history'); if (!detailIdInput || !detailMatchCommentInput || !detailCommentHistoryDiv) { console.error("handleAddCommentToHistory: Mangler elementer."); return; } const playerId = detailIdInput.value; const player = getPlayerById(playerId); const commentText = detailMatchCommentInput.value.trim(); if (!player || !commentText) { alert("Skriv kommentar."); return; } const newComment = { date: new Date().toISOString(), text: commentText }; player.comments = player.comments || []; player.comments.push(newComment); saveSquad(); renderCommentHistory(player.comments, detailCommentHistoryDiv); detailMatchCommentInput.value = ''; alert("Kommentar lagt til."); }
 
-// === handleSavePlayerDetails (MODIFIED) START ===
+// === handleSavePlayerDetails (MODIFIED FOR ROLES) START ===
 function handleSavePlayerDetails() {
     const modalElement = document.getElementById('player-detail-modal');
     if (!modalElement) return;
@@ -244,7 +244,7 @@ function handleSavePlayerDetails() {
     const detailNameInput = modalElement.querySelector('#detail-player-name');
     const detailNicknameInput = modalElement.querySelector('#detail-player-nickname');
     const detailImageUrlInput = modalElement.querySelector('#detail-player-image-url');
-    const detailMainRoleInput = modalElement.querySelector('#detail-player-main-role'); // Endret
+    const detailMainRoleInput = modalElement.querySelector('#detail-player-main-role'); // Hovedposisjon
     const detailBirthdayInput = modalElement.querySelector('#detail-player-birthday');
     const detailPhoneInput = modalElement.querySelector('#detail-player-phone');
     const detailEmailInput = modalElement.querySelector('#detail-player-email');
@@ -265,7 +265,7 @@ function handleSavePlayerDetails() {
 
     if (player.name !== detailNameInput.value) { player.name = detailNameInput.value; dataChanged = true; visualChanged = true; }
     if (player.nickname !== detailNicknameInput.value) { player.nickname = detailNicknameInput.value.trim(); dataChanged = true; visualChanged = true; }
-    if (player.mainRole !== detailMainRoleInput.value) { player.mainRole = detailMainRoleInput.value; dataChanged = true; visualChanged = true; } // Endret til mainRole
+    if (player.mainRole !== detailMainRoleInput.value) { player.mainRole = detailMainRoleInput.value; dataChanged = true; visualChanged = true; } // Lagre Hovedposisjon
     const newImageUrl = detailImageUrlInput.value.trim();
     if (player.imageUrl !== newImageUrl) { player.imageUrl = newImageUrl; dataChanged = true; visualChanged = true; console.log(`Image URL endret for ${playerId}`); }
 
@@ -325,7 +325,7 @@ function handleSavePlayerDetails() {
     }
     closePlayerDetailModal();
 }
-// === handleSavePlayerDetails (MODIFIED) END ===
+// === handleSavePlayerDetails (MODIFIED FOR ROLES) END ===
 
 // === Ball Modal Funksjoner START ===
 function openBallSettingsModal() {
@@ -381,7 +381,6 @@ function renderSquadList() { if (!squadListElement) return; squadListElement.inn
 
 
 // === 4. Spillerbrikke & Ball Håndtering START ===
-// createPlayerPieceElement, getPlayerById, updateBallPosition (som før)
 function createPlayerPieceElement(player, xPercent, yPercent) {
     console.log(`createPlayerPieceElement for ${player.id}, Name: ${player.name}, ImageURL: '${player.imageUrl}'`);
     const piece = document.createElement('div');
@@ -458,7 +457,6 @@ function applyBallStyle() {
 
 
 // === 5. Drag and Drop & Valg/Farge/UI Toggles START ===
-// ... (som før, inkludert korrigert handleDropOnPitch, applyBorderColorToSelection, togglePitchRotation) ...
 function addDragListenersToSquadItems() { if (!squadListElement) return; const items = squadListElement.querySelectorAll('.squad-player-item.draggable'); console.log(`addDragListenersToSquadItems: Fant ${items.length} squad items.`); items.forEach(item => { item.removeEventListener('dragstart', handleDragStart); item.addEventListener('dragstart', handleDragStart); item.removeEventListener('dragend', handleDragEnd); item.addEventListener('dragend', handleDragEnd); }); }
 function addDragListenersToBenchItems() { if (!benchListElement) return; const items = benchListElement.querySelectorAll('.bench-player-item.draggable'); items.forEach(item => { item.removeEventListener('dragstart', handleDragStartBench); item.addEventListener('dragstart', handleDragStartBench); item.removeEventListener('dragend', handleDragEnd); item.addEventListener('dragend', handleDragEnd); }); }
 function handleDragStart(event) { console.log("handleDragStart: Drag startet:", event.target); draggedPlayerId = event.target.getAttribute('data-player-id'); console.log("handleDragStart: ID:", draggedPlayerId); const player = getPlayerById(draggedPlayerId); if (!player) { console.error("handleDragStart: Fant ikke spiller ID:", draggedPlayerId); event.preventDefault(); return; } console.log("handleDragStart: Fant spiller:", player); draggedElement = event.target; dragSource = 'squad'; try { event.dataTransfer.setData('text/plain', draggedPlayerId); console.log("handleDragStart: setData satt for", draggedPlayerId); } catch (e) { console.error("handleDragStart: Feil ved setData:", e); event.preventDefault(); return; } event.dataTransfer.effectAllowed = 'move'; setTimeout(() => { if(draggedElement) draggedElement.classList.add('dragging') }, 0); }
@@ -709,7 +707,7 @@ function applyState(stateData) {
     renderUI();
     console.log("Tilstand anvendt.");
 }
-// === resizePitchElement (Fra V85) START ===
+// === resizePitchElement START ===
 function resizePitchElement() {
      if (!pitchContainer || !pitchElement) {
         console.error("resizePitchElement: pitchContainer or pitchElement not found!");
@@ -757,7 +755,7 @@ function resizePitchElement() {
          console.log(`JS Resize SET (Normal View): Style W=${targetWidth.toFixed(0)}px, H=${targetHeight.toFixed(0)}px`);
     }
 }
-// === resizePitchElement (Fra V85) END ===
+// === resizePitchElement END ===
 function loadLastState() {
     const savedState = localStorage.getItem(STORAGE_KEY_LAST_STATE);
     let stateData = {};
@@ -799,7 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
     newPlayerNameInput = document.getElementById('new-player-name');
     newPlayerImageUpload = document.getElementById('new-player-image-upload');
     newPlayerImageUrlInput = document.getElementById('new-player-image-url');
-    newPlayerMainRoleInput = document.getElementById('new-player-main-role'); // Endret
+    newPlayerMainRoleInput = document.getElementById('new-player-main-role'); // Hovedposisjon
     confirmAddPlayerButton = document.getElementById('confirm-add-player');
     playerDetailModal = document.getElementById('player-detail-modal');
     ballSettingsModal = document.getElementById('ball-settings-modal');
@@ -870,4 +868,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #86 */
+/* Version: #92 */
