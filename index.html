@@ -1,4 +1,4 @@
-<!-- Version: #90 -->
+<!-- Version: #94 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -91,8 +91,8 @@
         <label for="new-player-image-upload">Bilde (URL eller last opp):</label>
         <input type="file" id="new-player-image-upload" accept="image/*"><br>
         <input type="text" id="new-player-image-url" placeholder="Eller lim inn URL"><br><br>
-        <label for="new-player-main-role">Hovedposisjon:</label> <!-- Endret fra new-player-role -->
-        <input type="text" id="new-player-main-role"><br><br> <!-- Endret fra new-player-role -->
+        <label for="new-player-main-role">Hovedposisjon:</label> 
+        <input type="text" id="new-player-main-role"><br><br> 
 
         <h4>Spillbare Roller:</h4>
         <div id="new-player-roles-checkboxes" class="roles-checkbox-container">
@@ -113,13 +113,21 @@
                 <div id="detail-player-image-display" class="detail-image-display"><span>Ingen bilde-URL</span></div>
                 <label for="detail-player-image-url">Bilde-URL:</label>
                 <input type="text" id="detail-player-image-url" placeholder="Lim inn URL til bilde...">
+                
                 <h4>Personlig Info</h4>
                 <label for="detail-player-name">Navn:</label>
                 <input type="text" id="detail-player-name">
                 <label for="detail-player-nickname">Kallenavn (vises på brikke):</label>
                 <input type="text" id="detail-player-nickname" placeholder="F.eks. Myggen">
-                <label for="detail-player-main-role">Hovedposisjon:</label> <!-- Endret fra detail-player-role -->
-                <input type="text" id="detail-player-main-role"> <!-- Endret fra detail-player-role -->
+                
+                <!-- NYTT: Spillerstatus Dropdown -->
+                <label for="detail-player-status">Status:</label>
+                <select id="detail-player-status">
+                    <!-- Options fylles av JS -->
+                </select>
+                
+                <label for="detail-player-main-role">Hovedposisjon:</label> 
+                <input type="text" id="detail-player-main-role"> 
                 <label for="detail-player-birthday">Fødselsdato:</label>
                 <input type="date" id="detail-player-birthday">
                 <label for="detail-player-phone">Telefon:</label>
@@ -174,8 +182,7 @@
 </div>
 <!-- === Modaler/Dialoger END === -->
 
-<script src="script.js"></script> <!-- Link til Version: #90 -->
+<script src="script.js"></script> <!-- Link til Version: #93 -->
 Use code with caution.
 </body>
 </html>
-<!-- Version: #90 -->
