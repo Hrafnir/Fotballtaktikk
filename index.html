@@ -1,182 +1,181 @@
-<!-- Version: #89 -->
+<!-- Version: #90 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fotballtaktiker</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link til Version: #88 -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fotballtaktiker</title>
+<link rel="stylesheet" href="style.css"> <!-- Link til Version: #89 -->
 </head>
 <body>
+<div class="app-container"> <!-- Klassen .sidebar-hidden legges til/fjernes her -->
 
-    <div class="app-container"> <!-- Klassen .sidebar-hidden legges til/fjernes her -->
+    <button id="toggle-sidebar-button" class="sidebar-toggle-button" title="Skjul/Vis sidepanel"><</button>
 
-        <button id="toggle-sidebar-button" class="sidebar-toggle-button" title="Skjul/Vis sidepanel"><</button>
-
-        <!-- === 1. Kontrollpanel / Sidepanel START === -->
-        <aside class="sidebar">
-            <h2>Kontrollpanel</h2>
-            <div id="on-pitch-section" class="control-section">
-                <h3>På Banen (<span id="on-pitch-count">0</span>/11)</h3>
-                <ul id="on-pitch-list"><li><i>Ingen spillere på banen.</i></li></ul>
-            </div>
-            <div id="bench" class="control-section drop-target">
-                <h4>På Benken (<span id="on-bench-count">0</span>)</h4>
-                <ul id="bench-list"><li><i>Benken er tom.</i></li></ul>
-            </div>
-            <div class="control-section" id="squad-management">
-                <h3>Tropp (Tilgjengelige)</h3>
-                <div id="squad-list-container" class="drop-target">
-                    <ul id="squad-list"><li><i>Ingen spillere i troppen.</i></li></ul>
-                </div>
-                 <button id="add-player-button" style="margin-top: 10px;">Legg til Spiller i Tropp</button>
-            </div>
-            <div class="control-section" id="display-options">
-                <h3>Visning (Brikker)</h3>
-                <div> <!-- Group color controls -->
-                    <label for="player-border-color">Egendefinert:</label>
-                    <input type="color" id="player-border-color" value="#FFFF00" title="Velg egendefinert farge">
-                    <button id="set-border-color-button" title="Bruk egendefinert farge">Sett Farge</button>
-                </div>
-                 <div style="margin-top: 10px;"> <!-- Group preset colors -->
-                     <label>Standard:</label>
-                     <button id="set-color-red" class="preset-color-button" data-color="red" title="Sett til rød (Angrep)"></button>
-                     <button id="set-color-yellow" class="preset-color-button" data-color="yellow" title="Sett til gul (Midtbane)"></button>
-                     <button id="set-color-green" class="preset-color-button" data-color="lime" title="Sett til grønn (Forsvar)"></button>
-                     <button id="set-color-default" class="preset-color-button" data-color="black" title="Sett til svart (Standard)">⚫</button>
-                 </div>
-                 <p>(Velg spiller(e) på banen først)</p>
-                <button id="toggle-draw-mode-button">Tegn Piler (Av)</button>
-                <button id="clear-drawings-button">Fjern Piler</button>
-            </div>
-            <div class="control-section" id="save-load">
-                <h3>Oppsett (Formasjoner)</h3>
-                <input type="text" id="setup-name" placeholder="Navn på oppsett...">
-                <button id="save-setup-button">Lagre Oppsett</button>
-                <select id="load-setup-select"><option value="">Velg oppsett...</option></select>
-                <button id="load-setup-button">Last Oppsett</button>
-                <button id="delete-setup-button">Slett Valgt Oppsett</button>
-            </div>
-             <div class="control-section" id="export">
-                <h3>Eksporter</h3>
-                 <button id="export-png-button">Lag Skjermbilde (PNG)</button>
-            </div>
-        </aside>
-        <!-- === 1. Kontrollpanel / Sidepanel END === -->
-
-        <!-- === 2. Hovedområde (Bane) START === -->
-        <main class="main-content">
-             <button id="rotate-pitch-button" class="rotate-button" title="Roter bane">↻</button>
-            <div id="pitch-container">
-                 <div id="pitch" class="drop-target">
-                     <div id="pitch-surface">
-                        <!-- Canvas, Ball, og Spillerbrikker -->
-                        <canvas id="drawing-canvas"></canvas>
-                        <div id="ball" class="draggable" draggable="true"></div>
-                        <!-- Spillerbrikker legges til her av JS -->
-                    </div>
-                 </div>
-            </div>
-        </main>
-        <!-- === 2. Hovedområde (Bane) END === -->
-
-    </div> <!-- /.app-container -->
-
-    <!-- === Modaler/Dialoger START === -->
-    <div id="add-player-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close-button">×</span>
-            <h3>Legg til ny spiller</h3>
-            <label for="new-player-name">Navn:</label>
-            <input type="text" id="new-player-name" required><br><br>
-            <label for="new-player-image-upload">Bilde (URL eller last opp):</label>
-            <input type="file" id="new-player-image-upload" accept="image/*"><br>
-            <input type="text" id="new-player-image-url" placeholder="Eller lim inn URL"><br><br>
-            <label for="new-player-main-role">Hovedposisjon:</label> <!-- Endret fra new-player-role -->
-            <input type="text" id="new-player-main-role"><br><br> <!-- Endret fra new-player-role -->
-
-            <h4>Spillbare Roller:</h4>
-            <div id="new-player-roles-checkboxes" class="roles-checkbox-container">
-                <!-- Checkboxes for roller genereres her av JS -->
-            </div>
-            <br>
-            <button id="confirm-add-player">Legg til</button>
+    <!-- === 1. Kontrollpanel / Sidepanel START === -->
+    <aside class="sidebar">
+        <h2>Kontrollpanel</h2>
+        <div id="on-pitch-section" class="control-section">
+            <h3>På Banen (<span id="on-pitch-count">0</span>/11)</h3>
+            <ul id="on-pitch-list"><li><i>Ingen spillere på banen.</i></li></ul>
         </div>
-    </div>
-    <div id="player-detail-modal" class="modal" style="display: none;">
-        <div class="modal-content wide">
-            <span class="close-detail-button close-button">×</span>
-            <h3 id="detail-modal-title">Spillerdetaljer</h3>
-            <input type="hidden" id="detail-player-id">
-            <div class="modal-columns">
-                <div class="modal-column">
-                    <h4>Bilde</h4>
-                    <div id="detail-player-image-display" class="detail-image-display"><span>Ingen bilde-URL</span></div>
-                    <label for="detail-player-image-url">Bilde-URL:</label>
-                    <input type="text" id="detail-player-image-url" placeholder="Lim inn URL til bilde...">
-                    <h4>Personlig Info</h4>
-                    <label for="detail-player-name">Navn:</label>
-                    <input type="text" id="detail-player-name">
-                    <label for="detail-player-nickname">Kallenavn (vises på brikke):</label>
-                    <input type="text" id="detail-player-nickname" placeholder="F.eks. Myggen">
-                    <label for="detail-player-main-role">Hovedposisjon:</label> <!-- Endret fra detail-player-role -->
-                    <input type="text" id="detail-player-main-role"> <!-- Endret fra detail-player-role -->
-                    <label for="detail-player-birthday">Fødselsdato:</label>
-                    <input type="date" id="detail-player-birthday">
-                    <label for="detail-player-phone">Telefon:</label>
-                    <input type="tel" id="detail-player-phone" placeholder="Eks: 12345678">
-                    <label for="detail-player-email">E-post:</label>
-                    <input type="email" id="detail-player-email" placeholder="navn@example.com">
-                </div>
-                <div class="modal-column">
-                    <h4>Spillbare Roller:</h4>
-                    <div id="detail-player-roles-checkboxes" class="roles-checkbox-container">
-                        <!-- Checkboxes for roller genereres her av JS -->
-                    </div>
-                    <hr style="margin: 15px 0;">
-                    <h4>Kamp-kommentar (Denne økten)</h4>
-                    <textarea id="detail-match-comment" rows="4" placeholder="Notater..."></textarea>
-                    <button id="add-comment-to-history-button">Legg til i historikk</button>
-                    <h4>Kommentarhistorikk</h4>
-                    <div id="detail-comment-history" class="comment-history"><p><i>Ingen historikk.</i></p></div>
-                    <h4>Sesongstatistikk (Manuell)</h4>
-                    <label for="detail-matches-played">Kamper spilt:</label>
-                    <input type="number" id="detail-matches-played" min="0" value="0">
-                    <label for="detail-goals-scored">Mål scoret:</label>
-                    <input type="number" id="detail-goals-scored" min="0" value="0">
-                </div>
-            </div>
-            <div class="modal-footer">
-                 <button id="save-details-button">Lagre Endringer</button>
-            </div>
+        <div id="bench" class="control-section drop-target">
+            <h4>På Benken (<span id="on-bench-count">0</span>)</h4>
+            <ul id="bench-list"><li><i>Benken er tom.</i></li></ul>
         </div>
-    </div>
-    <div id="ball-settings-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close-ball-settings-button close-button">×</span>
-            <h3>Ballinnstillinger</h3>
-            <div>
-                <label for="ball-size-slider">Størrelse:</label>
-                <input type="range" id="ball-size-slider" min="20" max="60" value="35">
-                <span id="ball-size-value">35px</span>
+        <div class="control-section" id="squad-management">
+            <h3>Tropp (Tilgjengelige)</h3>
+            <div id="squad-list-container" class="drop-target">
+                <ul id="squad-list"><li><i>Ingen spillere i troppen.</i></li></ul>
             </div>
-             <div style="margin-top: 15px;">
-                 <label>Utseende:</label><br>
-                 <input type="radio" id="ball-style-default" name="ball-style" value="default" checked> <label for="ball-style-default">Standard</label><br>
-                 <input type="radio" id="ball-style-classic" name="ball-style" value="classic"> <label for="ball-style-classic">Klassisk (CSS)</label><br>
-                 <input type="radio" id="ball-style-color" name="ball-style" value="color">
-                 <label for="ball-style-color">Ensfarget:</label>
-                 <input type="color" id="ball-custom-color" value="#FFA500">
+             <button id="add-player-button" style="margin-top: 10px;">Legg til Spiller i Tropp</button>
+        </div>
+        <div class="control-section" id="display-options">
+            <h3>Visning (Brikker)</h3>
+            <div> <!-- Group color controls -->
+                <label for="player-border-color">Egendefinert:</label>
+                <input type="color" id="player-border-color" value="#FFFF00" title="Velg egendefinert farge">
+                <button id="set-border-color-button" title="Bruk egendefinert farge">Sett Farge</button>
+            </div>
+             <div style="margin-top: 10px;"> <!-- Group preset colors -->
+                 <label>Standard:</label>
+                 <button id="set-color-red" class="preset-color-button" data-color="red" title="Sett til rød (Angrep)"></button>
+                 <button id="set-color-yellow" class="preset-color-button" data-color="yellow" title="Sett til gul (Midtbane)"></button>
+                 <button id="set-color-green" class="preset-color-button" data-color="lime" title="Sett til grønn (Forsvar)"></button>
+                 <button id="set-color-default" class="preset-color-button" data-color="black" title="Sett til svart (Standard)">⚫</button>
              </div>
-             <div class="modal-footer">
-                 <button id="save-ball-settings-button">Lagre</button>
+             <p>(Velg spiller(e) på banen først)</p>
+            <button id="toggle-draw-mode-button">Tegn Piler (Av)</button>
+            <button id="clear-drawings-button">Fjern Piler</button>
+        </div>
+        <div class="control-section" id="save-load">
+            <h3>Oppsett (Formasjoner)</h3>
+            <input type="text" id="setup-name" placeholder="Navn på oppsett...">
+            <button id="save-setup-button">Lagre Oppsett</button>
+            <select id="load-setup-select"><option value="">Velg oppsett...</option></select>
+            <button id="load-setup-button">Last Oppsett</button>
+            <button id="delete-setup-button">Slett Valgt Oppsett</button>
+        </div>
+         <div class="control-section" id="export">
+            <h3>Eksporter</h3>
+             <button id="export-png-button">Lag Skjermbilde (PNG)</button>
+        </div>
+    </aside>
+    <!-- === 1. Kontrollpanel / Sidepanel END === -->
+
+    <!-- === 2. Hovedområde (Bane) START === -->
+    <main class="main-content">
+         <button id="rotate-pitch-button" class="rotate-button" title="Roter bane">↻</button>
+        <div id="pitch-container">
+             <div id="pitch" class="drop-target">
+                 <div id="pitch-surface">
+                    <!-- Canvas, Ball, og Spillerbrikker -->
+                    <canvas id="drawing-canvas"></canvas>
+                    <div id="ball" class="draggable" draggable="true"></div>
+                    <!-- Spillerbrikker legges til her av JS -->
+                </div>
              </div>
         </div>
+    </main>
+    <!-- === 2. Hovedområde (Bane) END === -->
+
+</div> <!-- /.app-container -->
+
+<!-- === Modaler/Dialoger START === -->
+<div id="add-player-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-button">×</span>
+        <h3>Legg til ny spiller</h3>
+        <label for="new-player-name">Navn:</label>
+        <input type="text" id="new-player-name" required><br><br>
+        <label for="new-player-image-upload">Bilde (URL eller last opp):</label>
+        <input type="file" id="new-player-image-upload" accept="image/*"><br>
+        <input type="text" id="new-player-image-url" placeholder="Eller lim inn URL"><br><br>
+        <label for="new-player-main-role">Hovedposisjon:</label> <!-- Endret fra new-player-role -->
+        <input type="text" id="new-player-main-role"><br><br> <!-- Endret fra new-player-role -->
+
+        <h4>Spillbare Roller:</h4>
+        <div id="new-player-roles-checkboxes" class="roles-checkbox-container">
+            <!-- Checkboxes for roller genereres her av JS -->
+        </div>
+        <br>
+        <button id="confirm-add-player">Legg til</button>
     </div>
-    <!-- === Modaler/Dialoger END === -->
+</div>
+<div id="player-detail-modal" class="modal" style="display: none;">
+    <div class="modal-content wide">
+        <span class="close-detail-button close-button">×</span>
+        <h3 id="detail-modal-title">Spillerdetaljer</h3>
+        <input type="hidden" id="detail-player-id">
+        <div class="modal-columns">
+            <div class="modal-column">
+                <h4>Bilde</h4>
+                <div id="detail-player-image-display" class="detail-image-display"><span>Ingen bilde-URL</span></div>
+                <label for="detail-player-image-url">Bilde-URL:</label>
+                <input type="text" id="detail-player-image-url" placeholder="Lim inn URL til bilde...">
+                <h4>Personlig Info</h4>
+                <label for="detail-player-name">Navn:</label>
+                <input type="text" id="detail-player-name">
+                <label for="detail-player-nickname">Kallenavn (vises på brikke):</label>
+                <input type="text" id="detail-player-nickname" placeholder="F.eks. Myggen">
+                <label for="detail-player-main-role">Hovedposisjon:</label> <!-- Endret fra detail-player-role -->
+                <input type="text" id="detail-player-main-role"> <!-- Endret fra detail-player-role -->
+                <label for="detail-player-birthday">Fødselsdato:</label>
+                <input type="date" id="detail-player-birthday">
+                <label for="detail-player-phone">Telefon:</label>
+                <input type="tel" id="detail-player-phone" placeholder="Eks: 12345678">
+                <label for="detail-player-email">E-post:</label>
+                <input type="email" id="detail-player-email" placeholder="navn@example.com">
+            </div>
+            <div class="modal-column">
+                <h4>Spillbare Roller:</h4>
+                <div id="detail-player-roles-checkboxes" class="roles-checkbox-container">
+                    <!-- Checkboxes for roller genereres her av JS -->
+                </div>
+                <hr style="margin: 15px 0;">
+                <h4>Kamp-kommentar (Denne økten)</h4>
+                <textarea id="detail-match-comment" rows="4" placeholder="Notater..."></textarea>
+                <button id="add-comment-to-history-button">Legg til i historikk</button>
+                <h4>Kommentarhistorikk</h4>
+                <div id="detail-comment-history" class="comment-history"><p><i>Ingen historikk.</i></p></div>
+                <h4>Sesongstatistikk (Manuell)</h4>
+                <label for="detail-matches-played">Kamper spilt:</label>
+                <input type="number" id="detail-matches-played" min="0" value="0">
+                <label for="detail-goals-scored">Mål scoret:</label>
+                <input type="number" id="detail-goals-scored" min="0" value="0">
+            </div>
+        </div>
+        <div class="modal-footer">
+             <button id="save-details-button">Lagre Endringer</button>
+        </div>
+    </div>
+</div>
+<div id="ball-settings-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-ball-settings-button close-button">×</span>
+        <h3>Ballinnstillinger</h3>
+        <div>
+            <label for="ball-size-slider">Størrelse:</label>
+            <input type="range" id="ball-size-slider" min="20" max="60" value="35">
+            <span id="ball-size-value">35px</span>
+        </div>
+         <div style="margin-top: 15px;">
+             <label>Utseende:</label><br>
+             <input type="radio" id="ball-style-default" name="ball-style" value="default" checked> <label for="ball-style-default">Standard</label><br>
+             <input type="radio" id="ball-style-classic" name="ball-style" value="classic"> <label for="ball-style-classic">Klassisk (CSS)</label><br>
+             <input type="radio" id="ball-style-color" name="ball-style" value="color">
+             <label for="ball-style-color">Ensfarget:</label>
+             <input type="color" id="ball-custom-color" value="#FFA500">
+         </div>
+         <div class="modal-footer">
+             <button id="save-ball-settings-button">Lagre</button>
+         </div>
+    </div>
+</div>
+<!-- === Modaler/Dialoger END === -->
 
-    <script src="script.js"></script> <!-- Link til Version: #89 -->
-
+<script src="script.js"></script> <!-- Link til Version: #90 -->
+Use code with caution.
 </body>
 </html>
-<!-- Version: #89 -->
+<!-- Version: #90 -->
