@@ -1,4 +1,4 @@
-/* Version: #89 */
+/* Version: #96 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -12,7 +12,7 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .app-container.sidebar-hidden .sidebar-toggle-button { left: 10px; transform: scaleX(-1); }
 
 /* === 1. Sidepanel (Kontrollpanel) === */
-.sidebar { width: 300px; min-width: 300px; background-color: #e9e9e9; padding: 15px; padding-top: 50px; overflow-y: auto; height: 100%; border-right: 1px solid #ccc; display: flex; flex-direction: column; position: relative; transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease, transform 0.3s ease; flex-shrink: 0; transform: translateX(0); }
+.sidebar { width: 300px; min-width: 300px; background-color: #e9e9e9; padding: 15px; /* Fjernet padding-top: 50px; */ overflow-y: auto; height: 100%; border-right: 1px solid #ccc; display: flex; flex-direction: column; position: relative; transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease, transform 0.3s ease; flex-shrink: 0; transform: translateX(0); }
 .app-container.sidebar-hidden .sidebar { width: 0; min-width: 0; padding-left: 0; padding-right: 0; overflow: hidden; border-right: none; transform: translateX(-300px); }
 .sidebar h2, .sidebar h3, .sidebar h4 { white-space: nowrap; overflow: hidden; margin-top: 0; margin-bottom: 10px; color: #333; }
 .sidebar h3 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
@@ -34,10 +34,53 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .squad-player-item { cursor: grab; }
 .squad-player-item:hover { background-color: #f5f5f5; }
 
+/* NYTT: Navigasjonsknapper i sidepanel */
+#navigation-section { padding: 5px 10px; background-color: #d0d0d0; border-color: #bbb; }
+#navigation-section h3 { margin-bottom: 5px; }
+.nav-button { 
+    width: calc(50% - 4px); /* To knapper side ved side med litt mellomrom */
+    margin: 2px; 
+    padding: 10px 5px;
+    background-color: #e0e0e0; 
+    border: 1px solid #ccc; 
+    color: #333;
+    font-weight: bold;
+    cursor: pointer; 
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.nav-button:hover { background-color: #d5d5d5; }
+.nav-button.active { 
+    background-color: #4CAF50; /* Aktiv farge */
+    color: white;
+    border-color: #45a049;
+    cursor: default; 
+}
+.nav-button:not(.active):hover { background-color: #c8c8c8; }
 
-/* === 2. Hovedområde (Bane) === */
-.main-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 5px; height: 100%; overflow: hidden; background-color: #ededed; position: relative; }
-.rotate-button { position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; }
+
+/* === 2 & 3. Hovedområde (Sidevisning) START === */
+.main-content { 
+    flex-grow: 1; 
+    display: flex; /* Bruker flex for alle hovedinnhold */
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    padding: 5px; 
+    height: 100%; 
+    overflow: hidden; 
+    background-color: #ededed; 
+    position: relative; 
+}
+.page-content { display: none; /* Skjul alle sider som standard */ }
+
+/* Vis riktig side basert på klasse på .app-container */
+.app-container.view-tactics #tactics-page-content { display: flex; /* Vis Taktikkside */ }
+.app-container.view-squad #squad-page-content { display: flex; /* Vis Troppside */ }
+
+/* Taktikkside spesifikk (tidligere .main-content) */
+#tactics-page-content .rotate-button { 
+    position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; 
+}
 
 /* Pitch Container: Fyller plassen, roterer IKKE */
 #pitch-container {
@@ -56,7 +99,7 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     position: relative;
     overflow: hidden;
     border: 2px solid white;
-    transition: transform 0.4s ease-in-out; /* Animer rotasjon */
+    transition: transform 0.4s ease-in-out; 
     transform-origin: center center;
     transform: rotate(0deg); /* Standard */
     box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
@@ -75,8 +118,42 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #pitch-surface {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1;
-    overflow: hidden; /* Klipp elementer */
+    overflow: hidden; 
 }
+
+/* NYTT: Troppside spesifikk styling */
+#squad-page-content { 
+    align-items: flex-start; /* Juster topp */
+    padding: 20px; 
+    background-color: #f8f8f8; 
+}
+#squad-page-content h2 { 
+    width: 100%; 
+    text-align: center; 
+    margin-bottom: 20px; 
+    color: #333; 
+    border-bottom: 2px solid #ccc; 
+    padding-bottom: 10px;
+}
+#full-squad-list-container { 
+    width: 100%; /* Tar full bredde */
+    max-width: 1000px; /* Maks bredde for lesbarhet */
+    height: calc(100% - 80px); /* Juster høyde basert på padding og tittel */
+    overflow-y: auto; 
+    background-color: #fff; 
+    border: 1px solid #ddd; 
+    border-radius: 4px; 
+    padding: 15px; 
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+}
+/* Stil for selve spillerlisten/tabellen (placeholder) */
+#full-squad-list-container p { 
+    text-align: center; 
+    color: #777; 
+    font-style: italic; 
+}
+/* === 2 & 3. Hovedområde (Sidevisning) END === */
+
 
 /* === Spillerbrikker PÅ BANEN (inne i #pitch-surface) === */
 .player-piece { position: absolute; width: 70px; height: auto; cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; user-select: none; -webkit-user-select: none; opacity: 1;
@@ -222,8 +299,8 @@ input[type="color"]#player-border-color {
     background-color: #f9f9f9;
 }
 .roles-checkbox-container label {
-    display: block; /* Sørger for at label tar hele bredden i sin grid-celle */
-    font-weight: normal; /* Normal vekt for checkbox labels */
+    display: block; 
+    font-weight: normal; 
     margin-top: 0;
     margin-bottom: 5px;
 }
@@ -244,4 +321,4 @@ label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px;
 /* label[for="player-border-color"] har egen stil over */
 p { font-size: 0.9em; color: #666; margin: 5px 0 10px 0; }
 
-/* Version: #89 */
+/* Version: #96 */
