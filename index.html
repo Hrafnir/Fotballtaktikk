@@ -1,11 +1,11 @@
-<!-- Version: #87 -->
+<!-- Version: #89 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fotballtaktiker</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link til Version: #87 -->
+    <link rel="stylesheet" href="style.css"> <!-- Link til Version: #88 -->
 </head>
 <body>
 
@@ -72,7 +72,7 @@
                      <div id="pitch-surface">
                         <!-- Canvas, Ball, og Spillerbrikker -->
                         <canvas id="drawing-canvas"></canvas>
-                        <div id="ball" class="draggable" draggable="true"></div> <!-- Fjernet tekst inni ballen -->
+                        <div id="ball" class="draggable" draggable="true"></div>
                         <!-- Spillerbrikker legges til her av JS -->
                     </div>
                  </div>
@@ -84,7 +84,6 @@
 
     <!-- === Modaler/Dialoger START === -->
     <div id="add-player-modal" class="modal" style="display: none;">
-       <!-- ... (som før) ... -->
         <div class="modal-content">
             <span class="close-button">×</span>
             <h3>Legg til ny spiller</h3>
@@ -93,13 +92,18 @@
             <label for="new-player-image-upload">Bilde (URL eller last opp):</label>
             <input type="file" id="new-player-image-upload" accept="image/*"><br>
             <input type="text" id="new-player-image-url" placeholder="Eller lim inn URL"><br><br>
-            <label for="new-player-role">Posisjon/Rolle:</label>
-            <input type="text" id="new-player-role"><br><br>
+            <label for="new-player-main-role">Hovedposisjon:</label> <!-- Endret fra new-player-role -->
+            <input type="text" id="new-player-main-role"><br><br> <!-- Endret fra new-player-role -->
+
+            <h4>Spillbare Roller:</h4>
+            <div id="new-player-roles-checkboxes" class="roles-checkbox-container">
+                <!-- Checkboxes for roller genereres her av JS -->
+            </div>
+            <br>
             <button id="confirm-add-player">Legg til</button>
         </div>
     </div>
     <div id="player-detail-modal" class="modal" style="display: none;">
-       <!-- ... (som før) ... -->
         <div class="modal-content wide">
             <span class="close-detail-button close-button">×</span>
             <h3 id="detail-modal-title">Spillerdetaljer</h3>
@@ -115,8 +119,8 @@
                     <input type="text" id="detail-player-name">
                     <label for="detail-player-nickname">Kallenavn (vises på brikke):</label>
                     <input type="text" id="detail-player-nickname" placeholder="F.eks. Myggen">
-                    <label for="detail-player-role">Posisjon/Rolle:</label>
-                    <input type="text" id="detail-player-role">
+                    <label for="detail-player-main-role">Hovedposisjon:</label> <!-- Endret fra detail-player-role -->
+                    <input type="text" id="detail-player-main-role"> <!-- Endret fra detail-player-role -->
                     <label for="detail-player-birthday">Fødselsdato:</label>
                     <input type="date" id="detail-player-birthday">
                     <label for="detail-player-phone">Telefon:</label>
@@ -125,6 +129,11 @@
                     <input type="email" id="detail-player-email" placeholder="navn@example.com">
                 </div>
                 <div class="modal-column">
+                    <h4>Spillbare Roller:</h4>
+                    <div id="detail-player-roles-checkboxes" class="roles-checkbox-container">
+                        <!-- Checkboxes for roller genereres her av JS -->
+                    </div>
+                    <hr style="margin: 15px 0;">
                     <h4>Kamp-kommentar (Denne økten)</h4>
                     <textarea id="detail-match-comment" rows="4" placeholder="Notater..."></textarea>
                     <button id="add-comment-to-history-button">Legg til i historikk</button>
@@ -142,7 +151,6 @@
             </div>
         </div>
     </div>
-    <!-- Ny modal for ball-innstillinger -->
     <div id="ball-settings-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close-ball-settings-button close-button">×</span>
@@ -167,8 +175,8 @@
     </div>
     <!-- === Modaler/Dialoger END === -->
 
-    <script src="script.js"></script> <!-- Link til Version: #87 -->
+    <script src="script.js"></script> <!-- Link til Version: #89 -->
 
 </body>
 </html>
-<!-- Version: #87 -->
+<!-- Version: #89 -->
