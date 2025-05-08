@@ -85,7 +85,52 @@ function startDraw(event) { if (!isDrawingMode) return; event.preventDefault(); 
 function draw(event) { if (!isDrawing || !isDrawingMode) return; event.preventDefault(); const coords = getCanvasCoordinates(event); currentX = coords.x; currentY = coords.y; redrawTemporaryArrow(); }
 function stopDraw(event) { if (!isDrawing || !isDrawingMode) return; isDrawing = false; console.log(`Stop Draw at: ${currentX}, ${currentY}. Start was: ${startX}, ${startY}`); }
 function redrawTemporaryArrow() { if (!drawingCtx || !isDrawing) return; clearDrawingCanvas(); drawingCtx.beginPath(); drawingCtx.moveTo(startX, startY); drawingCtx.lineTo(currentX, currentY); drawingCtx.strokeStyle = DRAWING_COLOR; drawingCtx.lineWidth = DRAWING_LINE_WIDTH; drawingCtx.stroke(); drawingCtx.closePath(); }
-function getCanvasCoordinates(event) { if (!drawingCanvas) return { x: 0, y: 0 }; const rect = drawingCanvas.getBoundingClientRect(); let clientX, clientY; if (event.touches && event.touches.length > 0) { clientX = event.touches[0].clientX; clientY = event.touches[0].clientY; } else { clientX = event.clientX; clientY = event.clientY; } const scaleX = drawingCanvas.width / rect.width; const scaleY = drawingCanvas.height / rect.height; const x = (clientX - rect.left) * scaleX; const y = (clientY - rect.top) * scaleY; return { x, y }; }
+
+
+// === FUNKSJON: getCanvasCoordinates START (MED DEBUGGING) ===
+function getCanvasCoordinates(event) {
+    if (!drawingCanvas) return { x: 0, y: 0 };
+    const rect = drawingCanvas.getBoundingClientRect();
+    let clientX, clientY;
+
+    if (event.touches && event.touches.length > 0) {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+    } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+    }
+
+    // --- DEBUGGING START ---
+    console.log("getCanvasCoordinates - Debug Info:");
+    console.log("  - BoundingClientRect:", rect);
+    console.log(`  - Client Coords (X, Y): ${clientX.toFixed(2)}, ${clientY.toFixed(2)}`);
+    console.log(`  - Canvas Internal Size (W, H): ${drawingCanvas.width}, ${drawingCanvas.height}`);
+    console.log(`  - Canvas Display Size (rect.W, rect.H): ${rect.width.toFixed(2)}, ${rect.height.toFixed(2)}`);
+    // --- DEBUGGING END ---
+
+    // Beregn skaleringsfaktor hvis canvas er skalert annerledes enn det vises
+    // Unngå deling på null hvis rect.width/height er 0
+    const scaleX = (rect.width > 0) ? drawingCanvas.width / rect.width : 1;
+    const scaleY = (rect.height > 0) ? drawingCanvas.height / rect.height : 1;
+
+    // --- DEBUGGING START ---
+    console.log(`  - Calculated Scale (X, Y): ${scaleX.toFixed(4)}, ${scaleY.toFixed(4)}`);
+    // --- DEBUGGING END ---
+
+
+    // Beregn koordinater relativt til canvas
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
+
+     // --- DEBUGGING START ---
+     console.log(`  - Calculated Canvas Coords (X, Y): ${x.toFixed(2)}, ${y.toFixed(2)}`);
+     // --- DEBUGGING END ---
+
+    return { x, y };
+}
+// === FUNKSJON: getCanvasCoordinates END ===
+
 function clearDrawings() { if (confirm("Er du sikker på at du vil slette alle tegninger?")) { clearDrawingCanvas(); console.log("Alle tegninger slettet."); } }
 function clearDrawingCanvas() { if (drawingCtx && drawingCanvas) { drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height); } else { console.error("clearDrawingCanvas: Context eller Canvas mangler."); } }
 function setupDrawingCanvas() { if (!drawingCanvas) { console.error("setupDrawingCanvas: Finner ikke canvas-elementet!"); return; } try { drawingCanvas.width = drawingCanvas.offsetWidth; drawingCanvas.height = drawingCanvas.offsetHeight; drawingCtx = drawingCanvas.getContext('2d'); if (!drawingCtx) { console.error("setupDrawingCanvas: Kunne ikke hente 2D context."); } else { console.log("Drawing canvas satt opp med context."); } } catch (e) { console.error("Feil under oppsett av drawing canvas:", e); drawingCtx = null; } }
