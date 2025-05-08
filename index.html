@@ -1,11 +1,11 @@
-<!-- Version: #112 -->
+<!-- Version: #116 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fotballtaktiker</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link til Versjon: #112 -->
+    <link rel="stylesheet" href="style.css"> <!-- Link til Versjon: #113 -->
 </head>
 <body>
     <div class="app-container view-tactics"> 
@@ -22,6 +22,8 @@
             </div>
 
             <h2>Kontrollpanel</h2> 
+            
+            <!-- Flyttet opp for bedre logisk gruppering med Taktikk-visning -->
             <div id="on-pitch-section" class="control-section drop-target"> 
                 <h3>På Banen (<span id="on-pitch-count">0</span>/11)</h3>
                 <ul id="on-pitch-list"><li><i>Ingen spillere på banen.</i></li></ul>
@@ -30,15 +32,32 @@
                 <h4>På Benken (<span id="on-bench-count">0</span>)</h4>
                 <ul id="bench-list"><li><i>Benken er tom.</i></li></ul>
             </div>
-            <div class="control-section" id="squad-management">
+             <div class="control-section" id="squad-management">
                 <h3>Tropp (Tilgjengelige)</h3>
                 <div id="squad-list-container" class="drop-target">
                     <ul id="squad-list"><li><i>Ingen spillere i troppen.</i></li></ul>
                 </div>
                  <button id="add-player-button" style="margin-top: 10px;">Legg til Spiller i Tropp</button>
             </div>
-            <div class="control-section" id="display-options">
-                <h3>Visning (Brikker)</h3>
+            
+            <!-- Formasjonsvalg og Visningsalternativer samlet -->
+            <div class="control-section" id="tactics-display-options">
+                <h3>Taktikk & Visning</h3>
+
+                <!-- NYTT: Formasjonsvalg -->
+                <label for="formation-select">Velg Formasjon:</label>
+                <select id="formation-select">
+                    <option value="">Ingen valgt</option>
+                    <option value="4-4-2">4-4-2</option>
+                    <option value="4-3-3">4-3-3</option>
+                    <option value="4-2-3-1">4-2-3-1</option>
+                    <option value="3-5-2">3-5-2</option>
+                    <!-- Flere formasjoner kan legges til her eller via JS -->
+                </select>
+                
+                <hr style="margin: 15px 0;">
+
+                <h4>Visning (Brikker)</h4>
                 <div> 
                     <label for="player-border-color">Egendefinert:</label>
                     <input type="color" id="player-border-color" value="#FFFF00" title="Velg egendefinert farge">
@@ -55,8 +74,9 @@
                 <button id="toggle-draw-mode-button">Tegn Piler (Av)</button>
                 <button id="clear-drawings-button">Fjern Piler</button>
             </div>
+
             <div class="control-section" id="save-load">
-                <h3>Oppsett (Formasjoner)</h3>
+                <h3>Oppsett (Formasjoner & Tilstand)</h3> <!-- Endret tittel -->
                 <input type="text" id="setup-name" placeholder="Navn på oppsett...">
                 <button id="save-setup-button">Lagre Oppsett</button>
                 <select id="load-setup-select"><option value="">Velg oppsett...</option></select>
@@ -86,7 +106,6 @@
         <!-- === 2. Hovedområde (Bane / Taktikkside) END === -->
 
         <!-- === 3. Hovedområde (Troppside) START === -->
-        <!-- FJERNERT: style="display: none;" -->
         <main id="squad-page-content" class="main-content page-content"> 
             <h2>Tropp Oversikt</h2>
             <div id="full-squad-list-container" style="width: 90%; height: 80%; overflow-y: auto; border: 1px solid #ccc; padding: 15px;">
@@ -198,8 +217,8 @@
     </div>
     <!-- === Modaler/Dialoger END === -->
 
-    <script src="script.js"></script> <!-- Link til Versjon: #104 -->
+    <script src="script.js"></script> <!-- Link til Versjon: #115 -->
 
 </body>
 </html>
-<!-- Version: #112 -->
+<!-- Version: #116 -->
