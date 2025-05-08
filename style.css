@@ -1,4 +1,4 @@
-/* Version: #119 */
+/* Version: #122 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -19,9 +19,72 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .sidebar h4 { border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 5px; }
 .control-section { margin-bottom: 15px; padding: 10px; background-color: #fdfdfd; border: 1px solid #ddd; border-radius: 4px; flex-shrink: 0; overflow: hidden; white-space: nowrap; }
 #on-pitch-list, #bench-list, #squad-list { list-style: none; padding: 0; margin: 0; }
-#on-pitch-list li, #bench-list li, #squad-list li { padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 0.95em; background-color: #fff; margin-bottom: 2px; border-radius: 3px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
+#on-pitch-list li, #bench-list li, #squad-list li { 
+    padding: 5px 8px; 
+    border-bottom: 1px solid #eee; 
+    font-size: 0.95em; 
+    background-color: #fff; /* Standard bakgrunn */
+    color: #333; /* Standard tekstfarge */
+    margin-bottom: 2px; 
+    border-radius: 3px; 
+    display: flex; 
+    align-items: center; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    cursor: default; 
+    transition: background-color 0.1s ease; /* Myk overgang for hover */
+}
 #on-pitch-list li.draggable, #bench-list li.draggable, #squad-list li.draggable { cursor: grab; }
 #on-pitch-list li i, #bench-list li i, #squad-list li i { color: #777; font-style: italic; padding: 5px; display: block; background-color: transparent; border-bottom: none; }
+
+/* NYTT: Statusfarger for listeelementer */
+#on-pitch-list li:not(:hover), #bench-list li:not(:hover), #squad-list li:not(:hover) { /* Gjelder når ikke hover */
+   /* Farger settes basert på klassen under */
+}
+#on-pitch-list li.player-status-AVAILABLE, 
+#bench-list li.player-status-AVAILABLE, 
+#squad-list li.player-status-AVAILABLE { 
+    background-color: #e8f5e9; /* Lys grønn */
+    border-left: 4px solid #4CAF50; /* Grønn markør */
+}
+#on-pitch-list li.player-status-INJURED_SHORT, 
+#bench-list li.player-status-INJURED_SHORT, 
+#squad-list li.player-status-INJURED_SHORT { 
+    background-color: #fff3e0; /* Lys oransje */
+    border-left: 4px solid #ff9800; /* Oransje markør */
+}
+#on-pitch-list li.player-status-INJURED_LONG, 
+#bench-list li.player-status-INJURED_LONG, 
+#squad-list li.player-status-INJURED_LONG { 
+    background-color: #ffebee; /* Lys rød */
+    border-left: 4px solid #c62828; /* Mørk rød markør */
+}
+#on-pitch-list li.player-status-SUSPENDED, 
+#bench-list li.player-status-SUSPENDED, 
+#squad-list li.player-status-SUSPENDED { 
+    background-color: #fce4ec; /* Lys rosa/lilla */
+    border-left: 4px solid #e91e63; /* Rosa/lilla markør */
+}
+#on-pitch-list li.player-status-LIGHT_TRAINING, 
+#bench-list li.player-status-LIGHT_TRAINING, 
+#squad-list li.player-status-LIGHT_TRAINING { 
+    background-color: #e3f2fd; /* Lys blå */
+    border-left: 4px solid #2196F3; /* Blå markør */
+}
+#on-pitch-list li.player-status-UNAVAILABLE, 
+#bench-list li.player-status-UNAVAILABLE, 
+#squad-list li.player-status-UNAVAILABLE { 
+    background-color: #eeeeee; /* Lys grå */
+    border-left: 4px solid #757575; /* Grå markør */
+    color: #757575;
+}
+/* Hover-effekt som overstyrer bakgrunn, men beholder border */
+#on-pitch-list li:hover, #bench-list li:hover, #squad-list li:hover {
+    background-color: #f0f0f0; /* Generell hover-farge */
+}
+
+
 #on-pitch-section { background-color: #e6f7ff; border-color: #b3e0ff; }
 #on-pitch-list { max-height: 180px; overflow-y: auto; }
 #bench { background-color: #fff0e6; border-color: #ffe0b3; min-height: 100px; display: flex; flex-direction: column; }
@@ -74,14 +137,14 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #ball.ball-style-color { background: none; }
 #pitch-container.rotated #ball { transform: translate(-50%, -50%) rotate(-90deg); }
 
-/* === Formasjonsmarkører (NYTT) START === */
+/* === Formasjonsmarkører START === */
 .formation-position-marker {
     position: absolute;
-    width: 45px; /* Litt mindre enn spillerbrikker */
+    width: 45px; 
     height: 45px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.6); /* Halvtransparent hvit */
-    border: 2px dashed #555; /* Stiplet grå ramme */
+    background-color: rgba(255, 255, 255, 0.6); 
+    border: 2px dashed #555; 
     color: #333;
     font-size: 10px;
     font-weight: bold;
@@ -91,31 +154,32 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     text-align: center;
     padding: 2px;
     cursor: pointer;
-    z-index: 8; /* Under spillere (20) og ball (15), over canvas (10) */
+    z-index: 8; 
     user-select: none;
     -webkit-user-select: none;
     transform-origin: center center;
-    transform: translate(-50%, -50%) rotate(0deg); /* Sentrerer og setter standard rotasjon */
+    transform: translate(-50%, -50%) rotate(0deg); 
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.4s ease-in-out;
 }
-
 .formation-position-marker:hover {
-    background-color: rgba(230, 230, 230, 0.8); /* Litt mørkere ved hover */
+    background-color: rgba(230, 230, 230, 0.8); 
     border-color: #000;
 }
-
-.formation-position-marker.selected { /* Stil for valgt markør (senere) */
-    background-color: rgba(76, 175, 80, 0.7); /* Grønnaktig */
+.formation-position-marker.selected { 
+    background-color: rgba(76, 175, 80, 0.7); 
     border-style: solid;
     border-color: #388E3C;
     color: white;
 }
-
-/* Rotasjon for markører */
-#pitch-container.rotated .formation-position-marker {
-    transform: translate(-50%, -50%) rotate(-90deg); /* Motroterer som spillerbrikker */
+/* NYTT: drag-over stil for markør */
+.formation-position-marker.drag-over {
+    border-style: solid;
+    border-color: #4CAF50; /* Grønn ramme ved drag over */
+    background-color: rgba(76, 175, 80, 0.3); /* Lett grønn bakgrunn */
 }
-/* === Formasjonsmarkører (NYTT) END === */
+
+#pitch-container.rotated .formation-position-marker { transform: translate(-50%, -50%) rotate(-90deg); }
+/* === Formasjonsmarkører END === */
 
 /* === Tegning Canvas (inne i #pitch-surface) === */
 #drawing-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; transform-origin: center center; transition: transform 0.4s ease-in-out; transform: rotate(0deg); }
@@ -135,7 +199,7 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .player-piece.selected .player-image-container { box-shadow: 0 0 10px 3px gold; }
 
 /* === Kontrollpanel Justeringer === */
-#tactics-display-options label { margin-top: 10px; } /* Justert for ny seksjon */
+#tactics-display-options label { margin-top: 10px; } 
 #tactics-display-options label[for="player-border-color"] { display: inline-block; margin-right: 5px; vertical-align: middle; margin-top: 5px;}
 input[type="color"]#player-border-color { width: 40px; height: 40px; padding: 0; vertical-align: middle; margin-right: 10px; border: 1px solid #ccc; cursor: pointer; }
 .preset-color-button { width: 30px; height: 30px; border: 1px solid #ccc; border-radius: 4px; margin: 0 3px; padding: 0; font-size: 16px; line-height: 28px; vertical-align: middle; cursor: pointer; }
@@ -172,4 +236,4 @@ input[type="file"] { margin: 5px 0; width: auto; }
 input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 
-/* Version: #119 */
+/* Version: #122 */
