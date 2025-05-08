@@ -83,12 +83,259 @@ function applyBallStyle() { /* ... */ }
 // === 4. Spillerbrikke & Ball Håndtering END ===
 
 // === 5. Formasjons- og Tegnehåndtering START ===
-function handleFormationChange(event) { /* ... */ }
-function clearFormationPositions() { /* ... */ }
-function drawFormationPositions(formation) { /* ... */ }
-function handlePositionMarkerClick(markerElement, positionData) { /* ... */ }
-function clearSelectedPositionMarker() { /* ... */ }
-function resetPositionFilter() { /* ... */ }
+// === FUNKSJON: handleFormationChange START ===
+function handleFormationChange(event) { 
+    const selectedFormationName = event.target.value;
+    currentFormation = FORMATIONS[selectedFormationName] || null; 
+    clearFormationPositions(); 
+    resetPositionFilter(); 
+    if (currentFormation) {
+        console.log(`Formasjon valgt: ${currentFormation.name}`, currentFormation);
+        drawFormationPositions(currentFormation); 
+    } else {
+        console.log("Ingen formasjon valgt.");
+    }
+}
+// === FUNKSJON: handleFormationChange END ===
+
+// === FUNKSJON: clearFormationPositions START ===
+function clearFormationPositions() { 
+    if (!pitchSurface) { console.error("clearFormationPositions: pitchSurface ikke funnet!"); return; }
+    const markers = pitchSurface.querySelectorAll('.formation-position-marker');
+    markers.forEach(marker => marker.remove());
+    resetPositionFilter(); /* Nullstill filter også */ 
+    console.log("Formasjonsmarkører fjernet.");
+}
+// === FUNKSJON: clearFormationPositions END ===
+
+// === FUNKSJON: drawFormationPositions START ===
+function drawFormationPositions(formation) { 
+    if (!formation || !formation.positions || !pitchSurface) { console.error("drawFormationPositions: Mangler formasjonsdata eller pitchSurface."); return; }
+    console.log(`Tegner posisjoner for: ${formation.name}`);
+    formation.positions.forEach(pos => { 
+        const marker = document.createElement('div'); 
+        marker.classList.add('formation-position-marker', 'drop-target'); 
+        marker.style.left = `${pos.x}%`; 
+        marker.style.top = `${pos.y}%`; 
+        marker.textContent = pos.id.toUpperCase(); 
+        marker.title = `${pos.name} (Roller: ${pos.roles.join(', ')})`; 
+        marker.setAttribute('data-pos-id', pos.id); 
+        marker.setAttribute('data-pos-name', pos.name); 
+        marker.setAttribute('data-roles', JSON.stringify(pos.roles)); 
+        marker.addEventListener('click', (e) => { e.stopPropagation(); handlePositionMarkerClick(marker, pos); }); 
+        marker.addEventListener('dragover', (e) => handleDragOver(e, 'formation-marker')); 
+        marker.addEventListener('dragleave', (e) => handleDragLeave(e, 'formation-marker')); 
+        marker.addEventListener('drop', (e) => handleDropOnFormationMarker(e, pos)); 
+        pitchSurface.appendChild(marker); 
+    }); 
+}
+// === FUNKSJON: drawFormationPositions END ===
+
+// === FUNKSJON: handlePositionMarkerClick START ===
+function handlePositionMarkerClick(markerElement, positionData) { 
+    console.log(`Klikket på posisjon: ${positionData.name} (ID: ${positionData.id}), Roller: ${positionData.roles.join(', ')}`);
+    const isAlreadySelected = markerElement.classList.contains('selected');
+    clearSelectedPositionMarker(); 
+    if (isAlreadySelected) { 
+        resetPositionFilter(); 
+    } else { 
+        markerElement.classList.add('selected'); 
+        selectedFormationPosition = positionData; 
+        renderSquadList(); 
+    } 
+}
+// === FUNKSJON: handlePositionMarkerClick END ===
+
+// === FUNKSJON: clearSelectedPositionMarker START ===
+function clearSelectedPositionMarker() { 
+    if (!pitchSurface) return; 
+    const selectedMarkers = pitchSurface.querySelectorAll('.formation-position-marker.selected');
+    selectedMarkers.forEach(marker => marker.classList.remove('selected')); 
+}
+// === FUNKSJON: clearSelectedPositionMarker END ===
+
+// === FUNKSJON: resetPositionFilter START ===
+function resetPositionFilter() { 
+    console.log("Nullstiller posisjonsfilter.");
+    selectedFormationPosition = null;
+    clearSelectedPositionMarker(); 
+    renderSquadList(); 
+}
+// === FUNKSJON: resetPositionFilter END ===
+
+// === FUNKSJON: toggleDrawMode START ===
+function toggleDrawMode() {
+    isDrawingMode = !isDrawingMode;
+    console.log("Tegnemodus:", isDrawingMode ? "PÅ" : "AV");
+    if (!drawingCanvas || !pitchSurface || !toggleDrawModeButton) {console.error("toggleDrawMode: Mangler elementer."); return;}
+
+    if (isDrawingMode) {
+        drawingCanvas.style.pointerEvents = 'auto'; 
+        pitchSurface.style.cursor = 'crosshair';    
+        toggleDrawModeButton.textContent = 'Modus (På)'; 
+        toggleDrawModeButton.classList.add('active'); 
+        pitchSurface.addEventListener('mousedown', startDraw);
+        pitchSurface.addEventListener('touchstart', startDraw, { passive: false }); 
+        pitchSurface.addEventListener('mousemove', draw);
+        pitchSurface.addEventListener('touchmove', draw, { passive: false });
+        pitchSurface.addEventListener('mouseup', stopDraw);
+        pitchSurface.addEventListener('touchend', stopDraw);
+        pitchSurface.addEventListener('mouseleave', stopDraw); 
+    } else {
+        drawingCanvas.style.pointerEvents = 'none'; 
+        pitchSurface.style.cursor = 'default';      
+        toggleDrawModeButton.textContent = 'Modus (Av)'; 
+        toggleDrawModeButton.classList.remove('active');
+        pitchSurface.removeEventListener('mousedown', startDraw);
+        pitchSurface.removeEventListener('touchstart', startDraw);
+        pitchSurface.removeEventListener('mousemove', draw);
+        pitchSurface.removeEventListener('touchmove', draw);
+        pitchSurface.removeEventListener('mouseup', stopDraw);
+        pitchSurface.removeEventListener('touchend', stopDraw);
+        pitchSurface.removeEventListener('mouseleave', stopDraw);
+        if (isDrawing) { 
+             isDrawing = false;
+             redrawCanvas(); 
+        }
+    }
+}
+// === FUNKSJON: toggleDrawMode END ===
+
+// === FUNKSJON: startDraw START ===
+function startDraw(event) { 
+    if (!isDrawingMode) return; 
+    event.preventDefault(); 
+    isDrawing = true;
+    const coords = getCanvasCoordinates(event);
+    startX = coords.x;
+    startY = coords.y;
+    currentX = startX; 
+    currentY = startY;
+    console.log(`Start Draw (${currentDrawingTool}) at: ${startX.toFixed(1)}, ${startY.toFixed(1)}`);
+}
+// === FUNKSJON: startDraw END ===
+
+// === FUNKSJON: draw START ===
+function draw(event) { 
+    if (!isDrawing || !isDrawingMode) return;
+    event.preventDefault();
+    const coords = getCanvasCoordinates(event);
+    currentX = coords.x;
+    currentY = coords.y;
+    redrawCanvas(); 
+}
+// === FUNKSJON: draw END ===
+
+// === FUNKSJON: stopDraw START ===
+function stopDraw(event) { 
+    if (!isDrawing || !isDrawingMode) return;
+    const coords = getCanvasCoordinates(event); 
+    currentX = coords.x;
+    currentY = coords.y;
+    isDrawing = false;
+    if (Math.abs(startX - currentX) < 5 && Math.abs(startY - currentY) < 5 && currentDrawingTool !== 'freehand') {
+         console.log("Tegning for kort, lagrer ikke.");
+         redrawCanvas(); 
+         return;
+    }
+    const newDrawing = { type: currentDrawingTool, color: currentDrawingColor, width: DRAWING_LINE_WIDTH, startX: startX, startY: startY, endX: currentX, endY: currentY, };
+    savedDrawings.push(newDrawing);
+    console.log(`Stop Draw. Lagret tegning:`, newDrawing);
+    redrawCanvas(); 
+}
+// === FUNKSJON: stopDraw END ===
+
+// === FUNKSJON: redrawCanvas START ===
+function redrawCanvas() {
+    if (!drawingCtx) return;
+    clearDrawingCanvas(); 
+    redrawAllDrawings(); 
+    if (isDrawing) { 
+        drawShape(drawingCtx, { type: currentDrawingTool, color: currentDrawingColor, width: DRAWING_LINE_WIDTH, startX: startX, startY: startY, endX: currentX, endY: currentY });
+    }
+}
+// === FUNKSJON: redrawCanvas END ===
+
+// === FUNKSJON: redrawAllDrawings START ===
+function redrawAllDrawings() {
+    if (!drawingCtx) return;
+    // console.log(`Tegner ${savedDrawings.length} lagrede elementer.`); // Kan skrus på ved behov
+    savedDrawings.forEach(drawing => {
+        drawShape(drawingCtx, drawing);
+    });
+}
+// === FUNKSJON: redrawAllDrawings END ===
+
+// === FUNKSJON: drawShape START (MODIFIED FOR CIRCLE & RECT) ===
+function drawShape(ctx, drawingData) {
+    ctx.beginPath();
+    ctx.strokeStyle = drawingData.color || DRAWING_COLOR;
+    ctx.lineWidth = drawingData.width || DRAWING_LINE_WIDTH;
+    
+    const dx = drawingData.endX - drawingData.startX;
+    const dy = drawingData.endY - drawingData.startY;
+
+    switch (drawingData.type) {
+        case 'arrow':
+            drawArrow(ctx, drawingData.startX, drawingData.startY, drawingData.endX, drawingData.endY);
+            break;
+        case 'circle':
+            // Beregn radius basert på avstanden mellom start og slutt
+            const radius = Math.sqrt(dx * dx + dy * dy); 
+            ctx.arc(drawingData.startX, drawingData.startY, radius, 0, 2 * Math.PI); // Tegn sirkel fra startpunkt
+            break;
+        case 'rect':
+            // Tegn rektangel definert av start- og sluttpunkt
+            ctx.rect(drawingData.startX, drawingData.startY, dx, dy); 
+            break;
+        case 'freehand':
+             // TODO: Implementer frihåndstegning (krever lagring av punkter)
+            console.warn("Frihåndstegning ikke implementert");
+            ctx.moveTo(drawingData.startX, drawingData.startY); // Fallback til linje
+            ctx.lineTo(drawingData.endX, drawingData.endY);
+            break;
+        default: // Fallback til linje (som pil uten spiss)
+            ctx.moveTo(drawingData.startX, drawingData.startY);
+            ctx.lineTo(drawingData.endX, drawingData.endY);
+    }
+    
+    ctx.stroke(); // Utfør tegneoperasjonen (strek)
+    // ctx.closePath(); // Ikke nødvendig for stroke(), kan forårsake ekstra linje for arc/rect
+}
+// === FUNKSJON: drawShape END ===
+
+// === FUNKSJON: drawArrow START ===
+function drawArrow(ctx, fromx, fromy, tox, toy) { ctx.moveTo(fromx, fromy); ctx.lineTo(tox, toy); const angle = Math.atan2(toy - fromy, tox - fromx); ctx.lineTo(tox - ARROWHEAD_LENGTH * Math.cos(angle - ARROWHEAD_ANGLE), toy - ARROWHEAD_LENGTH * Math.sin(angle - ARROWHEAD_ANGLE)); ctx.moveTo(tox, toy); ctx.lineTo(tox - ARROWHEAD_LENGTH * Math.cos(angle + ARROWHEAD_ANGLE), toy - ARROWHEAD_LENGTH * Math.sin(angle + ARROWHEAD_ANGLE)); }
+// === FUNKSJON: drawArrow END ===
+
+// === FUNKSJON: getCanvasCoordinates START ===
+function getCanvasCoordinates(event) { if (!drawingCanvas) return { x: 0, y: 0 }; const rect = drawingCanvas.getBoundingClientRect(); let clientX, clientY; if (event.touches && event.touches.length > 0) { clientX = event.touches[0].clientX; clientY = event.touches[0].clientY; } else { clientX = event.clientX; clientY = event.clientY; } const scaleX = (rect.width > 0) ? drawingCanvas.width / rect.width : 1; const scaleY = (rect.height > 0) ? drawingCanvas.height / rect.height : 1; const x = (clientX - rect.left) * scaleX; const y = (clientY - rect.top) * scaleY; return { x, y }; }
+// === FUNKSJON: getCanvasCoordinates END ===
+
+// === FUNKSJON: clearDrawings START ===
+function clearDrawings() { if (confirm("Er du sikker på at du vil slette alle tegninger?")) { savedDrawings = []; clearDrawingCanvas(); console.log("Alle tegninger slettet."); } }
+// === FUNKSJON: clearDrawings END ===
+
+// === FUNKSJON: clearDrawingCanvas START ===
+function clearDrawingCanvas() { if (drawingCtx && drawingCanvas) { drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height); } else { console.error("clearDrawingCanvas: Context eller Canvas mangler."); } }
+// === FUNKSJON: clearDrawingCanvas END ===
+
+// === FUNKSJON: setupDrawingCanvas START ===
+function setupDrawingCanvas() { if (!drawingCanvas) { console.error("setupDrawingCanvas: Finner ikke canvas-elementet!"); return; } const currentWidth = drawingCanvas.offsetWidth; const currentHeight = drawingCanvas.offsetHeight; if (currentWidth > 0 && currentHeight > 0) { drawingCanvas.width = currentWidth; drawingCanvas.height = currentHeight; console.log(`Drawing canvas size set to: ${drawingCanvas.width}x${drawingCanvas.height}`); } else { console.warn("setupDrawingCanvas: Canvas har 0 dimensjoner, venter med å sette width/height."); return; } drawingCtx = drawingCanvas.getContext('2d'); if (!drawingCtx) { console.error("setupDrawingCanvas: Kunne ikke hente 2D context."); return; } drawingCtx.strokeStyle = currentDrawingColor; drawingCtx.lineWidth = DRAWING_LINE_WIDTH; drawingCtx.lineCap = 'round'; drawingCtx.lineJoin = 'round'; console.log("Drawing canvas satt opp med context."); redrawAllDrawings(); }
+// === FUNKSJON: setupDrawingCanvas END ===
+
+// === FUNKSJON: handleToolChange START ===
+function handleToolChange(selectedTool) { currentDrawingTool = selectedTool; console.log("Valgt tegneverktøy:", currentDrawingTool); drawToolButtons.forEach(button => { if (button.dataset.tool === selectedTool) { button.classList.add('active'); } else { button.classList.remove('active'); } }); }
+// === FUNKSJON: handleToolChange END ===
+
+// === FUNKSJON: handleColorChange START ===
+function handleColorChange(event) { currentDrawingColor = event.target.value; console.log("Valgt tegnefarge:", currentDrawingColor); if (drawingCtx) { drawingCtx.strokeStyle = currentDrawingColor; } }
+// === FUNKSJON: handleColorChange END ===
+
+// === FUNKSJON: toggleDrawingVisibility START ===
+function toggleDrawingVisibility() { if (!drawingCanvas || !toggleVisibilityButton) return; isDrawingVisible = !isDrawingVisible; if (isDrawingVisible) { drawingCanvas.style.visibility = 'visible'; toggleVisibilityButton.textContent = 'Skjul Tegn.'; console.log("Tegninger Vises"); } else { drawingCanvas.style.visibility = 'hidden'; toggleVisibilityButton.textContent = 'Vis Tegn.'; console.log("Tegninger Skjules"); } }
+// === FUNKSJON: toggleDrawingVisibility END ===
+// === 5. Formasjons- og Tegnehåndtering END ===
 
 // === FUNKSJON: toggleDrawMode START ===
 function toggleDrawMode() {
