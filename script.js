@@ -490,12 +490,15 @@ function renderUI() {
 }
 // === FUNKSJON: renderUI END ===
 
-// === FUNKSJON: renderOnPitchList START ===
+// === FUNKSJON: renderOnPitchList START (MODIFIED FOR DBLCLICK) ===
 function renderOnPitchList() { 
     if (!onPitchListElement) return; 
     onPitchListElement.innerHTML = ''; 
     const playerIdsOnPitch = Object.keys(playersOnPitch); 
-    if (playerIdsOnPitch.length === 0) { onPitchListElement.innerHTML = '<li><i>Ingen spillere på banen.</i></li>'; return; } 
+    if (playerIdsOnPitch.length === 0) { 
+        onPitchListElement.innerHTML = '<li><i>Ingen spillere på banen.</i></li>'; 
+        return; 
+    } 
     const sortedPlayers = playerIdsOnPitch.map(id => getPlayerById(id)).filter(p => p).sort((a, b) => a.name.localeCompare(b.name)); 
     sortedPlayers.forEach(player => { 
         const listItem = document.createElement('li'); 
@@ -503,6 +506,8 @@ function renderOnPitchList() {
         listItem.textContent = (player.nickname || player.name) + roleText; 
         listItem.setAttribute('data-player-id', player.id); 
         listItem.classList.add('on-pitch-player-item'); 
+        // NYTT: Legg til dblclick listener
+        listItem.addEventListener('dblclick', () => openPlayerDetailModal(player.id)); 
         onPitchListElement.appendChild(listItem); 
     }); 
 }
