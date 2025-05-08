@@ -1,4 +1,4 @@
-/* Version: #118 */
+/* Version: #120 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; // { playerId: element }
@@ -32,7 +32,7 @@ const DEFAULT_PLAYER_STATUS = 'AVAILABLE';
 const FORMATIONS = {
     "4-4-2": {
         name: "4-4-2",
-        positions: [
+        positions: [ // x, y er % fra topp-venstre
             { id: 'gk', name: 'Keeper', roles: ['K'], x: 50, y: 92 },
             { id: 'dr', name: 'Høyre Back', roles: ['HB', 'HVB'], x: 85, y: 75 },
             { id: 'dl', name: 'Venstre Back', roles: ['VB', 'VVB'], x: 15, y: 75 },
@@ -99,12 +99,13 @@ const FORMATIONS = {
 
 
 // === 1. DOM Element Referanser START ===
-// Definerer variabler for DOM-elementer globalt
+// ... (som før V#118) ...
 let appContainer, sidebar, toggleSidebarButton, onPitchListElement, benchListElement, squadListElement, squadListContainer, onPitchCountElement, onBenchCountElement, pitchElement, pitchSurface, rotatePitchButton, addPlayerButton, playerBorderColorInput, setBorderColorButton, setColorRedButton, setColorYellowButton, setColorGreenButton, setColorDefaultButton, toggleDrawModeButton, clearDrawingsButton, setupNameInput, saveSetupButton, loadSetupSelect, loadSetupButton, deleteSetupButton, exportPngButton, pitchContainer, drawingCanvas, ballElement, navTacticsButton, navSquadButton, tacticsPageContent, squadPageContent, fullSquadListContainer, onPitchSectionElement, formationSelect, addPlayerModal, closeButton, newPlayerNameInput, newPlayerImageUpload, newPlayerImageUrlInput, newPlayerMainRoleInput, confirmAddPlayerButton, playerDetailModal, ballSettingsModal, benchElement;
 // === 1. DOM Element Referanser END ===
 
 
 // === 2. Modal Håndtering START ===
+// ... (alle modal-funksjoner som før V#118) ...
 // === FUNKSJON: populateRolesCheckboxes START ===
 function populateRolesCheckboxes(containerId, selectedRoles = []) { const container = document.getElementById(containerId); if (!container) return; container.innerHTML = ''; Object.entries(PLAYER_ROLES).forEach(([key, value]) => { const div = document.createElement('div'); const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.id = `${containerId}-${key}`; checkbox.value = key; checkbox.checked = selectedRoles.includes(key); const label = document.createElement('label'); label.htmlFor = `${containerId}-${key}`; label.textContent = `${value} (${key})`; div.appendChild(checkbox); div.appendChild(label); container.appendChild(div); }); }
 // === FUNKSJON: populateRolesCheckboxes END ===
@@ -256,8 +257,66 @@ function togglePitchRotation() { isPitchRotated = !isPitchRotated; if (!pitchCon
 function switchView(viewName) { if (!appContainer || !navTacticsButton || !navSquadButton) { console.error("switchView: Nødvendige elementer ikke funnet."); return; } appContainer.classList.remove('view-tactics', 'view-squad'); if (viewName === 'tactics') { appContainer.classList.add('view-tactics'); navTacticsButton.classList.add('active'); navSquadButton.classList.remove('active'); resizePitchElement(); } else if (viewName === 'squad') { appContainer.classList.add('view-squad'); navSquadButton.classList.add('active'); navTacticsButton.classList.remove('active'); renderFullSquadList(); } else { console.warn(`Ukjent viewName: ${viewName}. Viser taktikksiden.`); appContainer.classList.add('view-tactics'); navTacticsButton.classList.add('active'); navSquadButton.classList.remove('active'); resizePitchElement(); } console.log(`Byttet til view: ${viewName}`); }
 // === FUNKSJON: switchView END ===
 // === FUNKSJON: handleFormationChange START ===
-function handleFormationChange(event) { const selectedFormationName = event.target.value; currentFormation = FORMATIONS[selectedFormationName] || null; if (currentFormation) { console.log(`Formasjon valgt: ${currentFormation.name}`, currentFormation); } else { console.log("Ingen formasjon valgt."); } }
+function handleFormationChange(event) { // Fra V#117
+    const selectedFormationName = event.target.value;
+    currentFormation = FORMATIONS[selectedFormationName] || null; 
+
+    clearFormationPositions(); // Fjern gamle markører først
+
+    if (currentFormation) {
+        console.log(`Formasjon valgt: ${currentFormation.name}`, currentFormation);
+        drawFormationPositions(currentFormation); // Tegn nye markører
+    } else {
+        console.log("Ingen formasjon valgt.");
+    }
+    // TODO: Lagre valgt formasjon i state?
+}
 // === FUNKSJON: handleFormationChange END ===
+// === FUNKSJON: clearFormationPositions START (NY) ===
+function clearFormationPositions() {
+    if (!pitchSurface) {
+        console.error("clearFormationPositions: pitchSurface ikke funnet!");
+        return;
+    }
+    const markers = pitchSurface.querySelectorAll('.formation-position-marker');
+    markers.forEach(marker => marker.remove());
+    console.log("Formasjonsmarkører fjernet.");
+}
+// === FUNKSJON: clearFormationPositions END ===
+// === FUNKSJON: drawFormationPositions START (NY) ===
+function drawFormationPositions(formation) {
+    if (!formation || !formation.positions || !pitchSurface) {
+        console.error("drawFormationPositions: Mangler formasjonsdata eller pitchSurface.", formation, pitchSurface);
+        return;
+    }
+    console.log(`Tegner posisjoner for: ${formation.name}`);
+
+    formation.positions.forEach(pos => {
+        const marker = document.createElement('div');
+        marker.classList.add('formation-position-marker');
+        marker.style.left = `${pos.x}%`;
+        marker.style.top = `${pos.y}%`;
+        marker.textContent = pos.id.toUpperCase(); // Vis ID som tekst (f.eks. GK, DR)
+        marker.title = `${pos.name} (Roller: ${pos.roles.join(', ')})`; // Tooltip med mer info
+
+        // Lagre data for senere bruk (filtrering/klikk)
+        marker.setAttribute('data-pos-id', pos.id);
+        marker.setAttribute('data-pos-name', pos.name);
+        marker.setAttribute('data-roles', JSON.stringify(pos.roles)); // Lagre roller som JSON-streng
+
+        // Legg til klikk-listener (foreløpig bare logging)
+        marker.addEventListener('click', () => {
+            console.log(`Klikket på posisjon: ${pos.name} (ID: ${pos.id}), Roller: ${pos.roles.join(', ')}`);
+            // TODO: Implementer logikk for å velge posisjon og filtrere spillere
+            // 1. Fjern .selected fra andre markører
+            // 2. Legg til .selected på denne
+            // 3. Kall en funksjon for å filtrere/vise spillere
+        });
+
+        pitchSurface.appendChild(marker);
+    });
+}
+// === FUNKSJON: drawFormationPositions END ===
 // === 5. Drag and Drop & Valg/Farge/UI Toggles END ===
 
 
@@ -306,75 +365,21 @@ function populateSetupDropdown() { if (!loadSetupSelect) return; const savedSetu
 
 // === 7. Event Listeners START ===
 document.addEventListener('DOMContentLoaded', () => {
-    // Hent referanser til alle elementer FØRST
-    appContainer = document.querySelector('.app-container');
-    sidebar = document.querySelector('.sidebar');
-    toggleSidebarButton = document.getElementById('toggle-sidebar-button');
-    onPitchListElement = document.getElementById('on-pitch-list');
-    benchListElement = document.getElementById('bench-list');
-    squadListElement = document.getElementById('squad-list');
-    squadListContainer = document.getElementById('squad-list-container');
-    onPitchCountElement = document.getElementById('on-pitch-count');
-    onBenchCountElement = document.getElementById('on-bench-count');
-    pitchElement = document.getElementById('pitch');
-    pitchSurface = document.getElementById('pitch-surface'); // Sørg for at denne er hentet
-    rotatePitchButton = document.getElementById('rotate-pitch-button');
-    addPlayerButton = document.getElementById('add-player-button');
-    playerBorderColorInput = document.getElementById('player-border-color');
-    setBorderColorButton = document.getElementById('set-border-color-button');
-    setColorRedButton = document.getElementById('set-color-red');
-    setColorYellowButton = document.getElementById('set-color-yellow');
-    setColorGreenButton = document.getElementById('set-color-green');
-    setColorDefaultButton = document.getElementById('set-color-default');
-    toggleDrawModeButton = document.getElementById('toggle-draw-mode-button');
-    clearDrawingsButton = document.getElementById('clear-drawings-button');
-    setupNameInput = document.getElementById('setup-name');
-    saveSetupButton = document.getElementById('save-setup-button');
-    loadSetupSelect = document.getElementById('load-setup-select');
-    loadSetupButton = document.getElementById('load-setup-button');
-    deleteSetupButton = document.getElementById('delete-setup-button');
-    exportPngButton = document.getElementById('export-png-button');
-    pitchContainer = document.getElementById('pitch-container');
-    drawingCanvas = document.getElementById('drawing-canvas');
-    ballElement = document.getElementById('ball');
-    navTacticsButton = document.getElementById('nav-tactics-button');
-    navSquadButton = document.getElementById('nav-squad-button');
-    tacticsPageContent = document.getElementById('tactics-page-content');
-    squadPageContent = document.getElementById('squad-page-content');
-    fullSquadListContainer = document.getElementById('full-squad-list-container');
-    onPitchSectionElement = document.getElementById('on-pitch-section');
-    formationSelect = document.getElementById('formation-select'); // Hent formasjons-select
-    addPlayerModal = document.getElementById('add-player-modal');
-    closeButton = addPlayerModal ? addPlayerModal.querySelector('.close-button') : null;
-    newPlayerNameInput = document.getElementById('new-player-name');
-    newPlayerImageUpload = document.getElementById('new-player-image-upload');
-    newPlayerImageUrlInput = document.getElementById('new-player-image-url');
-    newPlayerMainRoleInput = document.getElementById('new-player-main-role');
-    confirmAddPlayerButton = document.getElementById('confirm-add-player');
-    playerDetailModal = document.getElementById('player-detail-modal');
-    ballSettingsModal = document.getElementById('ball-settings-modal');
-    benchElement = document.getElementById('bench'); 
+    // Hent referanser
+    appContainer = document.querySelector('.app-container'); sidebar = document.querySelector('.sidebar'); toggleSidebarButton = document.getElementById('toggle-sidebar-button'); onPitchListElement = document.getElementById('on-pitch-list'); benchListElement = document.getElementById('bench-list'); squadListElement = document.getElementById('squad-list'); squadListContainer = document.getElementById('squad-list-container'); onPitchCountElement = document.getElementById('on-pitch-count'); onBenchCountElement = document.getElementById('on-bench-count'); pitchElement = document.getElementById('pitch'); pitchSurface = document.getElementById('pitch-surface'); rotatePitchButton = document.getElementById('rotate-pitch-button'); addPlayerButton = document.getElementById('add-player-button'); playerBorderColorInput = document.getElementById('player-border-color'); setBorderColorButton = document.getElementById('set-border-color-button'); setColorRedButton = document.getElementById('set-color-red'); setColorYellowButton = document.getElementById('set-color-yellow'); setColorGreenButton = document.getElementById('set-color-green'); setColorDefaultButton = document.getElementById('set-color-default'); toggleDrawModeButton = document.getElementById('toggle-draw-mode-button'); clearDrawingsButton = document.getElementById('clear-drawings-button'); setupNameInput = document.getElementById('setup-name'); saveSetupButton = document.getElementById('save-setup-button'); loadSetupSelect = document.getElementById('load-setup-select'); loadSetupButton = document.getElementById('load-setup-button'); deleteSetupButton = document.getElementById('delete-setup-button'); exportPngButton = document.getElementById('export-png-button'); pitchContainer = document.getElementById('pitch-container'); drawingCanvas = document.getElementById('drawing-canvas'); ballElement = document.getElementById('ball'); navTacticsButton = document.getElementById('nav-tactics-button'); navSquadButton = document.getElementById('nav-squad-button'); tacticsPageContent = document.getElementById('tactics-page-content'); squadPageContent = document.getElementById('squad-page-content'); fullSquadListContainer = document.getElementById('full-squad-list-container'); onPitchSectionElement = document.getElementById('on-pitch-section'); formationSelect = document.getElementById('formation-select'); addPlayerModal = document.getElementById('add-player-modal'); closeButton = addPlayerModal ? addPlayerModal.querySelector('.close-button') : null; newPlayerNameInput = document.getElementById('new-player-name'); newPlayerImageUpload = document.getElementById('new-player-image-upload'); newPlayerImageUrlInput = document.getElementById('new-player-image-url'); newPlayerMainRoleInput = document.getElementById('new-player-main-role'); confirmAddPlayerButton = document.getElementById('confirm-add-player'); playerDetailModal = document.getElementById('player-detail-modal'); ballSettingsModal = document.getElementById('ball-settings-modal'); benchElement = document.getElementById('bench'); 
+    
+    // Last data 
+    loadSquad(); loadLastState(); populateSetupDropdown();
 
-    // Last data ETTER at DOM-referanser er hentet
-    loadSquad(); 
-    loadLastState(); 
-    populateSetupDropdown();
-
-    // --- Modal Listeners ---
+    // --- Listeners ---
     if (addPlayerButton) addPlayerButton.addEventListener('click', openAddPlayerModal); if (closeButton) closeButton.addEventListener('click', closeAddPlayerModal); if (confirmAddPlayerButton) confirmAddPlayerButton.addEventListener('click', handleAddPlayerConfirm); const detailModalCloseBtn = playerDetailModal ? playerDetailModal.querySelector('.close-detail-button') : null; const detailModalSaveBtn = playerDetailModal ? playerDetailModal.querySelector('#save-details-button') : null; const detailModalAddCommentBtn = playerDetailModal ? playerDetailModal.querySelector('#add-comment-to-history-button') : null; if (detailModalCloseBtn) detailModalCloseBtn.addEventListener('click', closePlayerDetailModal); if (detailModalSaveBtn) detailModalSaveBtn.addEventListener('click', handleSavePlayerDetails); if (detailModalAddCommentBtn) detailModalAddCommentBtn.addEventListener('click', handleAddCommentToHistory); if (ballElement) ballElement.addEventListener('dblclick', openBallSettingsModal); if (ballSettingsModal) { const closeBallBtn = ballSettingsModal.querySelector('.close-ball-settings-button'); const saveBallBtn = ballSettingsModal.querySelector('#save-ball-settings-button'); const sizeSlider = ballSettingsModal.querySelector('#ball-size-slider'); if (closeBallBtn) closeBallBtn.addEventListener('click', closeBallSettingsModal); if (saveBallBtn) saveBallBtn.addEventListener('click', handleSaveBallSettings); if (sizeSlider) sizeSlider.addEventListener('input', handleBallSizeChange); window.addEventListener('click', (event) => { if (event.target === ballSettingsModal) closeBallSettingsModal(); }); }
-    // --- Andre Globale Listeners ---
-    window.addEventListener('click', (event) => { if (addPlayerModal && event.target === addPlayerModal) closeAddPlayerModal(); if (playerDetailModal && event.target === playerDetailModal) closePlayerDetailModal(); if (ballSettingsModal && event.target === ballSettingsModal) closeBallSettingsModal(); if (!event.target.closest('.player-piece') && !event.target.closest('.preset-color-button') && !event.target.closest('#player-border-color') && !event.target.closest('#set-border-color-button') && selectedPlayerIds.size > 0) { clearPlayerSelection(); } });
-    // --- Drag & Drop Listeners ---
+    window.addEventListener('click', (event) => { if (addPlayerModal && event.target === addPlayerModal) closeAddPlayerModal(); if (playerDetailModal && event.target === playerDetailModal) closePlayerDetailModal(); if (ballSettingsModal && event.target === ballSettingsModal) closeBallSettingsModal(); if (!event.target.closest('.player-piece') && !event.target.closest('.formation-position-marker') && !event.target.closest('.preset-color-button') && !event.target.closest('#player-border-color') && !event.target.closest('#set-border-color-button') && selectedPlayerIds.size > 0) { clearPlayerSelection(); } }); // Lagt til !event.target.closest('.formation-position-marker')
     if (pitchElement) { pitchElement.addEventListener('dragover', (e) => handleDragOver(e, 'pitch')); pitchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'pitch')); pitchElement.addEventListener('drop', handleDropOnPitch); } if (benchElement) { benchElement.addEventListener('dragover', (e) => handleDragOver(e, 'bench')); benchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'bench')); benchElement.addEventListener('drop', handleDropOnBench); } if (squadListContainer) { squadListContainer.addEventListener('dragover', (e) => handleDragOver(e, 'squad')); squadListContainer.addEventListener('dragleave', (e) => handleDragLeave(e, 'squad')); squadListContainer.addEventListener('drop', handleDropOnSquadList); } if (ballElement) { ballElement.addEventListener('dragstart', handleBallDragStart); ballElement.addEventListener('dragend', handleDragEnd); } if (onPitchSectionElement) { onPitchSectionElement.addEventListener('dragover', (e) => handleDragOver(e, 'onpitch-list')); onPitchSectionElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'onpitch-list')); onPitchSectionElement.addEventListener('drop', handleDropOnOnPitchList); }
-    // --- Knapp Listeners (Sidepanel etc.) ---
     if (toggleSidebarButton) toggleSidebarButton.addEventListener('click', toggleSidebar); if (rotatePitchButton) rotatePitchButton.addEventListener('click', togglePitchRotation); if (setBorderColorButton) setBorderColorButton.addEventListener('click', handleSetSelectedPlayerBorderColor); if(setColorRedButton) setColorRedButton.addEventListener('click', () => applyBorderColorToSelection('red')); if(setColorYellowButton) setColorYellowButton.addEventListener('click', () => applyBorderColorToSelection('yellow')); if(setColorGreenButton) setColorGreenButton.addEventListener('click', () => applyBorderColorToSelection('lime')); if(setColorDefaultButton) setColorDefaultButton.addEventListener('click', () => applyBorderColorToSelection('black')); if (saveSetupButton) saveSetupButton.addEventListener('click', handleSaveSetup); if (loadSetupButton) loadSetupButton.addEventListener('click', handleLoadSetup); if (deleteSetupButton) deleteSetupButton.addEventListener('click', handleDeleteSetup);
-    // --- Navigasjonsknapp Listeners ---
     if (navTacticsButton) navTacticsButton.addEventListener('click', () => switchView('tactics')); if (navSquadButton) navSquadButton.addEventListener('click', () => switchView('squad'));
-    // --- Formasjonsvalg Listener ---
-    if (formationSelect) { formationSelect.addEventListener('change', handleFormationChange); console.log("Listener: formationSelect OK"); } else { console.error("formationSelect ikke funnet!"); }
-    // Resize Listener
+    if (formationSelect) { formationSelect.addEventListener('change', handleFormationChange); } else { console.error("formationSelect ikke funnet ved listener-oppsett!"); }
     window.addEventListener('resize', resizePitchElement);
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #118 */
+/* Version: #120 */
