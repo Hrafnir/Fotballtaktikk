@@ -1,12 +1,14 @@
-<!-- Version: #140 -->
+<!-- Version: #147 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fotballtaktiker</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link til Versjon: #133 -->
-    <!-- NYTT: Legg til html2canvas biblioteket -->
+    <link rel="stylesheet" href="style.css"> <!-- Link til Versjon: #148 -->
+    <!-- Font Awesome for ikoner -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- html2canvas for eksport -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
@@ -110,14 +112,16 @@
 
         <!-- === 2. Hovedområde (Bane / Taktikkside) START === -->
         <main id="tactics-page-content" class="main-content page-content">
-             <button id="rotate-pitch-button" class="rotate-button" title="Roter bane">↻</button>
+             <div class="main-content-buttons">
+                <button id="fullscreen-button" class="fullscreen-button" title="Fullskjerm"><i class="fas fa-expand"></i></button>
+                <button id="rotate-pitch-button" class="rotate-button" title="Roter bane">↻</button>
+             </div>
+             
             <div id="pitch-container">
-                 <div id="pitch" class="drop-target"> <!-- Vi tar bilde av denne -->
+                 <div id="pitch" class="drop-target"> 
                      <div id="pitch-surface">
                         <canvas id="drawing-canvas"></canvas>
                         <div id="ball" class="draggable" draggable="true"></div>
-                        <!-- Spillerbrikker legges til her av JS -->
-                        <!-- Formasjonsmarkører legges til her av JS -->
                     </div>
                  </div>
             </div>
@@ -136,14 +140,13 @@
     </div> <!-- /.app-container -->
 
     <!-- === Modaler/Dialoger START === -->
-    <!-- ... (Alle modaler som før V#131) ... -->
     <div id="add-player-modal" class="modal" style="display: none;"> <div class="modal-content"> <span class="close-button">×</span> <h3>Legg til ny spiller</h3> <label for="new-player-name">Navn:</label> <input type="text" id="new-player-name" required><br><br> <label for="new-player-image-upload">Bilde (URL eller last opp):</label> <input type="file" id="new-player-image-upload" accept="image/*"><br> <input type="text" id="new-player-image-url" placeholder="Eller lim inn URL"><br><br> <label for="new-player-main-role">Hovedposisjon:</label> <input type="text" id="new-player-main-role"><br><br> <h4>Spillbare Roller:</h4> <div id="new-player-roles-checkboxes" class="roles-checkbox-container"></div> <br> <button id="confirm-add-player">Legg til</button> </div> </div>
     <div id="player-detail-modal" class="modal" style="display: none;"> <div class="modal-content wide"> <span class="close-detail-button close-button">×</span> <h3 id="detail-modal-title">Spillerdetaljer</h3> <input type="hidden" id="detail-player-id"> <div class="modal-columns"> <div class="modal-column"> <h4>Bilde</h4> <div id="detail-player-image-display" class="detail-image-display"><span>Ingen bilde-URL</span></div> <label for="detail-player-image-url">Bilde-URL:</label> <input type="text" id="detail-player-image-url" placeholder="Lim inn URL til bilde..."> <h4>Personlig Info</h4> <label for="detail-player-name">Navn:</label> <input type="text" id="detail-player-name"> <label for="detail-player-nickname">Kallenavn (vises på brikke):</label> <input type="text" id="detail-player-nickname" placeholder="F.eks. Myggen"> <label for="detail-player-status">Status:</label> <select id="detail-player-status"></select> <label for="detail-player-main-role">Hovedposisjon:</label> <input type="text" id="detail-player-main-role"> <label for="detail-player-birthday">Fødselsdato:</label> <input type="date" id="detail-player-birthday"> <label for="detail-player-phone">Telefon:</label> <input type="tel" id="detail-player-phone" placeholder="Eks: 12345678"> <label for="detail-player-email">E-post:</label> <input type="email" id="detail-player-email" placeholder="navn@example.com"> </div> <div class="modal-column"> <h4>Spillbare Roller:</h4> <div id="detail-player-roles-checkboxes" class="roles-checkbox-container"></div> <hr style="margin: 15px 0;"> <h4>Kamp-kommentar (Denne økten)</h4> <textarea id="detail-match-comment" rows="4" placeholder="Notater..."></textarea> <button id="add-comment-to-history-button">Legg til i historikk</button> <h4>Kommentarhistorikk</h4> <div id="detail-comment-history" class="comment-history"><p><i>Ingen historikk.</i></p></div> <h4>Sesongstatistikk (Manuell)</h4> <label for="detail-matches-played">Kamper spilt:</label> <input type="number" id="detail-matches-played" min="0" value="0"> <label for="detail-goals-scored">Mål scoret:</label> <input type="number" id="detail-goals-scored" min="0" value="0"> </div> </div> <div class="modal-footer"> <button id="save-details-button">Lagre Endringer</button> </div> </div> </div>
     <div id="ball-settings-modal" class="modal" style="display: none;"> <div class="modal-content"> <span class="close-ball-settings-button close-button">×</span> <h3>Ballinnstillinger</h3> <div> <label for="ball-size-slider">Størrelse:</label> <input type="range" id="ball-size-slider" min="20" max="60" value="35"> <span id="ball-size-value">35px</span> </div> <div style="margin-top: 15px;"> <label>Utseende:</label><br> <input type="radio" id="ball-style-default" name="ball-style" value="default" checked> <label for="ball-style-default">Standard</label><br> <input type="radio" id="ball-style-classic" name="ball-style" value="classic"> <label for="ball-style-classic">Klassisk (CSS)</label><br> <input type="radio" id="ball-style-color" name="ball-style" value="color"> <label for="ball-style-color">Ensfarget:</label> <input type="color" id="ball-custom-color" value="#FFA500"> </div> <div class="modal-footer"> <button id="save-ball-settings-button">Lagre</button> </div> </div> </div>
     <!-- === Modaler/Dialoger END === -->
 
-    <script src="script.js"></script> <!-- Link til Versjon: #137 -->
+    <script src="script.js"></script> <!-- Link til Versjon: #149 -->
 
 </body>
 </html>
-<!-- Version: #140 -->
+<!-- Version: #147 -->
