@@ -413,19 +413,26 @@ function renderOnPitchList() { if (!onPitchListElement) return; onPitchListEleme
 function renderBench() { if (!benchListElement) return; benchListElement.innerHTML = ''; if (playersOnBench.length === 0) { benchListElement.innerHTML = '<li><i>Benken er tom.</i></li>'; return; } const sortedPlayers = playersOnBench.map(id => getPlayerById(id)).filter(p => p).sort((a, b) => a.name.localeCompare(b.name)); sortedPlayers.forEach(player => { const listItem = document.createElement('li'); let roleText = player.mainRole ? ` (${player.mainRole})` : ''; listItem.textContent = (player.nickname || player.name) + roleText; listItem.setAttribute('data-player-id', player.id); listItem.classList.add('bench-player-item', 'draggable'); listItem.setAttribute('draggable', true); benchListElement.appendChild(listItem); }); addDragListenersToBenchItems(); }
 function renderSquadList() { if (!squadListElement) return; squadListElement.innerHTML = ''; const availablePlayers = squad.filter(p => !playersOnPitch[p.id] && !playersOnBench.includes(p.id)).sort((a, b) => a.name.localeCompare(b.name)); if (availablePlayers.length === 0 && squad.length > 0) { squadListElement.innerHTML = '<li><i>Alle spillere er plassert.</i></li>'; } else if (squad.length === 0) { squadListElement.innerHTML = '<li><i>Ingen spillere i troppen.</i></li>'; } else { availablePlayers.forEach(player => { const listItem = document.createElement('li'); let roleText = player.mainRole ? ` (${player.mainRole})` : ''; listItem.textContent = (player.nickname || player.name) + roleText; listItem.setAttribute('data-player-id', player.id); listItem.classList.add('squad-player-item', 'draggable'); listItem.setAttribute('draggable', true); squadListElement.appendChild(listItem); }); } addDragListenersToSquadItems(); }
 
-// === NY FUNKSJON: renderFullSquadList ===
+// === NY FUNKSJON: renderFullSquadList (MED DEBUGGING) ===
 function renderFullSquadList() {
+    console.log("renderFullSquadList: Kjører..."); // DEBUG
     if (!fullSquadListContainer) {
-        console.error("renderFullSquadList: Container #full-squad-list-container ikke funnet.");
+        console.error("renderFullSquadList: FEIL - Container #full-squad-list-container ikke funnet.");
         return;
     }
+    console.log("renderFullSquadList: Container funnet:", fullSquadListContainer); // DEBUG
     fullSquadListContainer.innerHTML = ''; // Tøm container
 
+    console.log(`renderFullSquadList: Antall spillere i squad: ${squad.length}`); // DEBUG
+    // console.log("renderFullSquadList: Squad data:", JSON.stringify(squad)); // DEBUG (Kan være mye data)
+
     if (squad.length === 0) {
+        console.log("renderFullSquadList: Troppen er tom, viser melding."); // DEBUG
         fullSquadListContainer.innerHTML = '<p>Ingen spillere i troppen enda. Legg til spillere via sidepanelet.</p>';
         return;
     }
 
+    console.log("renderFullSquadList: Starter tabellbygging..."); // DEBUG
     // Sorter spillere etter navn
     const sortedSquad = [...squad].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -485,9 +492,12 @@ function renderFullSquadList() {
         actionsCell.appendChild(editButton);
     });
 
+    console.log("renderFullSquadList: Tabell bygget, legger til i container..."); // DEBUG
     fullSquadListContainer.appendChild(table);
+    console.log("renderFullSquadList: Ferdig."); // DEBUG
 }
 // === NY FUNKSJON SLUTT ===
+
 // === 3. UI Rendering END ===
 
 
