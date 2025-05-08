@@ -1,4 +1,4 @@
-/* Version: #137 */
+/* Version: #139 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; 
@@ -23,7 +23,7 @@ let currentDrawingTool = 'arrow';
 let currentDrawingColor = '#FFFF00'; 
 let isDrawingVisible = true; 
 let savedDrawings = []; 
-let currentDrawingPoints = []; // NY: For å lagre punkter underveis i frihånd
+let currentDrawingPoints = []; 
 const DRAWING_LINE_WIDTH = 4;
 const ARROWHEAD_LENGTH = 15; 
 const ARROWHEAD_ANGLE = Math.PI / 6; 
@@ -46,7 +46,7 @@ const FORMATIONS = {
 // === 0. Globale Variabler og Konstanter END ===
 
 // === 1. DOM Element Referanser START ===
-let appContainer, sidebar, toggleSidebarButton, onPitchListElement, benchListElement, squadListElement, squadListContainer, onPitchCountElement, onBenchCountElement, pitchElement, pitchSurface, rotatePitchButton, addPlayerButton, playerBorderColorInput, setBorderColorButton, setColorRedButton, setColorYellowButton, setColorGreenButton, setColorDefaultButton, toggleDrawModeButton, clearDrawingsButton, setupNameInput, saveSetupButton, loadSetupSelect, loadSetupButton, deleteSetupButton, exportPngButton, pitchContainer, drawingCanvas, ballElement, navTacticsButton, navSquadButton, tacticsPageContent, squadPageContent, fullSquadListContainer, onPitchSectionElement, formationSelect, addPlayerModal, closeButton, newPlayerNameInput, newPlayerImageUpload, newPlayerImageUrlInput, newPlayerMainRoleInput, confirmAddPlayerButton, playerDetailModal, ballSettingsModal, benchElement, squadManagementSection, drawToolButtons, drawingColorInput, toggleVisibilityButton;
+let appContainer, sidebar, toggleSidebarButton, onPitchListElement, benchListElement, squadListElement, squadListContainer, onPitchCountElement, onBenchCountElement, pitchElement, pitchSurface, rotatePitchButton, addPlayerButton, playerBorderColorInput, setBorderColorButton, setColorRedButton, setColorYellowButton, setColorGreenButton, setColorDefaultButton, toggleDrawModeButton, clearDrawingsButton, setupNameInput, saveSetupButton, loadSetupSelect, loadSetupButton, deleteSetupButton, exportPngButton, pitchContainer, drawingCanvas, ballElement, navTacticsButton, navSquadButton, tacticsPageContent, squadPageContent, fullSquadListContainer, onPitchSectionElement, formationSelect, addPlayerModal, closeButton, newPlayerNameInput, newPlayerImageUpload, newPlayerImageUrlInput, newPlayerMainRoleInput, confirmAddPlayerButton, playerDetailModal, ballSettingsModal, benchElement, squadManagementSection, drawToolButtons, drawingColorInput, toggleVisibilityButton, undoDrawingButton; // Lagt til undoDrawingButton
 // === 1. DOM Element Referanser END ===
 
 // === 2. Modal Håndtering START ===
@@ -65,6 +65,115 @@ function openBallSettingsModal() { /* ... */ }
 function closeBallSettingsModal() { /* ... */ }
 function handleBallSizeChange(event) { /* ... */ }
 function handleSaveBallSettings() { /* ... */ }
+// === 2. Modal Håndtering END ===
+
+// === 3. UI Rendering START ===
+function renderUI() { /* ... */ }
+function renderOnPitchList() { /* ... */ }
+function renderBench() { /* ... */ }
+function renderSquadList() { /* ... */ }
+function renderFullSquadList() { /* ... */ }
+// === 3. UI Rendering END ===
+
+// === 4. Spillerbrikke & Ball Håndtering START ===
+function createPlayerPieceElement(player, xPercent, yPercent) { /* ... */ }
+function getPlayerById(playerId) { /* ... */ }
+function updateBallPosition(xPercent, yPercent) { /* ... */ }
+function applyBallStyle() { /* ... */ }
+// === 4. Spillerbrikke & Ball Håndtering END ===
+
+// === 5. Formasjons- og Tegnehåndtering START ===
+function handleFormationChange(event) { /* ... */ }
+function clearFormationPositions() { /* ... */ }
+function drawFormationPositions(formation) { /* ... */ }
+function handlePositionMarkerClick(markerElement, positionData) { /* ... */ }
+function clearSelectedPositionMarker() { /* ... */ }
+function resetPositionFilter() { /* ... */ }
+function toggleDrawMode() { /* ... */ }
+function startDraw(event) { /* ... */ }
+function draw(event) { /* ... */ }
+function stopDraw(event) { /* ... */ }
+function redrawCanvas() { /* ... */ }
+function redrawAllDrawings() { /* ... */ }
+function drawShape(ctx, drawingData) { /* ... */ }
+function drawArrow(ctx, fromx, fromy, tox, toy) { /* ... */ }
+function getCanvasCoordinates(event) { /* ... */ }
+function clearDrawings() { /* ... */ }
+function clearDrawingCanvas() { /* ... */ }
+function setupDrawingCanvas() { /* ... */ }
+function handleToolChange(selectedTool) { /* ... */ }
+function handleColorChange(event) { /* ... */ }
+function toggleDrawingVisibility() { /* ... */ }
+// === FUNKSJON: undoLastDrawing START (NY) ===
+function undoLastDrawing() {
+    if (savedDrawings.length > 0) {
+        savedDrawings.pop(); // Fjern siste element
+        redrawCanvas(); // Tegn opp på nytt uten det siste
+        console.log("Siste tegning angret.");
+        // TODO: Oppdater lagring hvis tegninger lagres i localStorage
+    } else {
+        console.log("Ingen tegninger å angre.");
+    }
+}
+// === FUNKSJON: undoLastDrawing END ===
+// === 5. Formasjons- og Tegnehåndtering END ===
+
+// === 6. Drag and Drop & Valg/Farge/UI Toggles START === 
+// ... (alle D&D funksjoner som før V#137) ...
+// === 6. Drag and Drop & Valg/Farge/UI Toggles END ===
+
+// === 7. Lokal Lagring START === 
+// ... (alle lagringsfunksjoner som før V#137) ...
+// === 7. Lokal Lagring END ===
+
+// === 8. Event Listeners START === 
+document.addEventListener('DOMContentLoaded', () => {
+    // Hent referanser
+    appContainer = document.querySelector('.app-container'); sidebar = document.querySelector('.sidebar'); toggleSidebarButton = document.getElementById('toggle-sidebar-button'); onPitchListElement = document.getElementById('on-pitch-list'); benchListElement = document.getElementById('bench-list'); squadListElement = document.getElementById('squad-list'); squadListContainer = document.getElementById('squad-list-container'); onPitchCountElement = document.getElementById('on-pitch-count'); onBenchCountElement = document.getElementById('on-bench-count'); pitchElement = document.getElementById('pitch'); pitchSurface = document.getElementById('pitch-surface'); rotatePitchButton = document.getElementById('rotate-pitch-button'); addPlayerButton = document.getElementById('add-player-button'); playerBorderColorInput = document.getElementById('player-border-color'); setBorderColorButton = document.getElementById('set-border-color-button'); setColorRedButton = document.getElementById('set-color-red'); setColorYellowButton = document.getElementById('set-color-yellow'); setColorGreenButton = document.getElementById('set-color-green'); setColorDefaultButton = document.getElementById('set-color-default'); toggleDrawModeButton = document.getElementById('toggle-draw-mode-button'); clearDrawingsButton = document.getElementById('clear-drawings-button'); setupNameInput = document.getElementById('setup-name'); saveSetupButton = document.getElementById('save-setup-button'); loadSetupSelect = document.getElementById('load-setup-select'); loadSetupButton = document.getElementById('load-setup-button'); deleteSetupButton = document.getElementById('delete-setup-button'); exportPngButton = document.getElementById('export-png-button'); pitchContainer = document.getElementById('pitch-container'); drawingCanvas = document.getElementById('drawing-canvas'); ballElement = document.getElementById('ball'); navTacticsButton = document.getElementById('nav-tactics-button'); navSquadButton = document.getElementById('nav-squad-button'); tacticsPageContent = document.getElementById('tactics-page-content'); squadPageContent = document.getElementById('squad-page-content'); fullSquadListContainer = document.getElementById('full-squad-list-container'); onPitchSectionElement = document.getElementById('on-pitch-section'); formationSelect = document.getElementById('formation-select'); addPlayerModal = document.getElementById('add-player-modal'); closeButton = addPlayerModal ? addPlayerModal.querySelector('.close-button') : null; newPlayerNameInput = document.getElementById('new-player-name'); newPlayerImageUpload = document.getElementById('new-player-image-upload'); newPlayerImageUrlInput = document.getElementById('new-player-image-url'); newPlayerMainRoleInput = document.getElementById('new-player-main-role'); confirmAddPlayerButton = document.getElementById('confirm-add-player'); playerDetailModal = document.getElementById('player-detail-modal'); ballSettingsModal = document.getElementById('ball-settings-modal'); benchElement = document.getElementById('bench'); squadManagementSection = document.getElementById('squad-management'); 
+    drawToolButtons = document.querySelectorAll('.draw-tool-button'); drawingColorInput = document.getElementById('drawing-color'); toggleVisibilityButton = document.getElementById('toggle-visibility-button');
+    undoDrawingButton = document.getElementById('undo-drawing-button'); // NY referanse
+
+    setupDrawingCanvas(); 
+    loadSquad(); loadLastState(); populateSetupDropdown();
+
+    // --- Listeners ---
+    // ... (alle listeners som før) ...
+    if (addPlayerButton) addPlayerButton.addEventListener('click', openAddPlayerModal); if (closeButton) closeButton.addEventListener('click', closeAddPlayerModal); if (confirmAddPlayerButton) confirmAddPlayerButton.addEventListener('click', handleAddPlayerConfirm); const detailModalCloseBtn = playerDetailModal ? playerDetailModal.querySelector('.close-detail-button') : null; const detailModalSaveBtn = playerDetailModal ? playerDetailModal.querySelector('#save-details-button') : null; const detailModalAddCommentBtn = playerDetailModal ? playerDetailModal.querySelector('#add-comment-to-history-button') : null; if (detailModalCloseBtn) detailModalCloseBtn.addEventListener('click', closePlayerDetailModal); if (detailModalSaveBtn) detailModalSaveBtn.addEventListener('click', handleSavePlayerDetails); if (detailModalAddCommentBtn) detailModalAddCommentBtn.addEventListener('click', handleAddCommentToHistory); if (ballElement) ballElement.addEventListener('dblclick', openBallSettingsModal); if (ballSettingsModal) { const closeBallBtn = ballSettingsModal.querySelector('.close-ball-settings-button'); const saveBallBtn = ballSettingsModal.querySelector('#save-ball-settings-button'); const sizeSlider = ballSettingsModal.querySelector('#ball-size-slider'); if (closeBallBtn) closeBallBtn.addEventListener('click', closeBallSettingsModal); if (saveBallBtn) saveBallBtn.addEventListener('click', handleSaveBallSettings); if (sizeSlider) sizeSlider.addEventListener('input', handleBallSizeChange); window.addEventListener('click', (event) => { if (event.target === ballSettingsModal) closeBallSettingsModal(); }); }
+    window.addEventListener('click', (event) => { if (addPlayerModal && event.target === addPlayerModal) closeAddPlayerModal(); if (playerDetailModal && event.target === playerDetailModal) closePlayerDetailModal(); if (ballSettingsModal && event.target === ballSettingsModal) closeBallSettingsModal(); if (!event.target.closest('.player-piece') && !event.target.closest('.preset-color-button') && !event.target.closest('#player-border-color') && !event.target.closest('#set-border-color-button') && selectedPlayerIds.size > 0) { clearPlayerSelection(); } if (!event.target.closest('.formation-position-marker')) { if (selectedFormationPosition) { resetPositionFilter(); } } }); 
+    if (pitchElement) { pitchElement.addEventListener('dragover', (e) => handleDragOver(e, 'pitch')); pitchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'pitch')); pitchElement.addEventListener('drop', handleDropOnPitch); } if (benchElement) { benchElement.addEventListener('dragover', (e) => handleDragOver(e, 'bench')); benchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'bench')); benchElement.addEventListener('drop', handleDropOnBench); } if (squadListContainer) { squadListContainer.addEventListener('dragover', (e) => handleDragOver(e, 'squad')); squadListContainer.addEventListener('dragleave', (e) => handleDragLeave(e, 'squad')); squadListContainer.addEventListener('drop', handleDropOnSquadList); } if (ballElement) { ballElement.addEventListener('dragstart', handleBallDragStart); ballElement.addEventListener('dragend', handleDragEnd); } if (onPitchSectionElement) { onPitchSectionElement.addEventListener('dragover', (e) => handleDragOver(e, 'onpitch-list')); onPitchSectionElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'onpitch-list')); onPitchSectionElement.addEventListener('drop', handleDropOnOnPitchList); }
+    if (toggleSidebarButton) toggleSidebarButton.addEventListener('click', toggleSidebar); if (rotatePitchButton) rotatePitchButton.addEventListener('click', togglePitchRotation); if (setBorderColorButton) setBorderColorButton.addEventListener('click', handleSetSelectedPlayerBorderColor); if(setColorRedButton) setColorRedButton.addEventListener('click', () => applyBorderColorToSelection('red')); if(setColorYellowButton) setColorYellowButton.addEventListener('click', () => applyBorderColorToSelection('yellow')); if(setColorGreenButton) setColorGreenButton.addEventListener('click', () => applyBorderColorToSelection('lime')); if(setColorDefaultButton) setColorDefaultButton.addEventListener('click', () => applyBorderColorToSelection('black')); if (saveSetupButton) saveSetupButton.addEventListener('click', handleSaveSetup); if (loadSetupButton) loadSetupButton.addEventListener('click', handleLoadSetup); if (deleteSetupButton) deleteSetupButton.addEventListener('click', handleDeleteSetup);
+    if (navTacticsButton) navTacticsButton.addEventListener('click', () => switchView('tactics')); if (navSquadButton) navSquadButton.addEventListener('click', () => switchView('squad'));
+    if (formationSelect) { formationSelect.addEventListener('change', handleFormationChange); } else { console.error("formationSelect ikke funnet!"); }
+    if (drawToolButtons) { drawToolButtons.forEach(button => { button.addEventListener('click', () => handleToolChange(button.dataset.tool)); }); } else { console.error("drawToolButtons ikke funnet!"); }
+    if (drawingColorInput) { drawingColorInput.addEventListener('input', handleColorChange); drawingColorInput.value = currentDrawingColor; } else { console.error("drawingColorInput ikke funnet!"); }
+    if(toggleDrawModeButton) { toggleDrawModeButton.addEventListener('click', toggleDrawMode); } else { console.error("toggleDrawModeButton ikke funnet!"); }
+    if(clearDrawingsButton) { clearDrawingsButton.addEventListener('click', clearDrawings); } else { console.error("clearDrawingsButton ikke funnet!"); }
+    if (toggleVisibilityButton) { toggleVisibilityButton.addEventListener('click', toggleDrawingVisibility); } else { console.error("toggleVisibilityButton ikke funnet!"); }
+    // NY Listener for Angre-knapp
+    if (undoDrawingButton) { undoDrawingButton.addEventListener('click', undoLastDrawing); } else { console.error("undoDrawingButton ikke funnet!"); }
+    
+    window.addEventListener('resize', () => { resizePitchElement(); });
+    console.log('DOMContentLoaded: Initialisering ferdig.');
+});
+// === 8. Event Listeners END ===
+/* Version: #139 */
+
+// --- Funksjonsdefinisjoner ---
+function populateRolesCheckboxes(containerId, selectedRoles = []) { const container = document.getElementById(containerId); if (!container) return; container.innerHTML = ''; Object.entries(PLAYER_ROLES).forEach(([key, value]) => { const div = document.createElement('div'); const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.id = `${containerId}-${key}`; checkbox.value = key; checkbox.checked = selectedRoles.includes(key); const label = document.createElement('label'); label.htmlFor = `${containerId}-${key}`; label.textContent = `${value} (${key})`; div.appendChild(checkbox); div.appendChild(label); container.appendChild(div); }); }
+function populateStatusDropdown(selectElementId, currentStatusKey) { const selectElement = document.getElementById(selectElementId); if (!selectElement) { console.error(`populateStatusDropdown: Finner ikke selectElement med ID ${selectElementId}`); return; } selectElement.innerHTML = ''; Object.entries(PLAYER_STATUSES).forEach(([key, value]) => { const option = document.createElement('option'); option.value = key; option.textContent = value; if (key === currentStatusKey) { option.selected = true; } selectElement.appendChild(option); }); }
+function openAddPlayerModal() { if (!addPlayerModal) { console.error('openAddPlayerModal: FEIL - addPlayerModal elementet er null!'); return; } addPlayerModal.style.display = 'block'; if (newPlayerNameInput) newPlayerNameInput.value = ''; if (newPlayerImageUpload) newPlayerImageUpload.value = ''; if (newPlayerImageUrlInput) newPlayerImageUrlInput.value = ''; if (newPlayerMainRoleInput) newPlayerMainRoleInput.value = ''; populateRolesCheckboxes('new-player-roles-checkboxes'); if (newPlayerNameInput) newPlayerNameInput.focus(); }
+function closeAddPlayerModal() { if (addPlayerModal) { addPlayerModal.style.display = 'none'; } }
+function handleAddPlayerConfirm() { if (!newPlayerNameInput || !newPlayerImageUrlInput || !newPlayerMainRoleInput || !newPlayerImageUpload) { console.error("handleAddPlayerConfirm: Ett eller flere input-elementer mangler!"); return; } const name = newPlayerNameInput.value.trim(); const imageFile = newPlayerImageUpload.files[0]; let imageUrl = newPlayerImageUrlInput.value.trim(); const mainRole = newPlayerMainRoleInput.value.trim(); if (!name) { alert('Spillernavn må fylles ut.'); return; } let finalImageUrl = imageUrl; if (!finalImageUrl && imageFile) { console.warn("Filopplasting støttes ikke for lagring enda."); } const selectedRoles = []; const checkboxesContainer = document.getElementById('new-player-roles-checkboxes'); if (checkboxesContainer) { const roleCheckboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked'); roleCheckboxes.forEach(cb => selectedRoles.push(cb.value)); } const maxId = squad.reduce((max, p) => Math.max(max, parseInt(p.id.split('-')[1]) || 0), 0); nextPlayerId = maxId + 1; const newPlayer = { id: `player-${nextPlayerId}`, name: name, imageUrl: finalImageUrl, mainRole: mainRole, playableRoles: selectedRoles, status: DEFAULT_PLAYER_STATUS, nickname: '', position: { x: 50, y: 50 }, borderColor: 'black', personalInfo: { birthday: '', phone: '', email: '' }, matchStats: { matchesPlayed: 0, goalsScored: 0 }, comments: [] }; squad.push(newPlayer); saveSquad(); renderUI(); if (appContainer && appContainer.classList.contains('view-squad')) { renderFullSquadList(); } closeAddPlayerModal(); }
+function openPlayerDetailModal(playerId) { const player = getPlayerById(playerId); const modalElement = document.getElementById('player-detail-modal'); if (!player || !modalElement) { console.error("Kan ikke åpne detaljer for spiller:", playerId); return; } player.personalInfo = player.personalInfo || { birthday: '', phone: '', email: '' }; player.matchStats = player.matchStats || { matchesPlayed: 0, goalsScored: 0 }; player.comments = player.comments || []; player.nickname = player.nickname || ''; player.imageUrl = player.imageUrl || ''; player.mainRole = player.mainRole || ''; player.playableRoles = player.playableRoles || []; player.status = player.status || DEFAULT_PLAYER_STATUS; const detailIdInput = modalElement.querySelector('#detail-player-id'); const detailTitle = modalElement.querySelector('#detail-modal-title'); const detailNameInput = modalElement.querySelector('#detail-player-name'); const detailNicknameInput = modalElement.querySelector('#detail-player-nickname'); const detailImageUrlInput = modalElement.querySelector('#detail-player-image-url'); const detailImageDisplay = modalElement.querySelector('#detail-player-image-display'); const detailMainRoleInput = modalElement.querySelector('#detail-player-main-role'); const detailPlayerStatusSelect = modalElement.querySelector('#detail-player-status'); const detailBirthdayInput = modalElement.querySelector('#detail-player-birthday'); const detailPhoneInput = modalElement.querySelector('#detail-player-phone'); const detailEmailInput = modalElement.querySelector('#detail-player-email'); const detailMatchesPlayedInput = modalElement.querySelector('#detail-matches-played'); const detailGoalsScoredInput = modalElement.querySelector('#detail-goals-scored'); const detailCommentHistory = modalElement.querySelector('#detail-comment-history'); const detailMatchComment = modalElement.querySelector('#detail-match-comment'); if (!detailIdInput || !detailTitle || !detailNameInput || !detailNicknameInput || !detailImageUrlInput || !detailImageDisplay || !detailMainRoleInput || !detailPlayerStatusSelect || !detailBirthdayInput || !detailPhoneInput || !detailEmailInput || !detailMatchesPlayedInput || !detailGoalsScoredInput || !detailCommentHistory || !detailMatchComment) { console.error("Avbryter openPlayerDetailModal pga. manglende internt element."); return; } detailIdInput.value = player.id; detailTitle.textContent = `Detaljer for ${player.name}`; detailNameInput.value = player.name || ''; detailNicknameInput.value = player.nickname; detailMainRoleInput.value = player.mainRole || ''; detailImageUrlInput.value = player.imageUrl; if (player.imageUrl) { detailImageDisplay.style.backgroundImage = `url('${player.imageUrl}')`; detailImageDisplay.innerHTML = ''; } else { detailImageDisplay.style.backgroundImage = 'none'; detailImageDisplay.innerHTML = '<span>Ingen bilde-URL</span>'; } populateStatusDropdown('detail-player-status', player.status); detailBirthdayInput.value = player.personalInfo.birthday || ''; detailPhoneInput.value = player.personalInfo.phone || ''; detailEmailInput.value = player.personalInfo.email || ''; detailMatchesPlayedInput.value = player.matchStats.matchesPlayed || 0; detailGoalsScoredInput.value = player.matchStats.goalsScored || 0; populateRolesCheckboxes('detail-player-roles-checkboxes', player.playableRoles); renderCommentHistory(player.comments, detailCommentHistory); detailMatchComment.value = ''; modalElement.style.display = 'block'; }
+function renderCommentHistory(comments, historyDivElement) { if (!historyDivElement) return; historyDivElement.innerHTML = ''; if (!comments || comments.length === 0) { historyDivElement.innerHTML = '<p><i>Ingen historikk.</i></p>'; return; } const sortedComments = [...comments].sort((a, b) => new Date(b.date) - new Date(a.date)); sortedComments.forEach(comment => { const p = document.createElement('p'); const dateSpan = document.createElement('span'); dateSpan.classList.add('comment-date'); try { dateSpan.textContent = new Date(comment.date).toLocaleString('no-NO', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { dateSpan.textContent = comment.date; } const textNode = document.createTextNode(comment.text); p.appendChild(dateSpan); p.appendChild(textNode); historyDivElement.appendChild(p); }); }
+function closePlayerDetailModal() { const modalElement = document.getElementById('player-detail-modal'); if (modalElement) { modalElement.style.display = 'none'; } }
+function handleAddCommentToHistory() { const modalElement = document.getElementById('player-detail-modal'); if (!modalElement) return; const detailIdInput = modalElement.querySelector('#detail-player-id'); const detailMatchCommentInput = modalElement.querySelector('#detail-match-comment'); const detailCommentHistoryDiv = modalElement.querySelector('#detail-comment-history'); if (!detailIdInput || !detailMatchCommentInput || !detailCommentHistoryDiv) return; const playerId = detailIdInput.value; const player = getPlayerById(playerId); const commentText = detailMatchCommentInput.value.trim(); if (!player || !commentText) { alert("Skriv kommentar."); return; } const newComment = { date: new Date().toISOString(), text: commentText }; player.comments = player.comments || []; player.comments.push(newComment); saveSquad(); renderCommentHistory(player.comments, detailCommentHistoryDiv); detailMatchCommentInput.value = ''; alert("Kommentar lagt til."); }
+function handleSavePlayerDetails() { const modalElement = document.getElementById('player-detail-modal'); if (!modalElement) return; const detailIdInput = modalElement.querySelector('#detail-player-id'); const detailNameInput = modalElement.querySelector('#detail-player-name'); const detailNicknameInput = modalElement.querySelector('#detail-player-nickname'); const detailImageUrlInput = modalElement.querySelector('#detail-player-image-url'); const detailMainRoleInput = modalElement.querySelector('#detail-player-main-role'); const detailPlayerStatusSelect = modalElement.querySelector('#detail-player-status'); const detailBirthdayInput = modalElement.querySelector('#detail-player-birthday'); const detailPhoneInput = modalElement.querySelector('#detail-player-phone'); const detailEmailInput = modalElement.querySelector('#detail-player-email'); const detailMatchesPlayedInput = modalElement.querySelector('#detail-matches-played'); const detailGoalsScoredInput = modalElement.querySelector('#detail-goals-scored'); const detailMatchCommentInput = modalElement.querySelector('#detail-match-comment'); if (!detailIdInput || !detailNameInput || !detailNicknameInput || !detailImageUrlInput || !detailMainRoleInput || !detailPlayerStatusSelect || !detailBirthdayInput || !detailPhoneInput || !detailEmailInput || !detailMatchesPlayedInput || !detailGoalsScoredInput || !detailMatchCommentInput ) { console.error("handleSavePlayerDetails: Mangler elementer."); return; } const playerId = detailIdInput.value; const player = getPlayerById(playerId); if (!player) return; let dataChanged = false; let visualChanged = false; if (player.name !== detailNameInput.value) { player.name = detailNameInput.value; dataChanged = true; visualChanged = true; } if (player.nickname !== detailNicknameInput.value) { player.nickname = detailNicknameInput.value.trim(); dataChanged = true; visualChanged = true; } if (player.mainRole !== detailMainRoleInput.value) { player.mainRole = detailMainRoleInput.value; dataChanged = true; visualChanged = true; } const newImageUrl = detailImageUrlInput.value.trim(); if (player.imageUrl !== newImageUrl) { player.imageUrl = newImageUrl; dataChanged = true; visualChanged = true; } const newStatus = detailPlayerStatusSelect.value; if (player.status !== newStatus) { player.status = newStatus; dataChanged = true; visualChanged = true; } const selectedRoles = []; const checkboxesContainer = document.getElementById('detail-player-roles-checkboxes'); if (checkboxesContainer) { const roleCheckboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked'); roleCheckboxes.forEach(cb => selectedRoles.push(cb.value)); } if (JSON.stringify(player.playableRoles || []) !== JSON.stringify(selectedRoles)) { player.playableRoles = selectedRoles; dataChanged = true; visualChanged = true; } player.personalInfo = player.personalInfo || { birthday: '', phone: '', email: '' }; player.matchStats = player.matchStats || { matchesPlayed: 0, goalsScored: 0 }; if (player.personalInfo.birthday !== detailBirthdayInput.value) { player.personalInfo.birthday = detailBirthdayInput.value; dataChanged = true; } if (player.personalInfo.phone !== detailPhoneInput.value) { player.personalInfo.phone = detailPhoneInput.value; dataChanged = true; } if (player.personalInfo.email !== detailEmailInput.value) { player.personalInfo.email = detailEmailInput.value; dataChanged = true; } const matches = parseInt(detailMatchesPlayedInput.value) || 0; const goals = parseInt(detailGoalsScoredInput.value) || 0; if (player.matchStats.matchesPlayed !== matches) { player.matchStats.matchesPlayed = matches; dataChanged = true; } if (player.matchStats.goalsScored !== goals) { player.matchStats.goalsScored = goals; dataChanged = true; } const currentComment = detailMatchCommentInput.value.trim(); if (currentComment) { if (confirm("Legge til usnlagret kommentar?")) { handleAddCommentToHistory(); dataChanged = true; } } if (dataChanged) { saveSquad(); if (visualChanged) { renderUI(); if (appContainer && appContainer.classList.contains('view-squad')) { renderFullSquadList(); } const pieceElement = playersOnPitch[playerId]; if (pieceElement) { const nameDiv = pieceElement.querySelector('.player-name'); if (nameDiv) nameDiv.textContent = player.nickname || player.name; const imgDiv = pieceElement.querySelector('.player-image'); if (imgDiv) { if (player.imageUrl && typeof player.imageUrl === 'string' && player.imageUrl.trim() !== '' && !player.imageUrl.startsWith('placeholder-file:')) { imgDiv.style.backgroundImage = `url('${player.imageUrl}')`; imgDiv.style.backgroundColor = 'transparent'; } else { imgDiv.style.backgroundImage = 'none'; imgDiv.style.backgroundColor = '#aaa'; } } } } alert("Detaljer lagret."); } closePlayerDetailModal(); }
+function handleDeletePlayer(playerId, playerName) { if (!playerId) { console.error("handleDeletePlayer: playerId mangler."); return; } const confirmDelete = confirm(`Er du sikker på at du vil slette spilleren "${playerName || playerId}" permanent?\nSpilleren fjernes fra troppen, banen og benken.`); if (confirmDelete) { console.log(`Sletter spiller: ${playerId}`); const playerIndex = squad.findIndex(p => p.id === playerId); if (playerIndex > -1) { squad.splice(playerIndex, 1); } else { console.warn(`handleDeletePlayer: Spiller ${playerId} ikke funnet i squad.`); } if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; console.log(` - Spiller ${playerId} fjernet fra banen.`); } const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); console.log(` - Spiller ${playerId} fjernet fra benken.`); } saveSquad(); saveCurrentState(); renderUI(); renderFullSquadList(); alert(`Spiller "${playerName || playerId}" ble slettet.`); } else { console.log(`Sletting av spiller ${playerId} avbrutt.`); } }
+function openBallSettingsModal() { if (!ballSettingsModal) return; const sizeSlider = ballSettingsModal.querySelector('#ball-size-slider'); const sizeValueDisplay = ballSettingsModal.querySelector('#ball-size-value'); const customColorInput = ballSettingsModal.querySelector('#ball-custom-color'); const styleRadios = ballSettingsModal.querySelectorAll('input[name="ball-style"]'); sizeSlider.value = ballSettings.size; sizeValueDisplay.textContent = `${ballSettings.size}px`; customColorInput.value = ballSettings.color; styleRadios.forEach(radio => { radio.checked = radio.value === ballSettings.style; }); ballSettingsModal.style.display = 'block'; }
+function closeBallSettingsModal() { if (ballSettingsModal) { ballSettingsModal.style.display = 'none'; } }
+function handleBallSizeChange(event) { const newSize = event.target.value; const sizeValueDisplay = ballSettingsModal.querySelector('#ball-size-value'); if (sizeValueDisplay) sizeValueDisplay.textContent = `${newSize}px`; if (ballElement) { ballElement.style.width = `${newSize}px`; ballElement.style.height = `${newSize}px`; } }
+function handleSaveBallSettings() { if (!ballSettingsModal) return; const sizeSlider = ballSettingsModal.querySelector('#ball-size-slider'); const selectedStyleRadio = ballSettingsModal.querySelector('input[name="ball-style"]:checked'); const customColorInput = ballSettingsModal.querySelector('#ball-custom-color'); ballSettings.size = parseInt(sizeSlider.value, 10); ballSettings.style = selectedStyleRadio ? selectedStyleRadio.value : 'default'; ballSettings.color = customColorInput.value; applyBallStyle(); saveCurrentState(); closeBallSettingsModal(); alert("Ballinnstillinger lagret!"); }
 // === 2. Modal Håndtering END ===
 
 // === 3. UI Rendering START ===
@@ -90,131 +199,21 @@ function handlePositionMarkerClick(markerElement, positionData) { console.log(`K
 function clearSelectedPositionMarker() { if (!pitchSurface) return; const selectedMarkers = pitchSurface.querySelectorAll('.formation-position-marker.selected'); selectedMarkers.forEach(marker => marker.classList.remove('selected')); }
 function resetPositionFilter() { console.log("Nullstiller posisjonsfilter."); selectedFormationPosition = null; clearSelectedPositionMarker(); renderSquadList(); }
 function toggleDrawMode() { isDrawingMode = !isDrawingMode; console.log("Tegnemodus:", isDrawingMode ? "PÅ" : "AV"); if (!drawingCanvas || !pitchSurface || !toggleDrawModeButton) {console.error("toggleDrawMode: Mangler elementer."); return;} if (isDrawingMode) { drawingCanvas.style.pointerEvents = 'auto'; pitchSurface.style.cursor = 'crosshair'; toggleDrawModeButton.textContent = 'Modus (På)'; toggleDrawModeButton.classList.add('active'); pitchSurface.addEventListener('mousedown', startDraw); pitchSurface.addEventListener('touchstart', startDraw, { passive: false }); pitchSurface.addEventListener('mousemove', draw); pitchSurface.addEventListener('touchmove', draw, { passive: false }); pitchSurface.addEventListener('mouseup', stopDraw); pitchSurface.addEventListener('touchend', stopDraw); pitchSurface.addEventListener('mouseleave', stopDraw); } else { drawingCanvas.style.pointerEvents = 'none'; pitchSurface.style.cursor = 'default'; toggleDrawModeButton.textContent = 'Modus (Av)'; toggleDrawModeButton.classList.remove('active'); pitchSurface.removeEventListener('mousedown', startDraw); pitchSurface.removeEventListener('touchstart', startDraw); pitchSurface.removeEventListener('mousemove', draw); pitchSurface.removeEventListener('touchmove', draw); pitchSurface.removeEventListener('mouseup', stopDraw); pitchSurface.removeEventListener('touchend', stopDraw); pitchSurface.removeEventListener('mouseleave', stopDraw); if (isDrawing) { isDrawing = false; redrawCanvas(); } } }
-function startDraw(event) { 
-    if (!isDrawingMode) return; 
-    event.preventDefault(); 
-    isDrawing = true;
-    const coords = getCanvasCoordinates(event);
-    startX = coords.x;
-    startY = coords.y;
-    currentX = startX; 
-    currentY = startY;
-    // NYTT: Start punktliste for frihånd
-    if (currentDrawingTool === 'freehand') {
-        currentDrawingPoints = [{x: startX, y: startY}];
-    }
-    console.log(`Start Draw (${currentDrawingTool}) at: ${startX.toFixed(1)}, ${startY.toFixed(1)}`);
-}
-function draw(event) { 
-    if (!isDrawing || !isDrawingMode) return;
-    event.preventDefault();
-    const coords = getCanvasCoordinates(event);
-    currentX = coords.x;
-    currentY = coords.y;
-    // NYTT: Legg til punkt for frihånd
-    if (currentDrawingTool === 'freehand') {
-        currentDrawingPoints.push({x: currentX, y: currentY});
-    }
-    redrawCanvas(); 
-}
-function stopDraw(event) { 
-    if (!isDrawing || !isDrawingMode) return;
-    const coords = getCanvasCoordinates(event); 
-    currentX = coords.x;
-    currentY = coords.y;
-    isDrawing = false;
-
-    let newDrawing = null;
-
-    // Lagre basert på verktøy
-    if (currentDrawingTool === 'freehand') {
-        if (currentDrawingPoints.length > 1) { // Må ha minst to punkter
-             newDrawing = { type: 'freehand', color: currentDrawingColor, width: DRAWING_LINE_WIDTH, points: [...currentDrawingPoints]}; // Kopier arrayen
-             console.log(`Stop Draw. Lagret frihåndstegning med ${currentDrawingPoints.length} punkter.`);
-        } else {
-             console.log("Frihåndstegning for kort, lagrer ikke.");
-        }
-         currentDrawingPoints = []; // Tøm midlertidig liste
-    } else { // For pil, sirkel, rektangel
-         if (Math.abs(startX - currentX) >= 5 || Math.abs(startY - currentY) >= 5) { // Sjekk om den er lang nok
-             newDrawing = { type: currentDrawingTool, color: currentDrawingColor, width: DRAWING_LINE_WIDTH, startX: startX, startY: startY, endX: currentX, endY: currentY };
-             console.log(`Stop Draw. Lagret ${currentDrawingTool}:`, newDrawing);
-         } else {
-              console.log("Tegning for kort, lagrer ikke.");
-         }
-    }
-    
-    if (newDrawing) {
-        savedDrawings.push(newDrawing);
-        // TODO: Lagre savedDrawings i localStorage hvis ønskelig
-    }
-
-    redrawCanvas(); // Tegn alt på nytt 
-}
-function redrawCanvas() { 
-    if (!drawingCtx) return; 
-    clearDrawingCanvas(); 
-    redrawAllDrawings(); 
-    // Tegn midlertidig form
-    if (isDrawing) { 
-        let tempData;
-        if (currentDrawingTool === 'freehand') {
-            // For frihånd, tegn den uferdige linjen basert på lagrede punkter
-            tempData = { type: 'freehand', color: currentDrawingColor, width: DRAWING_LINE_WIDTH, points: currentDrawingPoints };
-        } else {
-            // For andre former, bruk start/current
-            tempData = { type: currentDrawingTool, color: currentDrawingColor, width: DRAWING_LINE_WIDTH, startX: startX, startY: startY, endX: currentX, endY: currentY };
-        }
-         drawShape(drawingCtx, tempData); 
-    } 
-}
-function redrawAllDrawings() { if (!drawingCtx) return; /* console.log(`Tegner ${savedDrawings.length} lagrede elementer.`); */ savedDrawings.forEach(drawing => { drawShape(drawingCtx, drawing); }); }
-function drawShape(ctx, drawingData) { // Inkluderer Frihånd
-    ctx.beginPath();
-    ctx.strokeStyle = drawingData.color || DRAWING_COLOR;
-    ctx.lineWidth = drawingData.width || DRAWING_LINE_WIDTH;
-    
-    const sx = drawingData.startX;
-    const sy = drawingData.startY;
-    const ex = drawingData.endX;
-    const ey = drawingData.endY;
-    const dx = ex - sx;
-    const dy = ey - sy;
-
-    switch (drawingData.type) {
-        case 'arrow':
-            drawArrow(ctx, sx, sy, ex, ey);
-            break;
-        case 'circle':
-            const radius = Math.sqrt(dx * dx + dy * dy); 
-            ctx.arc(sx, sy, radius, 0, 2 * Math.PI); 
-            break;
-        case 'rect':
-            ctx.rect(sx, sy, dx, dy); 
-            break;
-        case 'freehand':
-             if (drawingData.points && drawingData.points.length > 1) {
-                 ctx.moveTo(drawingData.points[0].x, drawingData.points[0].y);
-                 for (let i = 1; i < drawingData.points.length; i++) {
-                     ctx.lineTo(drawingData.points[i].x, drawingData.points[i].y);
-                 }
-             }
-            break;
-        default: 
-            ctx.moveTo(sx, sy);
-            ctx.lineTo(ex, ey);
-    }
-    
-    ctx.stroke(); 
-}
+function startDraw(event) { if (!isDrawingMode) return; event.preventDefault(); isDrawing = true; const coords = getCanvasCoordinates(event); startX = coords.x; startY = coords.y; currentX = startX; currentY = startY; if (currentDrawingTool === 'freehand') { currentDrawingPoints = [{x: startX, y: startY}]; } console.log(`Start Draw (${currentDrawingTool}) at: ${startX.toFixed(1)}, ${startY.toFixed(1)}`); }
+function draw(event) { if (!isDrawing || !isDrawingMode) return; event.preventDefault(); const coords = getCanvasCoordinates(event); currentX = coords.x; currentY = coords.y; if (currentDrawingTool === 'freehand') { currentDrawingPoints.push({x: currentX, y: currentY}); } redrawCanvas(); }
+function stopDraw(event) { if (!isDrawing || !isDrawingMode) return; const coords = getCanvasCoordinates(event); currentX = coords.x; currentY = coords.y; isDrawing = false; let newDrawing = null; if (currentDrawingTool === 'freehand') { if (currentDrawingPoints.length > 1) { newDrawing = { type: 'freehand', color: currentDrawingColor, width: DRAWING_LINE_WIDTH, points: [...currentDrawingPoints]}; console.log(`Stop Draw. Lagret frihåndstegning med ${currentDrawingPoints.length} punkter.`); } else { console.log("Frihåndstegning for kort, lagrer ikke."); } currentDrawingPoints = []; } else { if (Math.abs(startX - currentX) >= 5 || Math.abs(startY - currentY) >= 5) { newDrawing = { type: currentDrawingTool, color: currentDrawingColor, width: DRAWING_LINE_WIDTH, startX: startX, startY: startY, endX: currentX, endY: currentY }; console.log(`Stop Draw. Lagret ${currentDrawingTool}:`, newDrawing); } else { console.log("Tegning for kort, lagrer ikke."); } } if (newDrawing) { savedDrawings.push(newDrawing); } redrawCanvas(); }
+function redrawCanvas() { if (!drawingCtx) return; clearDrawingCanvas(); redrawAllDrawings(); if (isDrawing) { let tempData; if (currentDrawingTool === 'freehand') { tempData = { type: 'freehand', color: currentDrawingColor, width: DRAWING_LINE_WIDTH, points: currentDrawingPoints }; } else { tempData = { type: currentDrawingTool, color: currentDrawingColor, width: DRAWING_LINE_WIDTH, startX: startX, startY: startY, endX: currentX, endY: currentY }; } drawShape(drawingCtx, tempData); } }
+function redrawAllDrawings() { if (!drawingCtx) return; savedDrawings.forEach(drawing => { drawShape(drawingCtx, drawing); }); }
+function drawShape(ctx, drawingData) { ctx.beginPath(); ctx.strokeStyle = drawingData.color || DRAWING_COLOR; ctx.lineWidth = drawingData.width || DRAWING_LINE_WIDTH; const sx = drawingData.startX; const sy = drawingData.startY; const ex = drawingData.endX; const ey = drawingData.endY; const dx = ex - sx; const dy = ey - sy; switch (drawingData.type) { case 'arrow': drawArrow(ctx, sx, sy, ex, ey); break; case 'circle': const radius = Math.sqrt(dx * dx + dy * dy); ctx.arc(sx, sy, radius, 0, 2 * Math.PI); break; case 'rect': ctx.rect(sx, sy, dx, dy); break; case 'freehand': if (drawingData.points && drawingData.points.length > 1) { ctx.moveTo(drawingData.points[0].x, drawingData.points[0].y); for (let i = 1; i < drawingData.points.length; i++) { ctx.lineTo(drawingData.points[i].x, drawingData.points[i].y); } } break; default: ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); } ctx.stroke(); }
 function drawArrow(ctx, fromx, fromy, tox, toy) { ctx.moveTo(fromx, fromy); ctx.lineTo(tox, toy); const angle = Math.atan2(toy - fromy, tox - fromx); ctx.lineTo(tox - ARROWHEAD_LENGTH * Math.cos(angle - ARROWHEAD_ANGLE), toy - ARROWHEAD_LENGTH * Math.sin(angle - ARROWHEAD_ANGLE)); ctx.moveTo(tox, toy); ctx.lineTo(tox - ARROWHEAD_LENGTH * Math.cos(angle + ARROWHEAD_ANGLE), toy - ARROWHEAD_LENGTH * Math.sin(angle + ARROWHEAD_ANGLE)); }
 function getCanvasCoordinates(event) { if (!drawingCanvas) return { x: 0, y: 0 }; const rect = drawingCanvas.getBoundingClientRect(); let clientX, clientY; if (event.touches && event.touches.length > 0) { clientX = event.touches[0].clientX; clientY = event.touches[0].clientY; } else { clientX = event.clientX; clientY = event.clientY; } const scaleX = (rect.width > 0) ? drawingCanvas.width / rect.width : 1; const scaleY = (rect.height > 0) ? drawingCanvas.height / rect.height : 1; const x = (clientX - rect.left) * scaleX; const y = (clientY - rect.top) * scaleY; return { x, y }; }
 function clearDrawings() { if (confirm("Er du sikker på at du vil slette alle tegninger?")) { savedDrawings = []; clearDrawingCanvas(); console.log("Alle tegninger slettet."); } }
 function clearDrawingCanvas() { if (drawingCtx && drawingCanvas) { drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height); } else { console.error("clearDrawingCanvas: Context eller Canvas mangler."); } }
-function setupDrawingCanvas() { if (!drawingCanvas) { console.error("setupDrawingCanvas: Finner ikke canvas-elementet!"); return; } const currentWidth = drawingCanvas.offsetWidth; const currentHeight = drawingCanvas.offsetHeight; if (currentWidth > 0 && currentHeight > 0) { drawingCanvas.width = currentWidth; drawingCanvas.height = currentHeight; console.log(`Drawing canvas size set to: ${drawingCanvas.width}x${drawingCanvas.height}`); } else { console.warn("setupDrawingCanvas: Canvas har 0 dimensjoner, venter med å sette width/height."); return; } drawingCtx = drawingCanvas.getContext('2d'); if (!drawingCtx) { console.error("setupDrawingCanvas: Kunne ikke hente 2D context."); return; } drawingCtx.strokeStyle = currentDrawingColor; drawingCtx.lineWidth = DRAWING_LINE_WIDTH; drawingCtx.lineCap = 'round'; drawingCtx.lineJoin = 'round'; console.log("Drawing canvas satt opp med context."); redrawAllDrawings(); }
+function setupDrawingCanvas() { if (!drawingCanvas) { console.error("setupDrawingCanvas: Finner ikke canvas-elementet!"); return; } const currentWidth = drawingCanvas.offsetWidth; const currentHeight = drawingCanvas.offsetHeight; if (currentWidth > 0 && currentHeight > 0) { drawingCanvas.width = currentWidth; drawingCanvas.height = currentHeight; /* console.log(`Drawing canvas size set to: ${drawingCanvas.width}x${drawingCanvas.height}`); */ } else { console.warn("setupDrawingCanvas: Canvas har 0 dimensjoner, venter."); return; } drawingCtx = drawingCanvas.getContext('2d'); if (!drawingCtx) { console.error("setupDrawingCanvas: Kunne ikke hente 2D context."); return; } drawingCtx.strokeStyle = currentDrawingColor; drawingCtx.lineWidth = DRAWING_LINE_WIDTH; drawingCtx.lineCap = 'round'; drawingCtx.lineJoin = 'round'; /* console.log("Drawing canvas satt opp med context."); */ redrawAllDrawings(); }
 function handleToolChange(selectedTool) { currentDrawingTool = selectedTool; console.log("Valgt tegneverktøy:", currentDrawingTool); drawToolButtons.forEach(button => { if (button.dataset.tool === selectedTool) { button.classList.add('active'); } else { button.classList.remove('active'); } }); }
 function handleColorChange(event) { currentDrawingColor = event.target.value; console.log("Valgt tegnefarge:", currentDrawingColor); if (drawingCtx) { drawingCtx.strokeStyle = currentDrawingColor; } }
 function toggleDrawingVisibility() { if (!drawingCanvas || !toggleVisibilityButton) return; isDrawingVisible = !isDrawingVisible; if (isDrawingVisible) { drawingCanvas.style.visibility = 'visible'; toggleVisibilityButton.textContent = 'Skjul Tegn.'; console.log("Tegninger Vises"); } else { drawingCanvas.style.visibility = 'hidden'; toggleVisibilityButton.textContent = 'Vis Tegn.'; console.log("Tegninger Skjules"); } }
+function undoLastDrawing() { if (savedDrawings.length > 0) { savedDrawings.pop(); redrawCanvas(); console.log("Siste tegning angret."); } else { console.log("Ingen tegninger å angre."); } }
 // === 5. Formasjons- og Tegnehåndtering END ===
 
 // === 6. Drag and Drop & Valg/Farge/UI Toggles START === 
@@ -261,14 +260,11 @@ function populateSetupDropdown() { if (!loadSetupSelect) return; const savedSetu
 
 // === 8. Event Listeners START === 
 document.addEventListener('DOMContentLoaded', () => {
-    // Hent referanser
     appContainer = document.querySelector('.app-container'); sidebar = document.querySelector('.sidebar'); toggleSidebarButton = document.getElementById('toggle-sidebar-button'); onPitchListElement = document.getElementById('on-pitch-list'); benchListElement = document.getElementById('bench-list'); squadListElement = document.getElementById('squad-list'); squadListContainer = document.getElementById('squad-list-container'); onPitchCountElement = document.getElementById('on-pitch-count'); onBenchCountElement = document.getElementById('on-bench-count'); pitchElement = document.getElementById('pitch'); pitchSurface = document.getElementById('pitch-surface'); rotatePitchButton = document.getElementById('rotate-pitch-button'); addPlayerButton = document.getElementById('add-player-button'); playerBorderColorInput = document.getElementById('player-border-color'); setBorderColorButton = document.getElementById('set-border-color-button'); setColorRedButton = document.getElementById('set-color-red'); setColorYellowButton = document.getElementById('set-color-yellow'); setColorGreenButton = document.getElementById('set-color-green'); setColorDefaultButton = document.getElementById('set-color-default'); toggleDrawModeButton = document.getElementById('toggle-draw-mode-button'); clearDrawingsButton = document.getElementById('clear-drawings-button'); setupNameInput = document.getElementById('setup-name'); saveSetupButton = document.getElementById('save-setup-button'); loadSetupSelect = document.getElementById('load-setup-select'); loadSetupButton = document.getElementById('load-setup-button'); deleteSetupButton = document.getElementById('delete-setup-button'); exportPngButton = document.getElementById('export-png-button'); pitchContainer = document.getElementById('pitch-container'); drawingCanvas = document.getElementById('drawing-canvas'); ballElement = document.getElementById('ball'); navTacticsButton = document.getElementById('nav-tactics-button'); navSquadButton = document.getElementById('nav-squad-button'); tacticsPageContent = document.getElementById('tactics-page-content'); squadPageContent = document.getElementById('squad-page-content'); fullSquadListContainer = document.getElementById('full-squad-list-container'); onPitchSectionElement = document.getElementById('on-pitch-section'); formationSelect = document.getElementById('formation-select'); addPlayerModal = document.getElementById('add-player-modal'); closeButton = addPlayerModal ? addPlayerModal.querySelector('.close-button') : null; newPlayerNameInput = document.getElementById('new-player-name'); newPlayerImageUpload = document.getElementById('new-player-image-upload'); newPlayerImageUrlInput = document.getElementById('new-player-image-url'); newPlayerMainRoleInput = document.getElementById('new-player-main-role'); confirmAddPlayerButton = document.getElementById('confirm-add-player'); playerDetailModal = document.getElementById('player-detail-modal'); ballSettingsModal = document.getElementById('ball-settings-modal'); benchElement = document.getElementById('bench'); squadManagementSection = document.getElementById('squad-management'); 
     drawToolButtons = document.querySelectorAll('.draw-tool-button'); drawingColorInput = document.getElementById('drawing-color'); toggleVisibilityButton = document.getElementById('toggle-visibility-button');
-    
+    undoDrawingButton = document.getElementById('undo-drawing-button'); 
     setupDrawingCanvas(); 
     loadSquad(); loadLastState(); populateSetupDropdown();
-
-    // --- Listeners ---
     if (addPlayerButton) addPlayerButton.addEventListener('click', openAddPlayerModal); if (closeButton) closeButton.addEventListener('click', closeAddPlayerModal); if (confirmAddPlayerButton) confirmAddPlayerButton.addEventListener('click', handleAddPlayerConfirm); const detailModalCloseBtn = playerDetailModal ? playerDetailModal.querySelector('.close-detail-button') : null; const detailModalSaveBtn = playerDetailModal ? playerDetailModal.querySelector('#save-details-button') : null; const detailModalAddCommentBtn = playerDetailModal ? playerDetailModal.querySelector('#add-comment-to-history-button') : null; if (detailModalCloseBtn) detailModalCloseBtn.addEventListener('click', closePlayerDetailModal); if (detailModalSaveBtn) detailModalSaveBtn.addEventListener('click', handleSavePlayerDetails); if (detailModalAddCommentBtn) detailModalAddCommentBtn.addEventListener('click', handleAddCommentToHistory); if (ballElement) ballElement.addEventListener('dblclick', openBallSettingsModal); if (ballSettingsModal) { const closeBallBtn = ballSettingsModal.querySelector('.close-ball-settings-button'); const saveBallBtn = ballSettingsModal.querySelector('#save-ball-settings-button'); const sizeSlider = ballSettingsModal.querySelector('#ball-size-slider'); if (closeBallBtn) closeBallBtn.addEventListener('click', closeBallSettingsModal); if (saveBallBtn) saveBallBtn.addEventListener('click', handleSaveBallSettings); if (sizeSlider) sizeSlider.addEventListener('input', handleBallSizeChange); window.addEventListener('click', (event) => { if (event.target === ballSettingsModal) closeBallSettingsModal(); }); }
     window.addEventListener('click', (event) => { if (addPlayerModal && event.target === addPlayerModal) closeAddPlayerModal(); if (playerDetailModal && event.target === playerDetailModal) closePlayerDetailModal(); if (ballSettingsModal && event.target === ballSettingsModal) closeBallSettingsModal(); if (!event.target.closest('.player-piece') && !event.target.closest('.preset-color-button') && !event.target.closest('#player-border-color') && !event.target.closest('#set-border-color-button') && selectedPlayerIds.size > 0) { clearPlayerSelection(); } if (!event.target.closest('.formation-position-marker')) { if (selectedFormationPosition) { resetPositionFilter(); } } }); 
     if (pitchElement) { pitchElement.addEventListener('dragover', (e) => handleDragOver(e, 'pitch')); pitchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'pitch')); pitchElement.addEventListener('drop', handleDropOnPitch); } if (benchElement) { benchElement.addEventListener('dragover', (e) => handleDragOver(e, 'bench')); benchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'bench')); benchElement.addEventListener('drop', handleDropOnBench); } if (squadListContainer) { squadListContainer.addEventListener('dragover', (e) => handleDragOver(e, 'squad')); squadListContainer.addEventListener('dragleave', (e) => handleDragLeave(e, 'squad')); squadListContainer.addEventListener('drop', handleDropOnSquadList); } if (ballElement) { ballElement.addEventListener('dragstart', handleBallDragStart); ballElement.addEventListener('dragend', handleDragEnd); } if (onPitchSectionElement) { onPitchSectionElement.addEventListener('dragover', (e) => handleDragOver(e, 'onpitch-list')); onPitchSectionElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'onpitch-list')); onPitchSectionElement.addEventListener('drop', handleDropOnOnPitchList); }
@@ -280,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(toggleDrawModeButton) { toggleDrawModeButton.addEventListener('click', toggleDrawMode); } else { console.error("toggleDrawModeButton ikke funnet!"); }
     if(clearDrawingsButton) { clearDrawingsButton.addEventListener('click', clearDrawings); } else { console.error("clearDrawingsButton ikke funnet!"); }
     if (toggleVisibilityButton) { toggleVisibilityButton.addEventListener('click', toggleDrawingVisibility); } else { console.error("toggleVisibilityButton ikke funnet!"); }
+    if (undoDrawingButton) { undoDrawingButton.addEventListener('click', undoLastDrawing); } else { console.error("undoDrawingButton ikke funnet!"); } // Listener for Angre
     window.addEventListener('resize', () => { resizePitchElement(); });
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
