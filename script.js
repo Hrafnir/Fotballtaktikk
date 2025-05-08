@@ -1,4 +1,4 @@
-/* Version: #136 */
+/* Version: #137 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; 
@@ -23,10 +23,10 @@ let currentDrawingTool = 'arrow';
 let currentDrawingColor = '#FFFF00'; 
 let isDrawingVisible = true; 
 let savedDrawings = []; 
+let currentDrawingPoints = []; // NY: For å lagre punkter underveis i frihånd
 const DRAWING_LINE_WIDTH = 4;
 const ARROWHEAD_LENGTH = 15; 
 const ARROWHEAD_ANGLE = Math.PI / 6; 
-
 
 const MAX_PLAYERS_ON_PITCH = 11;
 const PITCH_ASPECT_RATIO_PORTRAIT = 2 / 3;
@@ -50,21 +50,21 @@ let appContainer, sidebar, toggleSidebarButton, onPitchListElement, benchListEle
 // === 1. DOM Element Referanser END ===
 
 // === 2. Modal Håndtering START ===
-function populateRolesCheckboxes(containerId, selectedRoles = []) { const container = document.getElementById(containerId); if (!container) return; container.innerHTML = ''; Object.entries(PLAYER_ROLES).forEach(([key, value]) => { const div = document.createElement('div'); const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.id = `${containerId}-${key}`; checkbox.value = key; checkbox.checked = selectedRoles.includes(key); const label = document.createElement('label'); label.htmlFor = `${containerId}-${key}`; label.textContent = `${value} (${key})`; div.appendChild(checkbox); div.appendChild(label); container.appendChild(div); }); }
-function populateStatusDropdown(selectElementId, currentStatusKey) { const selectElement = document.getElementById(selectElementId); if (!selectElement) { console.error(`populateStatusDropdown: Finner ikke selectElement med ID ${selectElementId}`); return; } selectElement.innerHTML = ''; Object.entries(PLAYER_STATUSES).forEach(([key, value]) => { const option = document.createElement('option'); option.value = key; option.textContent = value; if (key === currentStatusKey) { option.selected = true; } selectElement.appendChild(option); }); }
-function openAddPlayerModal() { if (!addPlayerModal) { console.error('openAddPlayerModal: FEIL - addPlayerModal elementet er null!'); return; } addPlayerModal.style.display = 'block'; if (newPlayerNameInput) newPlayerNameInput.value = ''; if (newPlayerImageUpload) newPlayerImageUpload.value = ''; if (newPlayerImageUrlInput) newPlayerImageUrlInput.value = ''; if (newPlayerMainRoleInput) newPlayerMainRoleInput.value = ''; populateRolesCheckboxes('new-player-roles-checkboxes'); if (newPlayerNameInput) newPlayerNameInput.focus(); }
-function closeAddPlayerModal() { if (addPlayerModal) { addPlayerModal.style.display = 'none'; } }
-function handleAddPlayerConfirm() { if (!newPlayerNameInput || !newPlayerImageUrlInput || !newPlayerMainRoleInput || !newPlayerImageUpload) { console.error("handleAddPlayerConfirm: Ett eller flere input-elementer mangler!"); return; } const name = newPlayerNameInput.value.trim(); const imageFile = newPlayerImageUpload.files[0]; let imageUrl = newPlayerImageUrlInput.value.trim(); const mainRole = newPlayerMainRoleInput.value.trim(); if (!name) { alert('Spillernavn må fylles ut.'); return; } let finalImageUrl = imageUrl; if (!finalImageUrl && imageFile) { console.warn("Filopplasting støttes ikke for lagring enda."); } const selectedRoles = []; const checkboxesContainer = document.getElementById('new-player-roles-checkboxes'); if (checkboxesContainer) { const roleCheckboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked'); roleCheckboxes.forEach(cb => selectedRoles.push(cb.value)); } const maxId = squad.reduce((max, p) => Math.max(max, parseInt(p.id.split('-')[1]) || 0), 0); nextPlayerId = maxId + 1; const newPlayer = { id: `player-${nextPlayerId}`, name: name, imageUrl: finalImageUrl, mainRole: mainRole, playableRoles: selectedRoles, status: DEFAULT_PLAYER_STATUS, nickname: '', position: { x: 50, y: 50 }, borderColor: 'black', personalInfo: { birthday: '', phone: '', email: '' }, matchStats: { matchesPlayed: 0, goalsScored: 0 }, comments: [] }; squad.push(newPlayer); saveSquad(); renderUI(); if (appContainer && appContainer.classList.contains('view-squad')) { renderFullSquadList(); } closeAddPlayerModal(); }
-function openPlayerDetailModal(playerId) { const player = getPlayerById(playerId); const modalElement = document.getElementById('player-detail-modal'); if (!player || !modalElement) { console.error("Kan ikke åpne detaljer for spiller:", playerId); return; } player.personalInfo = player.personalInfo || { birthday: '', phone: '', email: '' }; player.matchStats = player.matchStats || { matchesPlayed: 0, goalsScored: 0 }; player.comments = player.comments || []; player.nickname = player.nickname || ''; player.imageUrl = player.imageUrl || ''; player.mainRole = player.mainRole || ''; player.playableRoles = player.playableRoles || []; player.status = player.status || DEFAULT_PLAYER_STATUS; const detailIdInput = modalElement.querySelector('#detail-player-id'); const detailTitle = modalElement.querySelector('#detail-modal-title'); const detailNameInput = modalElement.querySelector('#detail-player-name'); const detailNicknameInput = modalElement.querySelector('#detail-player-nickname'); const detailImageUrlInput = modalElement.querySelector('#detail-player-image-url'); const detailImageDisplay = modalElement.querySelector('#detail-player-image-display'); const detailMainRoleInput = modalElement.querySelector('#detail-player-main-role'); const detailPlayerStatusSelect = modalElement.querySelector('#detail-player-status'); const detailBirthdayInput = modalElement.querySelector('#detail-player-birthday'); const detailPhoneInput = modalElement.querySelector('#detail-player-phone'); const detailEmailInput = modalElement.querySelector('#detail-player-email'); const detailMatchesPlayedInput = modalElement.querySelector('#detail-matches-played'); const detailGoalsScoredInput = modalElement.querySelector('#detail-goals-scored'); const detailCommentHistory = modalElement.querySelector('#detail-comment-history'); const detailMatchComment = modalElement.querySelector('#detail-match-comment'); if (!detailIdInput || !detailTitle || !detailNameInput || !detailNicknameInput || !detailImageUrlInput || !detailImageDisplay || !detailMainRoleInput || !detailPlayerStatusSelect || !detailBirthdayInput || !detailPhoneInput || !detailEmailInput || !detailMatchesPlayedInput || !detailGoalsScoredInput || !detailCommentHistory || !detailMatchComment) { console.error("Avbryter openPlayerDetailModal pga. manglende internt element."); return; } detailIdInput.value = player.id; detailTitle.textContent = `Detaljer for ${player.name}`; detailNameInput.value = player.name || ''; detailNicknameInput.value = player.nickname; detailMainRoleInput.value = player.mainRole || ''; detailImageUrlInput.value = player.imageUrl; if (player.imageUrl) { detailImageDisplay.style.backgroundImage = `url('${player.imageUrl}')`; detailImageDisplay.innerHTML = ''; } else { detailImageDisplay.style.backgroundImage = 'none'; detailImageDisplay.innerHTML = '<span>Ingen bilde-URL</span>'; } populateStatusDropdown('detail-player-status', player.status); detailBirthdayInput.value = player.personalInfo.birthday || ''; detailPhoneInput.value = player.personalInfo.phone || ''; detailEmailInput.value = player.personalInfo.email || ''; detailMatchesPlayedInput.value = player.matchStats.matchesPlayed || 0; detailGoalsScoredInput.value = player.matchStats.goalsScored || 0; populateRolesCheckboxes('detail-player-roles-checkboxes', player.playableRoles); renderCommentHistory(player.comments, detailCommentHistory); detailMatchComment.value = ''; modalElement.style.display = 'block'; }
-function renderCommentHistory(comments, historyDivElement) { if (!historyDivElement) return; historyDivElement.innerHTML = ''; if (!comments || comments.length === 0) { historyDivElement.innerHTML = '<p><i>Ingen historikk.</i></p>'; return; } const sortedComments = [...comments].sort((a, b) => new Date(b.date) - new Date(a.date)); sortedComments.forEach(comment => { const p = document.createElement('p'); const dateSpan = document.createElement('span'); dateSpan.classList.add('comment-date'); try { dateSpan.textContent = new Date(comment.date).toLocaleString('no-NO', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { dateSpan.textContent = comment.date; } const textNode = document.createTextNode(comment.text); p.appendChild(dateSpan); p.appendChild(textNode); historyDivElement.appendChild(p); }); }
-function closePlayerDetailModal() { const modalElement = document.getElementById('player-detail-modal'); if (modalElement) { modalElement.style.display = 'none'; } }
-function handleAddCommentToHistory() { const modalElement = document.getElementById('player-detail-modal'); if (!modalElement) return; const detailIdInput = modalElement.querySelector('#detail-player-id'); const detailMatchCommentInput = modalElement.querySelector('#detail-match-comment'); const detailCommentHistoryDiv = modalElement.querySelector('#detail-comment-history'); if (!detailIdInput || !detailMatchCommentInput || !detailCommentHistoryDiv) return; const playerId = detailIdInput.value; const player = getPlayerById(playerId); const commentText = detailMatchCommentInput.value.trim(); if (!player || !commentText) { alert("Skriv kommentar."); return; } const newComment = { date: new Date().toISOString(), text: commentText }; player.comments = player.comments || []; player.comments.push(newComment); saveSquad(); renderCommentHistory(player.comments, detailCommentHistoryDiv); detailMatchCommentInput.value = ''; alert("Kommentar lagt til."); }
-function handleSavePlayerDetails() { const modalElement = document.getElementById('player-detail-modal'); if (!modalElement) return; const detailIdInput = modalElement.querySelector('#detail-player-id'); const detailNameInput = modalElement.querySelector('#detail-player-name'); const detailNicknameInput = modalElement.querySelector('#detail-player-nickname'); const detailImageUrlInput = modalElement.querySelector('#detail-player-image-url'); const detailMainRoleInput = modalElement.querySelector('#detail-player-main-role'); const detailPlayerStatusSelect = modalElement.querySelector('#detail-player-status'); const detailBirthdayInput = modalElement.querySelector('#detail-player-birthday'); const detailPhoneInput = modalElement.querySelector('#detail-player-phone'); const detailEmailInput = modalElement.querySelector('#detail-player-email'); const detailMatchesPlayedInput = modalElement.querySelector('#detail-matches-played'); const detailGoalsScoredInput = modalElement.querySelector('#detail-goals-scored'); const detailMatchCommentInput = modalElement.querySelector('#detail-match-comment'); if (!detailIdInput || !detailNameInput || !detailNicknameInput || !detailImageUrlInput || !detailMainRoleInput || !detailPlayerStatusSelect || !detailBirthdayInput || !detailPhoneInput || !detailEmailInput || !detailMatchesPlayedInput || !detailGoalsScoredInput || !detailMatchCommentInput ) { console.error("handleSavePlayerDetails: Mangler elementer."); return; } const playerId = detailIdInput.value; const player = getPlayerById(playerId); if (!player) return; let dataChanged = false; let visualChanged = false; if (player.name !== detailNameInput.value) { player.name = detailNameInput.value; dataChanged = true; visualChanged = true; } if (player.nickname !== detailNicknameInput.value) { player.nickname = detailNicknameInput.value.trim(); dataChanged = true; visualChanged = true; } if (player.mainRole !== detailMainRoleInput.value) { player.mainRole = detailMainRoleInput.value; dataChanged = true; visualChanged = true; } const newImageUrl = detailImageUrlInput.value.trim(); if (player.imageUrl !== newImageUrl) { player.imageUrl = newImageUrl; dataChanged = true; visualChanged = true; } const newStatus = detailPlayerStatusSelect.value; if (player.status !== newStatus) { player.status = newStatus; dataChanged = true; visualChanged = true; } const selectedRoles = []; const checkboxesContainer = document.getElementById('detail-player-roles-checkboxes'); if (checkboxesContainer) { const roleCheckboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked'); roleCheckboxes.forEach(cb => selectedRoles.push(cb.value)); } if (JSON.stringify(player.playableRoles || []) !== JSON.stringify(selectedRoles)) { player.playableRoles = selectedRoles; dataChanged = true; visualChanged = true; } player.personalInfo = player.personalInfo || { birthday: '', phone: '', email: '' }; player.matchStats = player.matchStats || { matchesPlayed: 0, goalsScored: 0 }; if (player.personalInfo.birthday !== detailBirthdayInput.value) { player.personalInfo.birthday = detailBirthdayInput.value; dataChanged = true; } if (player.personalInfo.phone !== detailPhoneInput.value) { player.personalInfo.phone = detailPhoneInput.value; dataChanged = true; } if (player.personalInfo.email !== detailEmailInput.value) { player.personalInfo.email = detailEmailInput.value; dataChanged = true; } const matches = parseInt(detailMatchesPlayedInput.value) || 0; const goals = parseInt(detailGoalsScoredInput.value) || 0; if (player.matchStats.matchesPlayed !== matches) { player.matchStats.matchesPlayed = matches; dataChanged = true; } if (player.matchStats.goalsScored !== goals) { player.matchStats.goalsScored = goals; dataChanged = true; } const currentComment = detailMatchCommentInput.value.trim(); if (currentComment) { if (confirm("Legge til usnlagret kommentar?")) { handleAddCommentToHistory(); dataChanged = true; } } if (dataChanged) { saveSquad(); if (visualChanged) { renderUI(); if (appContainer && appContainer.classList.contains('view-squad')) { renderFullSquadList(); } const pieceElement = playersOnPitch[playerId]; if (pieceElement) { const nameDiv = pieceElement.querySelector('.player-name'); if (nameDiv) nameDiv.textContent = player.nickname || player.name; const imgDiv = pieceElement.querySelector('.player-image'); if (imgDiv) { if (player.imageUrl && typeof player.imageUrl === 'string' && player.imageUrl.trim() !== '' && !player.imageUrl.startsWith('placeholder-file:')) { imgDiv.style.backgroundImage = `url('${player.imageUrl}')`; imgDiv.style.backgroundColor = 'transparent'; } else { imgDiv.style.backgroundImage = 'none'; imgDiv.style.backgroundColor = '#aaa'; } } } } alert("Detaljer lagret."); } closePlayerDetailModal(); }
-function handleDeletePlayer(playerId, playerName) { if (!playerId) { console.error("handleDeletePlayer: playerId mangler."); return; } const confirmDelete = confirm(`Er du sikker på at du vil slette spilleren "${playerName || playerId}" permanent?\nSpilleren fjernes fra troppen, banen og benken.`); if (confirmDelete) { console.log(`Sletter spiller: ${playerId}`); const playerIndex = squad.findIndex(p => p.id === playerId); if (playerIndex > -1) { squad.splice(playerIndex, 1); } else { console.warn(`handleDeletePlayer: Spiller ${playerId} ikke funnet i squad.`); } if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; console.log(` - Spiller ${playerId} fjernet fra banen.`); } const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); console.log(` - Spiller ${playerId} fjernet fra benken.`); } saveSquad(); saveCurrentState(); renderUI(); renderFullSquadList(); alert(`Spiller "${playerName || playerId}" ble slettet.`); } else { console.log(`Sletting av spiller ${playerId} avbrutt.`); } }
-function openBallSettingsModal() { if (!ballSettingsModal) return; const sizeSlider = ballSettingsModal.querySelector('#ball-size-slider'); const sizeValueDisplay = ballSettingsModal.querySelector('#ball-size-value'); const customColorInput = ballSettingsModal.querySelector('#ball-custom-color'); const styleRadios = ballSettingsModal.querySelectorAll('input[name="ball-style"]'); sizeSlider.value = ballSettings.size; sizeValueDisplay.textContent = `${ballSettings.size}px`; customColorInput.value = ballSettings.color; styleRadios.forEach(radio => { radio.checked = radio.value === ballSettings.style; }); ballSettingsModal.style.display = 'block'; }
-function closeBallSettingsModal() { if (ballSettingsModal) { ballSettingsModal.style.display = 'none'; } }
-function handleBallSizeChange(event) { const newSize = event.target.value; const sizeValueDisplay = ballSettingsModal.querySelector('#ball-size-value'); if (sizeValueDisplay) sizeValueDisplay.textContent = `${newSize}px`; if (ballElement) { ballElement.style.width = `${newSize}px`; ballElement.style.height = `${newSize}px`; } }
-function handleSaveBallSettings() { if (!ballSettingsModal) return; const sizeSlider = ballSettingsModal.querySelector('#ball-size-slider'); const selectedStyleRadio = ballSettingsModal.querySelector('input[name="ball-style"]:checked'); const customColorInput = ballSettingsModal.querySelector('#ball-custom-color'); ballSettings.size = parseInt(sizeSlider.value, 10); ballSettings.style = selectedStyleRadio ? selectedStyleRadio.value : 'default'; ballSettings.color = customColorInput.value; applyBallStyle(); saveCurrentState(); closeBallSettingsModal(); alert("Ballinnstillinger lagret!"); }
+function populateRolesCheckboxes(containerId, selectedRoles = []) { /* ... */ }
+function populateStatusDropdown(selectElementId, currentStatusKey) { /* ... */ }
+function openAddPlayerModal() { /* ... */ }
+function closeAddPlayerModal() { /* ... */ }
+function handleAddPlayerConfirm() { /* ... */ }
+function openPlayerDetailModal(playerId) { /* ... */ }
+function renderCommentHistory(comments, historyDivElement) { /* ... */ }
+function closePlayerDetailModal() { /* ... */ }
+function handleAddCommentToHistory() { /* ... */ }
+function handleSavePlayerDetails() { /* ... */ }
+function handleDeletePlayer(playerId, playerName) { /* ... */ }
+function openBallSettingsModal() { /* ... */ }
+function closeBallSettingsModal() { /* ... */ }
+function handleBallSizeChange(event) { /* ... */ }
+function handleSaveBallSettings() { /* ... */ }
 // === 2. Modal Håndtering END ===
 
 // === 3. UI Rendering START ===
@@ -90,25 +90,121 @@ function handlePositionMarkerClick(markerElement, positionData) { console.log(`K
 function clearSelectedPositionMarker() { if (!pitchSurface) return; const selectedMarkers = pitchSurface.querySelectorAll('.formation-position-marker.selected'); selectedMarkers.forEach(marker => marker.classList.remove('selected')); }
 function resetPositionFilter() { console.log("Nullstiller posisjonsfilter."); selectedFormationPosition = null; clearSelectedPositionMarker(); renderSquadList(); }
 function toggleDrawMode() { isDrawingMode = !isDrawingMode; console.log("Tegnemodus:", isDrawingMode ? "PÅ" : "AV"); if (!drawingCanvas || !pitchSurface || !toggleDrawModeButton) {console.error("toggleDrawMode: Mangler elementer."); return;} if (isDrawingMode) { drawingCanvas.style.pointerEvents = 'auto'; pitchSurface.style.cursor = 'crosshair'; toggleDrawModeButton.textContent = 'Modus (På)'; toggleDrawModeButton.classList.add('active'); pitchSurface.addEventListener('mousedown', startDraw); pitchSurface.addEventListener('touchstart', startDraw, { passive: false }); pitchSurface.addEventListener('mousemove', draw); pitchSurface.addEventListener('touchmove', draw, { passive: false }); pitchSurface.addEventListener('mouseup', stopDraw); pitchSurface.addEventListener('touchend', stopDraw); pitchSurface.addEventListener('mouseleave', stopDraw); } else { drawingCanvas.style.pointerEvents = 'none'; pitchSurface.style.cursor = 'default'; toggleDrawModeButton.textContent = 'Modus (Av)'; toggleDrawModeButton.classList.remove('active'); pitchSurface.removeEventListener('mousedown', startDraw); pitchSurface.removeEventListener('touchstart', startDraw); pitchSurface.removeEventListener('mousemove', draw); pitchSurface.removeEventListener('touchmove', draw); pitchSurface.removeEventListener('mouseup', stopDraw); pitchSurface.removeEventListener('touchend', stopDraw); pitchSurface.removeEventListener('mouseleave', stopDraw); if (isDrawing) { isDrawing = false; redrawCanvas(); } } }
-function startDraw(event) { if (!isDrawingMode) return; event.preventDefault(); isDrawing = true; const coords = getCanvasCoordinates(event); startX = coords.x; startY = coords.y; currentX = startX; currentY = startY; console.log(`Start Draw (${currentDrawingTool}) at: ${startX.toFixed(1)}, ${startY.toFixed(1)}`); }
-function draw(event) { if (!isDrawing || !isDrawingMode) return; event.preventDefault(); const coords = getCanvasCoordinates(event); currentX = coords.x; currentY = coords.y; redrawCanvas(); }
-function stopDraw(event) { if (!isDrawing || !isDrawingMode) return; const coords = getCanvasCoordinates(event); currentX = coords.x; currentY = coords.y; isDrawing = false; if (Math.abs(startX - currentX) < 5 && Math.abs(startY - currentY) < 5 && currentDrawingTool !== 'freehand') { console.log("Tegning for kort, lagrer ikke."); redrawCanvas(); return; } const newDrawing = { type: currentDrawingTool, color: currentDrawingColor, width: DRAWING_LINE_WIDTH, startX: startX, startY: startY, endX: currentX, endY: currentY, }; savedDrawings.push(newDrawing); console.log(`Stop Draw. Lagret tegning:`, newDrawing); redrawCanvas(); }
-function redrawCanvas() { if (!drawingCtx) return; clearDrawingCanvas(); redrawAllDrawings(); if (isDrawing) { drawShape(drawingCtx, { type: currentDrawingTool, color: currentDrawingColor, width: DRAWING_LINE_WIDTH, startX: startX, startY: startY, endX: currentX, endY: currentY }); } }
+function startDraw(event) { 
+    if (!isDrawingMode) return; 
+    event.preventDefault(); 
+    isDrawing = true;
+    const coords = getCanvasCoordinates(event);
+    startX = coords.x;
+    startY = coords.y;
+    currentX = startX; 
+    currentY = startY;
+    // NYTT: Start punktliste for frihånd
+    if (currentDrawingTool === 'freehand') {
+        currentDrawingPoints = [{x: startX, y: startY}];
+    }
+    console.log(`Start Draw (${currentDrawingTool}) at: ${startX.toFixed(1)}, ${startY.toFixed(1)}`);
+}
+function draw(event) { 
+    if (!isDrawing || !isDrawingMode) return;
+    event.preventDefault();
+    const coords = getCanvasCoordinates(event);
+    currentX = coords.x;
+    currentY = coords.y;
+    // NYTT: Legg til punkt for frihånd
+    if (currentDrawingTool === 'freehand') {
+        currentDrawingPoints.push({x: currentX, y: currentY});
+    }
+    redrawCanvas(); 
+}
+function stopDraw(event) { 
+    if (!isDrawing || !isDrawingMode) return;
+    const coords = getCanvasCoordinates(event); 
+    currentX = coords.x;
+    currentY = coords.y;
+    isDrawing = false;
+
+    let newDrawing = null;
+
+    // Lagre basert på verktøy
+    if (currentDrawingTool === 'freehand') {
+        if (currentDrawingPoints.length > 1) { // Må ha minst to punkter
+             newDrawing = { type: 'freehand', color: currentDrawingColor, width: DRAWING_LINE_WIDTH, points: [...currentDrawingPoints]}; // Kopier arrayen
+             console.log(`Stop Draw. Lagret frihåndstegning med ${currentDrawingPoints.length} punkter.`);
+        } else {
+             console.log("Frihåndstegning for kort, lagrer ikke.");
+        }
+         currentDrawingPoints = []; // Tøm midlertidig liste
+    } else { // For pil, sirkel, rektangel
+         if (Math.abs(startX - currentX) >= 5 || Math.abs(startY - currentY) >= 5) { // Sjekk om den er lang nok
+             newDrawing = { type: currentDrawingTool, color: currentDrawingColor, width: DRAWING_LINE_WIDTH, startX: startX, startY: startY, endX: currentX, endY: currentY };
+             console.log(`Stop Draw. Lagret ${currentDrawingTool}:`, newDrawing);
+         } else {
+              console.log("Tegning for kort, lagrer ikke.");
+         }
+    }
+    
+    if (newDrawing) {
+        savedDrawings.push(newDrawing);
+        // TODO: Lagre savedDrawings i localStorage hvis ønskelig
+    }
+
+    redrawCanvas(); // Tegn alt på nytt 
+}
+function redrawCanvas() { 
+    if (!drawingCtx) return; 
+    clearDrawingCanvas(); 
+    redrawAllDrawings(); 
+    // Tegn midlertidig form
+    if (isDrawing) { 
+        let tempData;
+        if (currentDrawingTool === 'freehand') {
+            // For frihånd, tegn den uferdige linjen basert på lagrede punkter
+            tempData = { type: 'freehand', color: currentDrawingColor, width: DRAWING_LINE_WIDTH, points: currentDrawingPoints };
+        } else {
+            // For andre former, bruk start/current
+            tempData = { type: currentDrawingTool, color: currentDrawingColor, width: DRAWING_LINE_WIDTH, startX: startX, startY: startY, endX: currentX, endY: currentY };
+        }
+         drawShape(drawingCtx, tempData); 
+    } 
+}
 function redrawAllDrawings() { if (!drawingCtx) return; /* console.log(`Tegner ${savedDrawings.length} lagrede elementer.`); */ savedDrawings.forEach(drawing => { drawShape(drawingCtx, drawing); }); }
-function drawShape(ctx, drawingData) { // Korrigert for sirkel/rektangel
+function drawShape(ctx, drawingData) { // Inkluderer Frihånd
     ctx.beginPath();
     ctx.strokeStyle = drawingData.color || DRAWING_COLOR;
     ctx.lineWidth = drawingData.width || DRAWING_LINE_WIDTH;
-    const sx = drawingData.startX; const sy = drawingData.startY;
-    const ex = drawingData.endX; const ey = drawingData.endY;
-    const dx = ex - sx; const dy = ey - sy;
+    
+    const sx = drawingData.startX;
+    const sy = drawingData.startY;
+    const ex = drawingData.endX;
+    const ey = drawingData.endY;
+    const dx = ex - sx;
+    const dy = ey - sy;
+
     switch (drawingData.type) {
-        case 'arrow': drawArrow(ctx, sx, sy, ex, ey); break;
-        case 'circle': const radius = Math.sqrt(dx * dx + dy * dy); ctx.arc(sx, sy, radius, 0, 2 * Math.PI); break;
-        case 'rect': ctx.rect(sx, sy, dx, dy); break;
-        case 'freehand': console.warn("Frihåndstegning ikke implementert"); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); break;
-        default: ctx.moveTo(sx, sy); ctx.lineTo(ex, ey);
+        case 'arrow':
+            drawArrow(ctx, sx, sy, ex, ey);
+            break;
+        case 'circle':
+            const radius = Math.sqrt(dx * dx + dy * dy); 
+            ctx.arc(sx, sy, radius, 0, 2 * Math.PI); 
+            break;
+        case 'rect':
+            ctx.rect(sx, sy, dx, dy); 
+            break;
+        case 'freehand':
+             if (drawingData.points && drawingData.points.length > 1) {
+                 ctx.moveTo(drawingData.points[0].x, drawingData.points[0].y);
+                 for (let i = 1; i < drawingData.points.length; i++) {
+                     ctx.lineTo(drawingData.points[i].x, drawingData.points[i].y);
+                 }
+             }
+            break;
+        default: 
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(ex, ey);
     }
+    
     ctx.stroke(); 
 }
 function drawArrow(ctx, fromx, fromy, tox, toy) { ctx.moveTo(fromx, fromy); ctx.lineTo(tox, toy); const angle = Math.atan2(toy - fromy, tox - fromx); ctx.lineTo(tox - ARROWHEAD_LENGTH * Math.cos(angle - ARROWHEAD_ANGLE), toy - ARROWHEAD_LENGTH * Math.sin(angle - ARROWHEAD_ANGLE)); ctx.moveTo(tox, toy); ctx.lineTo(tox - ARROWHEAD_LENGTH * Math.cos(angle + ARROWHEAD_ANGLE), toy - ARROWHEAD_LENGTH * Math.sin(angle + ARROWHEAD_ANGLE)); }
@@ -188,4 +284,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 8. Event Listeners END ===
-/* Version: #136 */
+/* Version: #137 */
