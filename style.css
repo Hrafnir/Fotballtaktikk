@@ -1,4 +1,4 @@
-/* Version: #106 */
+/* Version: #107 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -19,8 +19,8 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .sidebar h4 { border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 5px; }
 .control-section { margin-bottom: 15px; padding: 10px; background-color: #fdfdfd; border: 1px solid #ddd; border-radius: 4px; flex-shrink: 0; overflow: hidden; white-space: nowrap; }
 #on-pitch-list, #bench-list, #squad-list { list-style: none; padding: 0; margin: 0; }
-#on-pitch-list li, #bench-list li, #squad-list li { padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 0.95em; background-color: #fff; margin-bottom: 2px; border-radius: 3px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; /* Standard cursor for list items */ }
-#on-pitch-list li.draggable, #bench-list li.draggable, #squad-list li.draggable { cursor: grab; /* Grab cursor kun for draggable items */ }
+#on-pitch-list li, #bench-list li, #squad-list li { padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 0.95em; background-color: #fff; margin-bottom: 2px; border-radius: 3px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
+#on-pitch-list li.draggable, #bench-list li.draggable, #squad-list li.draggable { cursor: grab; }
 #on-pitch-list li i, #bench-list li i, #squad-list li i { color: #777; font-style: italic; padding: 5px; display: block; background-color: transparent; border-bottom: none; }
 #on-pitch-section { background-color: #e6f7ff; border-color: #b3e0ff; }
 #on-pitch-list { max-height: 180px; overflow-y: auto; }
@@ -28,20 +28,15 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #bench-list { max-height: 180px; overflow-y: auto; flex-grow: 1; }
 #squad-management { flex-grow: 1; display: flex; flex-direction: column; }
 #squad-list-container { border: 1px solid #ddd; background-color: #fff; overflow-y: auto; flex-grow: 1; min-height: 50px; }
-
-/* Styling for drop targets i sidepanelet */
 #on-pitch-section.drag-over { background-color: rgba(173, 216, 230, 0.3); border-color: #add8e6; } 
 #bench.drag-over { background-color: rgba(255, 235, 150, 0.3); border-color: #ffcc66; }
 #squad-list-container.drag-over { background-color: rgba(200, 200, 200, 0.2); border-color: #999999; }
-
-/* Navigasjonsknapper i sidepanel */
 #navigation-section { padding: 5px 10px; background-color: #d0d0d0; border-color: #bbb; }
 #navigation-section h3 { margin-bottom: 5px; }
 .nav-button { width: calc(50% - 4px); margin: 2px; padding: 10px 5px; background-color: #e0e0e0; border: 1px solid #ccc; color: #333; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; }
 .nav-button:hover { background-color: #d5d5d5; }
 .nav-button.active { background-color: #4CAF50; color: white; border-color: #45a049; cursor: default; }
 .nav-button:not(.active):hover { background-color: #c8c8c8; }
-
 
 /* === 2 & 3. Hovedområde (Sidevisning) START === */
 .main-content { 
@@ -55,25 +50,17 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     position: relative; 
 }
 .page-content { 
-    display: none; 
+    display: none; /* Skjul alle sider som standard */ 
     width: 100%; 
     height: 100%; 
     overflow: auto; 
 }
-
-/* Vis riktig side basert på klasse på .app-container */
 .app-container.view-tactics #tactics-page-content { display: flex; }
-.app-container.view-squad #squad-page-content { display: flex; flex-direction: column; }
+.app-container.view-squad #squad-page-content { display: flex !important; /* Tving visning */ flex-direction: column; }
 
 /* Taktikkside spesifikk */
-#tactics-page-content { 
-    justify-content: center; 
-    align-items: center; 
-    padding: 5px; 
-}
-#tactics-page-content .rotate-button { 
-    position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; 
-}
+#tactics-page-content { justify-content: center; align-items: center; padding: 5px; }
+#tactics-page-content .rotate-button { position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; }
 
 /* Pitch Container & Pitch */
 #pitch-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; }
@@ -98,13 +85,15 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     flex-shrink: 0; 
 }
 #full-squad-list-container { 
+    display: block !important; /* NYTT: Tvinger display block */
+    visibility: visible !important; /* NYTT: Tvinger synlighet */
+    opacity: 1 !important; /* NYTT: Tvinger opacity */
     width: 90%; 
     max-width: 1000px; 
-    flex-grow: 1; 
-    min-height: 200px; /* NYTT: Eksplisitt minimumshøyde for testing */
+    height: 500px; /* NYTT: Setter fast høyde for test, fjerner flex-grow */
     overflow-y: auto; 
     background-color: #fff; 
-    border: 1px solid #ddd; 
+    border: 2px solid red; /* NYTT: Tydelig rød ramme for test */
     border-radius: 4px; 
     padding: 15px; 
     box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
@@ -119,45 +108,33 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #full-squad-list-container .action-button { padding: 4px 8px; font-size: 0.9em; }
 /* === 2 & 3. Hovedområde (Sidevisning) END === */
 
-
-/* === Spillerbrikker PÅ BANEN (inne i #pitch-surface) === */
-/* ... (som før V#105) ... */
+/* === Resterende CSS (uendret fra V#105) START === */
+/* === Spillerbrikker PÅ BANEN === */
 .player-piece { position: absolute; width: 70px; height: auto; cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; user-select: none; -webkit-user-select: none; opacity: 1; transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.4s ease-in-out; transform-origin: center center; transform: translate(-50%, -50%) rotate(0deg); }
 #pitch-container.rotated .player-piece { transform: translate(-50%, -50%) rotate(-90deg); }
 .player-image-container { width: 55px; height: 55px; border-radius: 50%; border: 3px solid black; background-color: rgba(50, 50, 50, 0.8); overflow: hidden; display: flex; justify-content: center; align-items: center; margin-bottom: 3px; }
 .player-image { width: 100%; height: 100%; background-color: transparent; background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 50%; }
 .player-name { background-color: rgba(0,0,0,0.7); color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; font-weight: bold; text-align: center; max-width: 65px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-
-/* === Ball (inne i #pitch-surface) === */
-/* ... (som før V#105) ... */
+/* === Ball === */
 #ball { position: absolute; border: 1px solid #555; border-radius: 50%; cursor: grab; top: 50%; left: 50%; z-index: 15; transition: transform 0.4s ease-in-out, width 0.2s ease, height 0.2s ease, background-color 0.2s ease; transform-origin: center center; transform: translate(-50%, -50%) rotate(0deg); background: radial-gradient(circle at 30% 30%, white 90%, #e0e0e0 100%); box-shadow: 1px 1px 3px rgba(0,0,0,0.4); }
 #ball.ball-style-classic { background: radial-gradient(circle at 65% 65%, white 4px, black 5px 8px, transparent 8px), radial-gradient(circle at 35% 65%, white 4px, black 5px 8px, transparent 8px), radial-gradient(circle at 50% 35%, white 4px, black 5px 8px, transparent 8px), radial-gradient(circle at 30% 30%, white 4px, black 5px 8px, transparent 8px), radial-gradient(circle at 70% 30%, white 4px, black 5px 8px, transparent 8px), radial-gradient(circle at 50% 50%, white 8px, transparent 8px); background-color: white; box-shadow: 1px 1px 3px rgba(0,0,0,0.4); }
 #ball.ball-style-color { background: none; }
 #pitch-container.rotated #ball { transform: translate(-50%, -50%) rotate(-90deg); }
-
-/* === Tegning Canvas (inne i #pitch-surface) === */
-/* ... (som før V#105) ... */
+/* === Tegning Canvas === */
 #drawing-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; transform-origin: center center; transition: transform 0.4s ease-in-out; transform: rotate(0deg); }
 #pitch-container.rotated #drawing-canvas { transform: rotate(-90deg); }
-
 /* === Drag and Drop Styling === */
-/* ... (som før V#105) ... */
 .draggable { cursor: grab; }
 .dragging { cursor: grabbing !important; opacity: 0.5 !important; z-index: 1000 !important; }
 .player-piece.dragging { background-color: transparent !important; opacity: 1 !important; }
 .player-piece.dragging .player-image-container, .player-piece.dragging .player-name { opacity: 0.6; }
 .drop-target.drag-over { border-style: solid; border-width: 2px; }
 #pitch.drag-over { /* Ingen visuell endring */ }
-
 /* === Spillerbrikke Valg Styling === */
-/* ... (som før V#105) ... */
 .player-piece.selected { transform: translate(-50%, -50%) scale(1.1) rotate(0deg); z-index: 25; }
 #pitch-container.rotated .player-piece.selected { transform: translate(-50%, -50%) scale(1.1) rotate(-90deg); }
 .player-piece.selected .player-image-container { box-shadow: 0 0 10px 3px gold; }
-
 /* === Kontrollpanel Justeringer === */
-/* ... (som før V#105) ... */
 #display-options label { margin-top: 5px; margin-bottom: 0; }
 #display-options label[for="player-border-color"] { display: inline-block; margin-right: 5px; vertical-align: middle; }
 input[type="color"]#player-border-color { width: 40px; height: 40px; padding: 0; vertical-align: middle; margin-right: 10px; border: 1px solid #ccc; cursor: pointer; }
@@ -166,9 +143,7 @@ input[type="color"]#player-border-color { width: 40px; height: 40px; padding: 0;
 #set-color-yellow { background-color: yellow; }
 #set-color-green { background-color: lime; }
 #set-color-default { background-color: #f0f0f0; color: black;}
-
 /* === Modaler og Diverse UI === */
-/* ... (som før V#105) ... */
 .modal { display: none; position: fixed; z-index: 1100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
 .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; border-radius: 5px; width: 80%; max-width: 500px; position: relative; }
 .modal-content.wide { max-width: 800px; }
@@ -186,9 +161,7 @@ input[type="color"]#player-border-color { width: 40px; height: 40px; padding: 0;
 .roles-checkbox-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; max-height: 200px; overflow-y: auto; border: 1px solid #eee; padding: 10px; background-color: #f9f9f9; }
 .roles-checkbox-container label { display: block; font-weight: normal; margin-top: 0; margin-bottom: 5px; }
 .roles-checkbox-container input[type="checkbox"] { margin-right: 5px; vertical-align: middle; }
-
 /* Generelle knapper/input */
-/* ... (som før V#105) ... */
 button { padding: 8px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer; margin: 5px 2px; transition: background-color 0.2s ease; }
 button:hover { background-color: #45a049; }
 button:active { background-color: #3e8e41; }
@@ -196,5 +169,6 @@ input[type="text"], input[type="tel"], input[type="email"], input[type="date"], 
 input[type="file"] { margin: 5px 0; width: auto; }
 input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
+/* === Resterende CSS (uendret fra V#105) END === */
 
-/* Version: #106 */
+/* Version: #107 */
