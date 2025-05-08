@@ -1,174 +1,148 @@
-/* Version: #130 */
-/* === Generelt === */
-body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
-* { box-sizing: border-box; }
+<!-- Version: #131 -->
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fotballtaktiker</title>
+    <link rel="stylesheet" href="style.css"> <!-- Link til Versjon: #130 -->
+</head>
+<body>
+    <div class="app-container view-tactics"> 
 
-/* === Hovedlayout === */
-.app-container { display: flex; width: 100%; max-width: 1600px; height: 95vh; margin-top: 2.5vh; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 5px; overflow: hidden; position: relative; }
+        <button id="toggle-sidebar-button" class="sidebar-toggle-button" title="Skjul/Vis sidepanel"><</button>
 
-/* Sidebar Toggle Button */
-.sidebar-toggle-button { position: absolute; top: 10px; left: 10px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #ccc; background-color: #e9e9e9; color: #555; font-size: 18px; line-height: 28px; text-align: center; padding: 0; cursor: pointer; z-index: 1050; box-shadow: 0 0 5px rgba(0,0,0,0.1); transition: transform 0.3s ease, left 0.3s ease; }
-.sidebar-toggle-button:hover { background-color: #dcdcdc; }
-.app-container.sidebar-hidden .sidebar-toggle-button { left: 10px; transform: scaleX(-1); }
+        <!-- === 1. Kontrollpanel / Sidepanel START === -->
+        <aside class="sidebar">
+            
+            <div id="navigation-section" class="control-section">
+                <h3>Navigasjon</h3>
+                <button id="nav-tactics-button" class="nav-button active">Taktikk</button>
+                <button id="nav-squad-button" class="nav-button">Tropp</button>
+            </div>
 
-/* === 1. Sidepanel (Kontrollpanel) === */
-.sidebar { 
-    width: 350px; /* Økt fra 300px */
-    min-width: 350px; /* Økt fra 300px */
-    background-color: #e9e9e9; 
-    padding: 15px; 
-    overflow-y: auto; 
-    height: 100%; 
-    border-right: 1px solid #ccc; 
-    display: flex; 
-    flex-direction: column; 
-    position: relative; 
-    transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease, transform 0.3s ease; 
-    flex-shrink: 0; 
-    transform: translateX(0); 
-}
-.app-container.sidebar-hidden .sidebar { 
-    width: 0; 
-    min-width: 0; 
-    padding-left: 0; 
-    padding-right: 0; 
-    overflow: hidden; 
-    border-right: none; 
-    transform: translateX(-350px); /* Justert for ny bredde */
-}
-.sidebar h2, .sidebar h3, .sidebar h4 { white-space: nowrap; overflow: hidden; margin-top: 0; margin-bottom: 10px; color: #333; }
-.sidebar h3 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-.sidebar h4 { border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 5px; }
-.control-section { margin-bottom: 15px; padding: 10px; background-color: #fdfdfd; border: 1px solid #ddd; border-radius: 4px; flex-shrink: 0; overflow: hidden; white-space: nowrap; }
-#on-pitch-list, #bench-list, #squad-list { list-style: none; padding: 0; margin: 0; }
-#on-pitch-list li, #bench-list li, #squad-list li { 
-    padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 0.95em; background-color: #fff; color: #333; margin-bottom: 2px; border-radius: 3px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; transition: background-color 0.1s ease; 
-}
-#on-pitch-list li.draggable, #bench-list li.draggable, #squad-list li.draggable { cursor: grab; }
-#on-pitch-list li i, #bench-list li i, #squad-list li i { color: #777; font-style: italic; padding: 5px; display: block; background-color: transparent; border-bottom: none; }
+            <h2>Kontrollpanel</h2> 
+            
+            <div id="on-pitch-section" class="control-section drop-target"> 
+                <h3>På Banen (<span id="on-pitch-count">0</span>/11)</h3>
+                <ul id="on-pitch-list"><li><i>Ingen spillere på banen.</i></li></ul>
+            </div>
+            <div id="bench" class="control-section drop-target">
+                <h4>På Benken (<span id="on-bench-count">0</span>)</h4>
+                <ul id="bench-list"><li><i>Benken er tom.</i></li></ul>
+            </div>
+             <div class="control-section" id="squad-management">
+                <h3>Tropp (Tilgjengelige)</h3>
+                <div id="squad-list-container" class="drop-target">
+                    <ul id="squad-list"><li><i>Ingen spillere i troppen.</i></li></ul>
+                </div>
+                 <button id="add-player-button" style="margin-top: 10px;">Legg til Spiller i Tropp</button>
+            </div>
+            
+            <div class="control-section" id="tactics-display-options">
+                <h3>Taktikk & Visning</h3>
 
-/* Statusfarger for listeelementer */
-#on-pitch-list li:not(:hover), #bench-list li:not(:hover), #squad-list li:not(:hover) {}
-#on-pitch-list li.player-status-AVAILABLE, #bench-list li.player-status-AVAILABLE, #squad-list li.player-status-AVAILABLE { background-color: #e8f5e9; border-left: 4px solid #4CAF50; }
-#on-pitch-list li.player-status-INJURED_SHORT, #bench-list li.player-status-INJURED_SHORT, #squad-list li.player-status-INJURED_SHORT { background-color: #fff3e0; border-left: 4px solid #ff9800; }
-#on-pitch-list li.player-status-INJURED_LONG, #bench-list li.player-status-INJURED_LONG, #squad-list li.player-status-INJURED_LONG { background-color: #ffebee; border-left: 4px solid #c62828; }
-#on-pitch-list li.player-status-SUSPENDED, #bench-list li.player-status-SUSPENDED, #squad-list li.player-status-SUSPENDED { background-color: #fce4ec; border-left: 4px solid #e91e63; }
-#on-pitch-list li.player-status-LIGHT_TRAINING, #bench-list li.player-status-LIGHT_TRAINING, #squad-list li.player-status-LIGHT_TRAINING { background-color: #e3f2fd; border-left: 4px solid #2196F3; }
-#on-pitch-list li.player-status-UNAVAILABLE, #bench-list li.player-status-UNAVAILABLE, #squad-list li.player-status-UNAVAILABLE { background-color: #eeeeee; border-left: 4px solid #757575; color: #757575;}
-#on-pitch-list li:hover, #bench-list li:hover, #squad-list li:hover { background-color: #f0f0f0; }
+                <label for="formation-select">Velg Formasjon:</label>
+                <select id="formation-select">
+                    <option value="">Ingen valgt</option>
+                    <option value="4-4-2">4-4-2</option>
+                    <option value="4-3-3">4-3-3</option>
+                    <option value="4-2-3-1">4-2-3-1</option>
+                    <option value="3-5-2">3-5-2</option>
+                </select>
+                
+                <hr style="margin: 15px 0;">
 
-#on-pitch-section { background-color: #e6f7ff; border-color: #b3e0ff; }
-#on-pitch-list { max-height: 180px; overflow-y: auto; }
-#bench { background-color: #fff0e6; border-color: #ffe0b3; min-height: 100px; display: flex; flex-direction: column; }
-#bench-list { max-height: 180px; overflow-y: auto; flex-grow: 1; }
-#squad-management { flex-grow: 1; display: flex; flex-direction: column; }
-#squad-list-container { border: 1px solid #ddd; background-color: #fff; overflow-y: auto; flex-grow: 1; min-height: 50px; }
-#on-pitch-section.drag-over { background-color: rgba(173, 216, 230, 0.3); border-color: #add8e6; } 
-#bench.drag-over { background-color: rgba(255, 235, 150, 0.3); border-color: #ffcc66; }
-#squad-list-container.drag-over { background-color: rgba(200, 200, 200, 0.2); border-color: #999999; }
-#navigation-section { padding: 5px 10px; background-color: #d0d0d0; border-color: #bbb; }
-#navigation-section h3 { margin-bottom: 5px; }
-.nav-button { width: calc(50% - 4px); margin: 2px; padding: 10px 5px; background-color: #e0e0e0; border: 1px solid #ccc; color: #333; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; }
-.nav-button:hover { background-color: #d5d5d5; }
-.nav-button.active { background-color: #4CAF50; color: white; border-color: #45a049; cursor: default; }
-.nav-button:not(.active):hover { background-color: #c8c8c8; }
+                <h4>Tegneverktøy</h4>
+                <!-- NYTT: Tegnekontroller -->
+                <div class="drawing-controls">
+                    <div class="tool-selection">
+                        <button id="draw-tool-arrow" class="draw-tool-button active" data-tool="arrow" title="Tegn Pil">➔</button>
+                        <button id="draw-tool-circle" class="draw-tool-button" data-tool="circle" title="Tegn Sirkel">○</button>
+                        <button id="draw-tool-rect" class="draw-tool-button" data-tool="rect" title="Tegn Rektangel">□</button>
+                        <button id="draw-tool-freehand" class="draw-tool-button" data-tool="freehand" title="Frihåndstegning">✎</button>
+                    </div>
+                    <div class="color-selection">
+                        <label for="drawing-color">Farge:</label>
+                        <input type="color" id="drawing-color" value="#FFFF00" title="Velg tegnefarge">
+                    </div>
+                    <div class="drawing-actions">
+                         <button id="toggle-draw-mode-button">Modus (Av)</button> 
+                         <button id="toggle-visibility-button">Skjul Tegn.</button>
+                         <button id="clear-drawings-button">Slett Alt</button>
+                    </div>
+                </div>
+                
+                <hr style="margin: 15px 0;">
 
-/* === 2 & 3. Hovedområde (Sidevisning) START === */
-.main-content { flex-grow: 1; display: flex; flex-direction: column; padding: 0; height: 100%; overflow: hidden; background-color: #ededed; position: relative; }
-.page-content { display: none; width: 100%; height: 100%; overflow: auto; }
-.app-container.view-tactics #tactics-page-content { display: flex; }
-.app-container.view-squad #squad-page-content { display: flex; flex-direction: column; }
-#tactics-page-content { justify-content: center; align-items: center; padding: 5px; }
-#tactics-page-content .rotate-button { position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; }
-#pitch-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-#pitch { max-width: 100%; max-height: 100%; position: relative; overflow: hidden; border: 2px solid white; transition: transform 0.4s ease-in-out; transform-origin: center center; transform: rotate(0deg); box-shadow: inset 0 0 15px rgba(0,0,0,0.3); background-size: cover; background-position: center center; background-repeat: no-repeat; background-image: url('pitch-background-portrait.jpg'); }
-#pitch-container.rotated #pitch { transform: rotate(90deg); background-image: url('pitch-background.jpg'); }
-#pitch-surface { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; overflow: hidden; }
-#squad-page-content { padding: 20px; background-color: #f8f8f8; align-items: center; overflow-y: auto; }
-#squad-page-content h2 { width: 90%; max-width: 1000px; text-align: center; margin: 0 auto 20px auto; color: #333; border-bottom: 2px solid #ccc; padding-bottom: 10px; flex-shrink: 0; }
-#full-squad-list-container { width: 90%; max-width: 1000px; margin: 0 auto 20px auto; flex-grow: 1; min-height: 200px; overflow-y: auto; background-color: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 15px; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); }
-#full-squad-list-container table { width: 100%; border-collapse: collapse; }
-#full-squad-list-container th, #full-squad-list-container td { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
-#full-squad-list-container th { border-bottom-width: 2px; border-color: #ccc; font-weight: bold; background-color: #f9f9f9; }
-#full-squad-list-container tr:last-child td { border-bottom: none; }
-#full-squad-list-container tr:hover td { background-color: #f5f5f5; }
-#full-squad-list-container .action-button { padding: 4px 8px; font-size: 0.9em; }
-/* === 2 & 3. Hovedområde (Sidevisning) END === */
+                <h4>Visning (Brikker)</h4>
+                <div> 
+                    <label for="player-border-color">Egendefinert:</label>
+                    <input type="color" id="player-border-color" value="#FFFF00" title="Velg egendefinert farge">
+                    <button id="set-border-color-button" title="Bruk egendefinert farge">Sett Farge</button>
+                </div>
+                 <div style="margin-top: 10px;"> 
+                     <label>Standard:</label>
+                     <button id="set-color-red" class="preset-color-button" data-color="red" title="Sett til rød (Angrep)"></button>
+                     <button id="set-color-yellow" class="preset-color-button" data-color="yellow" title="Sett til gul (Midtbane)"></button>
+                     <button id="set-color-green" class="preset-color-button" data-color="lime" title="Sett til grønn (Forsvar)"></button>
+                     <button id="set-color-default" class="preset-color-button" data-color="black" title="Sett til svart (Standard)">⚫</button>
+                 </div>
+                 <p>(Velg spiller(e) på banen først)</p>
+                 <!-- Fjernet gamle tegnepå/av og slett, erstattet over -->
+            </div>
 
-/* === Spillerbrikker PÅ BANEN (inne i #pitch-surface) === */
-.player-piece { position: absolute; width: 70px; height: auto; cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; user-select: none; -webkit-user-select: none; opacity: 1; transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.4s ease-in-out; transform-origin: center center; transform: translate(-50%, -50%) rotate(0deg); }
-#pitch-container.rotated .player-piece { transform: translate(-50%, -50%) rotate(-90deg); }
-.player-image-container { width: 55px; height: 55px; border-radius: 50%; border: 3px solid black; background-color: rgba(50, 50, 50, 0.8); overflow: hidden; display: flex; justify-content: center; align-items: center; margin-bottom: 3px; }
-.player-image { width: 100%; height: 100%; background-color: transparent; background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 50%; }
-.player-name { background-color: rgba(0,0,0,0.7); color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px; font-weight: bold; text-align: center; max-width: 65px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            <div class="control-section" id="save-load">
+                <h3>Oppsett (Formasjoner & Tilstand)</h3>
+                <input type="text" id="setup-name" placeholder="Navn på oppsett...">
+                <button id="save-setup-button">Lagre Oppsett</button>
+                <select id="load-setup-select"><option value="">Velg oppsett...</option></select>
+                <button id="load-setup-button">Last Oppsett</button>
+                <button id="delete-setup-button">Slett Valgt Oppsett</button>
+            </div>
+             <div class="control-section" id="export">
+                <h3>Eksporter</h3>
+                 <button id="export-png-button">Lag Skjermbilde (PNG)</button>
+            </div>
+        </aside>
+        <!-- === 1. Kontrollpanel / Sidepanel END === -->
 
-/* === Ball (inne i #pitch-surface) === */
-#ball { position: absolute; border: 1px solid #555; border-radius: 50%; cursor: grab; top: 50%; left: 50%; z-index: 15; transition: transform 0.4s ease-in-out, width 0.2s ease, height 0.2s ease, background-color 0.2s ease; transform-origin: center center; transform: translate(-50%, -50%) rotate(0deg); background: radial-gradient(circle at 30% 30%, white 90%, #e0e0e0 100%); box-shadow: 1px 1px 3px rgba(0,0,0,0.4); }
-#ball.ball-style-classic { background: radial-gradient(circle at 65% 65%, white 4px, black 5px 8px, transparent 8px), radial-gradient(circle at 35% 65%, white 4px, black 5px 8px, transparent 8px), radial-gradient(circle at 50% 35%, white 4px, black 5px 8px, transparent 8px), radial-gradient(circle at 30% 30%, white 4px, black 5px 8px, transparent 8px), radial-gradient(circle at 70% 30%, white 4px, black 5px 8px, transparent 8px), radial-gradient(circle at 50% 50%, white 8px, transparent 8px); background-color: white; box-shadow: 1px 1px 3px rgba(0,0,0,0.4); }
-#ball.ball-style-color { background: none; }
-#pitch-container.rotated #ball { transform: translate(-50%, -50%) rotate(-90deg); }
+        <!-- === 2. Hovedområde (Bane / Taktikkside) START === -->
+        <main id="tactics-page-content" class="main-content page-content">
+             <button id="rotate-pitch-button" class="rotate-button" title="Roter bane">↻</button>
+            <div id="pitch-container">
+                 <div id="pitch" class="drop-target">
+                     <div id="pitch-surface">
+                        <canvas id="drawing-canvas"></canvas>
+                        <div id="ball" class="draggable" draggable="true"></div>
+                        <!-- Spillerbrikker legges til her av JS -->
+                    </div>
+                 </div>
+            </div>
+        </main>
+        <!-- === 2. Hovedområde (Bane / Taktikkside) END === -->
 
-/* === Formasjonsmarkører START === */
-.formation-position-marker { position: absolute; width: 45px; height: 45px; border-radius: 50%; background-color: rgba(255, 255, 255, 0.6); border: 2px dashed #555; color: #333; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; text-align: center; padding: 2px; cursor: pointer; z-index: 8; user-select: none; -webkit-user-select: none; transform-origin: center center; transform: translate(-50%, -50%) rotate(0deg); transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.4s ease-in-out; }
-.formation-position-marker:hover { background-color: rgba(230, 230, 230, 0.8); border-color: #000; }
-.formation-position-marker.selected { background-color: rgba(76, 175, 80, 0.7); border-style: solid; border-color: #388E3C; color: white; }
-.formation-position-marker.drag-over { border-style: solid; border-color: #4CAF50; background-color: rgba(76, 175, 80, 0.3); }
-#pitch-container.rotated .formation-position-marker { transform: translate(-50%, -50%) rotate(-90deg); }
-/* === Formasjonsmarkører END === */
+        <!-- === 3. Hovedområde (Troppside) START === -->
+        <main id="squad-page-content" class="main-content page-content"> 
+            <h2>Tropp Oversikt</h2>
+            <div id="full-squad-list-container" style="width: 90%; height: 80%; overflow-y: auto; border: 1px solid #ccc; padding: 15px;">
+                <p>Laster tropp...</p>
+            </div>
+        </main>
+        <!-- === 3. Hovedområde (Troppside) END === -->
 
-/* === Tegning Canvas (inne i #pitch-surface) === */
-#drawing-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; transform-origin: center center; transition: transform 0.4s ease-in-out; transform: rotate(0deg); }
-#pitch-container.rotated #drawing-canvas { transform: rotate(-90deg); }
 
-/* === Drag and Drop Styling === */
-.draggable { cursor: grab; }
-.dragging { cursor: grabbing !important; opacity: 0.5 !important; z-index: 1000 !important; }
-.player-piece.dragging { background-color: transparent !important; opacity: 1 !important; }
-.player-piece.dragging .player-image-container, .player-piece.dragging .player-name { opacity: 0.6; }
-.drop-target.drag-over { border-style: solid; border-width: 2px; }
-#pitch.drag-over { /* Ingen visuell endring */ }
+    </div> <!-- /.app-container -->
 
-/* === Spillerbrikke Valg Styling === */
-.player-piece.selected { transform: translate(-50%, -50%) scale(1.1) rotate(0deg); z-index: 25; }
-#pitch-container.rotated .player-piece.selected { transform: translate(-50%, -50%) scale(1.1) rotate(-90deg); }
-.player-piece.selected .player-image-container { box-shadow: 0 0 10px 3px gold; }
+    <!-- === Modaler/Dialoger START === -->
+    <!-- ... (Alle modaler som før V#116) ... -->
+    <div id="add-player-modal" class="modal" style="display: none;"> <div class="modal-content"> <span class="close-button">×</span> <h3>Legg til ny spiller</h3> <label for="new-player-name">Navn:</label> <input type="text" id="new-player-name" required><br><br> <label for="new-player-image-upload">Bilde (URL eller last opp):</label> <input type="file" id="new-player-image-upload" accept="image/*"><br> <input type="text" id="new-player-image-url" placeholder="Eller lim inn URL"><br><br> <label for="new-player-main-role">Hovedposisjon:</label> <input type="text" id="new-player-main-role"><br><br> <h4>Spillbare Roller:</h4> <div id="new-player-roles-checkboxes" class="roles-checkbox-container"></div> <br> <button id="confirm-add-player">Legg til</button> </div> </div>
+    <div id="player-detail-modal" class="modal" style="display: none;"> <div class="modal-content wide"> <span class="close-detail-button close-button">×</span> <h3 id="detail-modal-title">Spillerdetaljer</h3> <input type="hidden" id="detail-player-id"> <div class="modal-columns"> <div class="modal-column"> <h4>Bilde</h4> <div id="detail-player-image-display" class="detail-image-display"><span>Ingen bilde-URL</span></div> <label for="detail-player-image-url">Bilde-URL:</label> <input type="text" id="detail-player-image-url" placeholder="Lim inn URL til bilde..."> <h4>Personlig Info</h4> <label for="detail-player-name">Navn:</label> <input type="text" id="detail-player-name"> <label for="detail-player-nickname">Kallenavn (vises på brikke):</label> <input type="text" id="detail-player-nickname" placeholder="F.eks. Myggen"> <label for="detail-player-status">Status:</label> <select id="detail-player-status"></select> <label for="detail-player-main-role">Hovedposisjon:</label> <input type="text" id="detail-player-main-role"> <label for="detail-player-birthday">Fødselsdato:</label> <input type="date" id="detail-player-birthday"> <label for="detail-player-phone">Telefon:</label> <input type="tel" id="detail-player-phone" placeholder="Eks: 12345678"> <label for="detail-player-email">E-post:</label> <input type="email" id="detail-player-email" placeholder="navn@example.com"> </div> <div class="modal-column"> <h4>Spillbare Roller:</h4> <div id="detail-player-roles-checkboxes" class="roles-checkbox-container"></div> <hr style="margin: 15px 0;"> <h4>Kamp-kommentar (Denne økten)</h4> <textarea id="detail-match-comment" rows="4" placeholder="Notater..."></textarea> <button id="add-comment-to-history-button">Legg til i historikk</button> <h4>Kommentarhistorikk</h4> <div id="detail-comment-history" class="comment-history"><p><i>Ingen historikk.</i></p></div> <h4>Sesongstatistikk (Manuell)</h4> <label for="detail-matches-played">Kamper spilt:</label> <input type="number" id="detail-matches-played" min="0" value="0"> <label for="detail-goals-scored">Mål scoret:</label> <input type="number" id="detail-goals-scored" min="0" value="0"> </div> </div> <div class="modal-footer"> <button id="save-details-button">Lagre Endringer</button> </div> </div> </div>
+    <div id="ball-settings-modal" class="modal" style="display: none;"> <div class="modal-content"> <span class="close-ball-settings-button close-button">×</span> <h3>Ballinnstillinger</h3> <div> <label for="ball-size-slider">Størrelse:</label> <input type="range" id="ball-size-slider" min="20" max="60" value="35"> <span id="ball-size-value">35px</span> </div> <div style="margin-top: 15px;"> <label>Utseende:</label><br> <input type="radio" id="ball-style-default" name="ball-style" value="default" checked> <label for="ball-style-default">Standard</label><br> <input type="radio" id="ball-style-classic" name="ball-style" value="classic"> <label for="ball-style-classic">Klassisk (CSS)</label><br> <input type="radio" id="ball-style-color" name="ball-style" value="color"> <label for="ball-style-color">Ensfarget:</label> <input type="color" id="ball-custom-color" value="#FFA500"> </div> <div class="modal-footer"> <button id="save-ball-settings-button">Lagre</button> </div> </div> </div>
+    <!-- === Modaler/Dialoger END === -->
 
-/* === Kontrollpanel Justeringer === */
-#tactics-display-options label { margin-top: 10px; } 
-#tactics-display-options label[for="player-border-color"] { display: inline-block; margin-right: 5px; vertical-align: middle; margin-top: 5px;}
-input[type="color"]#player-border-color { width: 40px; height: 40px; padding: 0; vertical-align: middle; margin-right: 10px; border: 1px solid #ccc; cursor: pointer; }
-.preset-color-button { width: 30px; height: 30px; border: 1px solid #ccc; border-radius: 4px; margin: 0 3px; padding: 0; font-size: 16px; line-height: 28px; vertical-align: middle; cursor: pointer; }
-#set-color-red { background-color: red; }
-#set-color-yellow { background-color: yellow; }
-#set-color-green { background-color: lime; }
-#set-color-default { background-color: #f0f0f0; color: black;}
+    <script src="script.js"></script> <!-- Link til Versjon: #124 -->
 
-/* === Modaler og Diverse UI === */
-.modal { display: none; position: fixed; z-index: 1100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
-.modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; border-radius: 5px; width: 80%; max-width: 500px; position: relative; }
-.modal-content.wide { max-width: 800px; }
-.modal-columns { display: flex; gap: 20px; }
-.modal-column { flex: 1; }
-.close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
-.close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
-.detail-image-display { width: 150px; height: 150px; background-color: #eee; background-size: cover; background-position: center; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; text-align: center; color: #888; font-size: 0.9em; }
-.detail-image-display span { padding: 5px; }
-.comment-history { max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin-top: 5px; background-color: #f9f9f9; }
-.comment-history p { margin: 0 0 8px 0; padding-bottom: 8px; border-bottom: 1px dashed #eee; font-size: 0.9em; line-height: 1.4; }
-.comment-history p:last-child { border-bottom: none; margin-bottom: 0; }
-.comment-date { display: block; font-size: 0.8em; color: #666; margin-bottom: 3px; }
-.modal-footer { margin-top: 20px; text-align: right; border-top: 1px solid #eee; padding-top: 15px; }
-.roles-checkbox-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; max-height: 200px; overflow-y: auto; border: 1px solid #eee; padding: 10px; background-color: #f9f9f9; }
-.roles-checkbox-container label { display: block; font-weight: normal; margin-top: 0; margin-bottom: 5px; }
-.roles-checkbox-container input[type="checkbox"] { margin-right: 5px; vertical-align: middle; }
-
-/* Generelle knapper/input */
-button { padding: 8px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer; margin: 5px 2px; transition: background-color 0.2s ease; }
-button:hover { background-color: #45a049; }
-button:active { background-color: #3e8e41; }
-input[type="text"], input[type="tel"], input[type="email"], input[type="date"], input[type="number"], select, textarea { padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 3px; width: calc(100% - 16px); font-size: 1em; }
-input[type="file"] { margin: 5px 0; width: auto; }
-input[type="number"] { width: 80px; }
-label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
-
-/* Version: #130 */
+</body>
+</html>
+<!-- Version: #131 -->
