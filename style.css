@@ -1,4 +1,4 @@
-/* Version: #132 */
+/* Version: #133 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -17,7 +17,7 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .sidebar h2, .sidebar h3, .sidebar h4 { white-space: nowrap; overflow: hidden; margin-top: 0; margin-bottom: 10px; color: #333; }
 .sidebar h3 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
 .sidebar h4 { border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 5px; }
-.control-section { margin-bottom: 15px; padding: 10px; background-color: #fdfdfd; border: 1px solid #ddd; border-radius: 4px; flex-shrink: 0; overflow: hidden; white-space: normal; /* Tillat linjeskift for kontroller */ }
+.control-section { margin-bottom: 15px; padding: 10px; background-color: #fdfdfd; border: 1px solid #ddd; border-radius: 4px; flex-shrink: 0; overflow: hidden; white-space: normal; }
 #on-pitch-list, #bench-list, #squad-list { list-style: none; padding: 0; margin: 0; }
 #on-pitch-list li, #bench-list li, #squad-list li { padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 0.95em; background-color: #fff; color: #333; margin-bottom: 2px; border-radius: 3px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; transition: background-color 0.1s ease; }
 #on-pitch-list li.draggable, #bench-list li.draggable, #squad-list li.draggable { cursor: grab; }
@@ -106,66 +106,23 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .player-piece.selected .player-image-container { box-shadow: 0 0 10px 3px gold; }
 
 /* === Kontrollpanel Justeringer === */
-#tactics-display-options label { margin-top: 10px; display: block; /* Sikrer at label er på egen linje */ margin-bottom: 3px; } 
+#tactics-display-options label { margin-top: 10px; display: block; margin-bottom: 3px; } 
 #tactics-display-options label[for="player-border-color"], 
-#tactics-display-options label[for="drawing-color"] { display: inline-block; /* Unntak for fargevelgere */ margin-right: 5px; vertical-align: middle; margin-top: 5px;}
+#tactics-display-options label[for="drawing-color"] { display: inline-block; margin-right: 5px; vertical-align: middle; margin-top: 5px;}
 
-/* NYTT: Styling for tegnekontroller */
-.drawing-controls {
-    display: flex;
-    flex-wrap: wrap; /* Tillat wrapping hvis panelet blir smalt */
-    gap: 10px; /* Mellomrom mellom grupper */
-    margin-top: 5px;
-}
-.tool-selection {
-    display: flex;
-    gap: 3px; /* Lite mellomrom mellom verktøyknapper */
-}
-.draw-tool-button {
-    padding: 5px 8px;
-    font-size: 16px; /* Litt større for ikoner */
-    min-width: 35px; /* Sikrer minimum bredde */
-    line-height: 1.2;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    color: #555;
-}
-.draw-tool-button.active {
-    background-color: #cce5ff; /* Lys blå for aktiv */
-    border-color: #99c2ff;
-    color: #004085;
-}
-.color-selection {
-    display: flex;
-    align-items: center;
-}
-input[type="color"]#drawing-color { /* Egen stil for tegnefarge */
-    width: 35px;
-    height: 35px;
-    padding: 0;
-    vertical-align: middle;
-    margin-left: 5px;
-    border: 1px solid #ccc;
-    cursor: pointer;
-}
-.drawing-actions {
-    display: flex;
-    flex-wrap: wrap; /* Tillat wrapping av knapper */
-    gap: 5px;
-    width: 100%; /* Ta full bredde for å wrappe bedre */
-    margin-top: 5px;
-}
-.drawing-actions button {
-   padding: 5px 10px; /* Litt mindre padding */
-   flex-grow: 1; /* La knapper fylle plassen */
-   min-width: 80px; /* Minimumsbredde */
-}
-#toggle-draw-mode-button.active {
-    background-color: #ffc107; /* Gul når aktiv */
-    border-color: #ffb300;
-    color: #333;
-}
-/* Slutt på nytt */
+/* Styling for tegnekontroller */
+.drawing-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
+.tool-selection { display: flex; gap: 3px; }
+.draw-tool-button { padding: 5px 8px; font-size: 16px; min-width: 35px; line-height: 1.2; background-color: #f0f0f0; border: 1px solid #ccc; color: #555; }
+/* NYTT: Større symboler for sirkel og rektangel */
+#draw-tool-circle,
+#draw-tool-rect { font-size: 20px; line-height: 1; }
+.draw-tool-button.active { background-color: #cce5ff; border-color: #99c2ff; color: #004085; }
+.color-selection { display: flex; align-items: center; }
+input[type="color"]#drawing-color { width: 35px; height: 35px; padding: 0; vertical-align: middle; margin-left: 5px; border: 1px solid #ccc; cursor: pointer; }
+.drawing-actions { display: flex; flex-wrap: wrap; gap: 5px; width: 100%; margin-top: 5px; }
+.drawing-actions button { padding: 5px 10px; flex-grow: 1; min-width: 80px; }
+#toggle-draw-mode-button.active { background-color: #ffc107; border-color: #ffb300; color: #333; }
 
 input[type="color"]#player-border-color { width: 40px; height: 40px; padding: 0; vertical-align: middle; margin-right: 10px; border: 1px solid #ccc; cursor: pointer; }
 .preset-color-button { width: 30px; height: 30px; border: 1px solid #ccc; border-radius: 4px; margin: 0 3px; padding: 0; font-size: 16px; line-height: 28px; vertical-align: middle; cursor: pointer; }
@@ -202,4 +159,4 @@ input[type="file"] { margin: 5px 0; width: auto; }
 input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 
-/* Version: #132 */
+/* Version: #133 */
