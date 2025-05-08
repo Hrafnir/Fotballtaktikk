@@ -266,41 +266,45 @@ function redrawAllDrawings() {
 }
 // === FUNKSJON: redrawAllDrawings END ===
 
-// === FUNKSJON: drawShape START (MODIFIED FOR CIRCLE & RECT) ===
+// === FUNKSJON: drawShape START (Implementert Sirkel & Rektangel) ===
 function drawShape(ctx, drawingData) {
     ctx.beginPath();
     ctx.strokeStyle = drawingData.color || DRAWING_COLOR;
     ctx.lineWidth = drawingData.width || DRAWING_LINE_WIDTH;
     
-    const dx = drawingData.endX - drawingData.startX;
-    const dy = drawingData.endY - drawingData.startY;
+    const sx = drawingData.startX;
+    const sy = drawingData.startY;
+    const ex = drawingData.endX;
+    const ey = drawingData.endY;
+    const dx = ex - sx;
+    const dy = ey - sy;
 
     switch (drawingData.type) {
         case 'arrow':
-            drawArrow(ctx, drawingData.startX, drawingData.startY, drawingData.endX, drawingData.endY);
+            drawArrow(ctx, sx, sy, ex, ey);
             break;
         case 'circle':
             // Beregn radius basert på avstanden mellom start og slutt
             const radius = Math.sqrt(dx * dx + dy * dy); 
-            ctx.arc(drawingData.startX, drawingData.startY, radius, 0, 2 * Math.PI); // Tegn sirkel fra startpunkt
+            ctx.arc(sx, sy, radius, 0, 2 * Math.PI); // Tegn sirkel fra startpunkt
             break;
         case 'rect':
             // Tegn rektangel definert av start- og sluttpunkt
-            ctx.rect(drawingData.startX, drawingData.startY, dx, dy); 
+            ctx.rect(sx, sy, dx, dy); 
             break;
         case 'freehand':
              // TODO: Implementer frihåndstegning (krever lagring av punkter)
             console.warn("Frihåndstegning ikke implementert");
-            ctx.moveTo(drawingData.startX, drawingData.startY); // Fallback til linje
-            ctx.lineTo(drawingData.endX, drawingData.endY);
+            ctx.moveTo(sx, sy); // Fallback til linje
+            ctx.lineTo(ex, ey);
             break;
         default: // Fallback til linje (som pil uten spiss)
-            ctx.moveTo(drawingData.startX, drawingData.startY);
-            ctx.lineTo(drawingData.endX, drawingData.endY);
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(ex, ey);
     }
     
     ctx.stroke(); // Utfør tegneoperasjonen (strek)
-    // ctx.closePath(); // Ikke nødvendig for stroke(), kan forårsake ekstra linje for arc/rect
+    // closePath() er vanligvis ikke nødvendig for stroke(), og kan lage uønskede linjer for arc/rect
 }
 // === FUNKSJON: drawShape END ===
 
