@@ -1,4 +1,4 @@
-/* Version: #115 */
+/* Version: #117 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {}; // { playerId: element }
@@ -15,6 +15,8 @@ let ballSettings = {
     size: 35, style: 'default', color: '#FFA500', position: { x: 50, y: 50}
 };
 
+let currentFormation = null; // NY: Holder valgt formasjonsdata
+
 const MAX_PLAYERS_ON_PITCH = 11;
 const PITCH_ASPECT_RATIO_PORTRAIT = 2 / 3;
 const PITCH_ASPECT_RATIO_LANDSCAPE = 3 / 2;
@@ -26,55 +28,89 @@ const STORAGE_KEY_SETUPS = 'fotballtaktiker_setups';
 const PLAYER_ROLES = { K: "Keeper", HB: "Høyreback", HVB: "Høyre Vingback", VB: "Venstreback", VVB: "Venstre Vingback", MS: "Midtstopper", SW: "Libero", DM: "Defensiv Midtbane", HM: "Høyre Midtbane", HV: "Høyre Ving", VM: "Venstre Midtbane", VV: "Venstre Ving", SM: "Sentral Midtbane", OM: "Offensiv Midtbane", S: "Spiss", CF: "Midtspiss" };
 const PLAYER_STATUSES = { AVAILABLE: "Kampklar", INJURED_SHORT: "Skadet (Kortvarig)", INJURED_LONG: "Skadet (Langvarig)", SUSPENDED: "Suspendert", LIGHT_TRAINING: "Lett Trening", UNAVAILABLE: "Utilgjengelig (Annet)" };
 const DEFAULT_PLAYER_STATUS = 'AVAILABLE';
+
+// === NYTT: Formasjonsdefinisjoner START ===
+const FORMATIONS = {
+    "4-4-2": {
+        name: "4-4-2",
+        positions: [
+            { id: 'gk', name: 'Keeper', roles: ['K'], x: 50, y: 92 },
+            { id: 'dr', name: 'Høyre Back', roles: ['HB', 'HVB'], x: 85, y: 75 },
+            { id: 'dl', name: 'Venstre Back', roles: ['VB', 'VVB'], x: 15, y: 75 },
+            { id: 'dcr', name: 'Midtstopper (H)', roles: ['MS'], x: 65, y: 80 },
+            { id: 'dcl', name: 'Midtstopper (V)', roles: ['MS'], x: 35, y: 80 },
+            { id: 'mr', name: 'Høyre Midtbane', roles: ['HM', 'HV'], x: 80, y: 50 },
+            { id: 'ml', name: 'Venstre Midtbane', roles: ['VM', 'VV'], x: 20, y: 50 },
+            { id: 'mcr', name: 'Sentral Midtbane (H)', roles: ['SM', 'DM', 'OM'], x: 60, y: 55 },
+            { id: 'mcl', name: 'Sentral Midtbane (V)', roles: ['SM', 'DM', 'OM'], x: 40, y: 55 },
+            { id: 'st1', name: 'Spiss 1', roles: ['S', 'CF'], x: 60, y: 25 },
+            { id: 'st2', name: 'Spiss 2', roles: ['S', 'CF'], x: 40, y: 25 },
+        ]
+    },
+    "4-3-3": {
+        name: "4-3-3",
+        positions: [
+            { id: 'gk', name: 'Keeper', roles: ['K'], x: 50, y: 92 },
+            { id: 'dr', name: 'Høyre Back', roles: ['HB', 'HVB'], x: 85, y: 75 },
+            { id: 'dl', name: 'Venstre Back', roles: ['VB', 'VVB'], x: 15, y: 75 },
+            { id: 'dcr', name: 'Midtstopper (H)', roles: ['MS'], x: 65, y: 80 },
+            { id: 'dcl', name: 'Midtstopper (V)', roles: ['MS'], x: 35, y: 80 },
+            { id: 'dm', name: 'Defensiv Midtbane', roles: ['DM', 'SM'], x: 50, y: 65 },
+            { id: 'mcr', name: 'Sentral Midtbane (H)', roles: ['SM', 'OM', 'HM'], x: 70, y: 50 },
+            { id: 'mcl', name: 'Sentral Midtbane (V)', roles: ['SM', 'OM', 'VM'], x: 30, y: 50 },
+            { id: 'fw', name: 'Høyre Ving', roles: ['HV', 'S'], x: 80, y: 25 },
+            { id: 'fcl', name: 'Venstre Ving', roles: ['VV', 'S'], x: 20, y: 25 },
+            { id: 'st', name: 'Sentral Spiss', roles: ['CF', 'S'], x: 50, y: 15 },
+        ]
+    },
+    "4-2-3-1": {
+        name: "4-2-3-1",
+        positions: [
+            { id: 'gk', name: 'Keeper', roles: ['K'], x: 50, y: 92 },
+            { id: 'dr', name: 'Høyre Back', roles: ['HB', 'HVB'], x: 85, y: 75 },
+            { id: 'dl', name: 'Venstre Back', roles: ['VB', 'VVB'], x: 15, y: 75 },
+            { id: 'dcr', name: 'Midtstopper (H)', roles: ['MS'], x: 65, y: 80 },
+            { id: 'dcl', name: 'Midtstopper (V)', roles: ['MS'], x: 35, y: 80 },
+            { id: 'dmr', name: 'Def. Midtbane (H)', roles: ['DM', 'SM'], x: 60, y: 65 },
+            { id: 'dml', name: 'Def. Midtbane (V)', roles: ['DM', 'SM'], x: 40, y: 65 },
+            { id: 'amr', name: 'Off. Midtbane (H)', roles: ['OM', 'HM', 'HV'], x: 80, y: 40 },
+            { id: 'aml', name: 'Off. Midtbane (V)', roles: ['OM', 'VM', 'VV'], x: 20, y: 40 },
+            { id: 'amc', name: 'Off. Midtbane (S)', roles: ['OM', 'SM', 'S'], x: 50, y: 35 },
+            { id: 'st', name: 'Spiss', roles: ['S', 'CF'], x: 50, y: 15 },
+        ]
+    },
+     "3-5-2": {
+        name: "3-5-2",
+        positions: [
+            { id: 'gk', name: 'Keeper', roles: ['K'], x: 50, y: 92 },
+            { id: 'dcr', name: 'Midtstopper (H)', roles: ['MS'], x: 70, y: 80 },
+            { id: 'dc', name: 'Midtstopper (S)', roles: ['MS', 'SW'], x: 50, y: 85 },
+            { id: 'dcl', name: 'Midtstopper (V)', roles: ['MS'], x: 30, y: 80 },
+            { id: 'mr', name: 'Høyre Vingback', roles: ['HM', 'HVB', 'HB'], x: 90, y: 50 },
+            { id: 'ml', name: 'Venstre Vingback', roles: ['VM', 'VVB', 'VB'], x: 10, y: 50 },
+            { id: 'mcr', name: 'Sentral Midtbane (H)', roles: ['SM', 'DM', 'OM'], x: 65, y: 55 },
+             { id: 'mc', name: 'Sentral Midtbane (S)', roles: ['SM', 'DM', 'OM'], x: 50, y: 60 },
+            { id: 'mcl', name: 'Sentral Midtbane (V)', roles: ['SM', 'DM', 'OM'], x: 35, y: 55 },
+            { id: 'st1', name: 'Spiss 1', roles: ['S', 'CF'], x: 60, y: 25 },
+            { id: 'st2', name: 'Spiss 2', roles: ['S', 'CF'], x: 40, y: 25 },
+        ]
+    }
+    // Legg til flere formasjoner her ved behov
+};
+// === NYTT: Formasjonsdefinisjoner END ===
+
 // === 0. Globale Variabler og Konstanter END ===
 
 
 // === 1. DOM Element Referanser START ===
-const appContainer = document.querySelector('.app-container');
-const sidebar = document.querySelector('.sidebar');
-const toggleSidebarButton = document.getElementById('toggle-sidebar-button');
-const onPitchListElement = document.getElementById('on-pitch-list');
-const benchListElement = document.getElementById('bench-list');
-const squadListElement = document.getElementById('squad-list');
-const squadListContainer = document.getElementById('squad-list-container');
-const onPitchCountElement = document.getElementById('on-pitch-count');
-const onBenchCountElement = document.getElementById('on-bench-count');
-const pitchElement = document.getElementById('pitch');
-const pitchSurface = document.getElementById('pitch-surface');
-const rotatePitchButton = document.getElementById('rotate-pitch-button');
-const addPlayerButton = document.getElementById('add-player-button');
-const playerBorderColorInput = document.getElementById('player-border-color');
-const setBorderColorButton = document.getElementById('set-border-color-button');
-const setColorRedButton = document.getElementById('set-color-red');
-const setColorYellowButton = document.getElementById('set-color-yellow');
-const setColorGreenButton = document.getElementById('set-color-green');
-const setColorDefaultButton = document.getElementById('set-color-default');
-const toggleDrawModeButton = document.getElementById('toggle-draw-mode-button');
-const clearDrawingsButton = document.getElementById('clear-drawings-button');
-const setupNameInput = document.getElementById('setup-name');
-const saveSetupButton = document.getElementById('save-setup-button');
-const loadSetupSelect = document.getElementById('load-setup-select');
-const loadSetupButton = document.getElementById('load-setup-button');
-const deleteSetupButton = document.getElementById('delete-setup-button');
-const exportPngButton = document.getElementById('export-png-button');
-const pitchContainer = document.getElementById('pitch-container');
-const drawingCanvas = document.getElementById('drawing-canvas');
-const ballElement = document.getElementById('ball');
-const navTacticsButton = document.getElementById('nav-tactics-button');
-const navSquadButton = document.getElementById('nav-squad-button');
-const tacticsPageContent = document.getElementById('tactics-page-content');
-const squadPageContent = document.getElementById('squad-page-content');
-const fullSquadListContainer = document.getElementById('full-squad-list-container');
-const onPitchSectionElement = document.getElementById('on-pitch-section');
-
-let addPlayerModal; let closeButton; let newPlayerNameInput; let newPlayerImageUpload; let newPlayerImageUrlInput; let newPlayerMainRoleInput; let confirmAddPlayerButton;
-let playerDetailModal;
-let ballSettingsModal;
-let benchElement; 
+// ... (alle tidligere referanser)
+const formationSelect = document.getElementById('formation-select'); // NY Referanse
+// ...
 // === 1. DOM Element Referanser END ===
 
 
 // === 2. Modal Håndtering START ===
+// ... (alle modal-funksjoner som før V#115)
 // === FUNKSJON: populateRolesCheckboxes START ===
 function populateRolesCheckboxes(containerId, selectedRoles = []) { const container = document.getElementById(containerId); if (!container) return; container.innerHTML = ''; Object.entries(PLAYER_ROLES).forEach(([key, value]) => { const div = document.createElement('div'); const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.id = `${containerId}-${key}`; checkbox.value = key; checkbox.checked = selectedRoles.includes(key); const label = document.createElement('label'); label.htmlFor = `${containerId}-${key}`; label.textContent = `${value} (${key})`; div.appendChild(checkbox); div.appendChild(label); container.appendChild(div); }); }
 // === FUNKSJON: populateRolesCheckboxes END ===
@@ -106,22 +142,7 @@ function handleAddCommentToHistory() { const modalElement = document.getElementB
 function handleSavePlayerDetails() { const modalElement = document.getElementById('player-detail-modal'); if (!modalElement) return; const detailIdInput = modalElement.querySelector('#detail-player-id'); const detailNameInput = modalElement.querySelector('#detail-player-name'); const detailNicknameInput = modalElement.querySelector('#detail-player-nickname'); const detailImageUrlInput = modalElement.querySelector('#detail-player-image-url'); const detailMainRoleInput = modalElement.querySelector('#detail-player-main-role'); const detailPlayerStatusSelect = modalElement.querySelector('#detail-player-status'); const detailBirthdayInput = modalElement.querySelector('#detail-player-birthday'); const detailPhoneInput = modalElement.querySelector('#detail-player-phone'); const detailEmailInput = modalElement.querySelector('#detail-player-email'); const detailMatchesPlayedInput = modalElement.querySelector('#detail-matches-played'); const detailGoalsScoredInput = modalElement.querySelector('#detail-goals-scored'); const detailMatchCommentInput = modalElement.querySelector('#detail-match-comment'); if (!detailIdInput || !detailNameInput || !detailNicknameInput || !detailImageUrlInput || !detailMainRoleInput || !detailPlayerStatusSelect || !detailBirthdayInput || !detailPhoneInput || !detailEmailInput || !detailMatchesPlayedInput || !detailGoalsScoredInput || !detailMatchCommentInput ) { console.error("handleSavePlayerDetails: Mangler elementer."); return; } const playerId = detailIdInput.value; const player = getPlayerById(playerId); if (!player) return; let dataChanged = false; let visualChanged = false; if (player.name !== detailNameInput.value) { player.name = detailNameInput.value; dataChanged = true; visualChanged = true; } if (player.nickname !== detailNicknameInput.value) { player.nickname = detailNicknameInput.value.trim(); dataChanged = true; visualChanged = true; } if (player.mainRole !== detailMainRoleInput.value) { player.mainRole = detailMainRoleInput.value; dataChanged = true; visualChanged = true; } const newImageUrl = detailImageUrlInput.value.trim(); if (player.imageUrl !== newImageUrl) { player.imageUrl = newImageUrl; dataChanged = true; visualChanged = true; } const newStatus = detailPlayerStatusSelect.value; if (player.status !== newStatus) { player.status = newStatus; dataChanged = true; visualChanged = true; } const selectedRoles = []; const checkboxesContainer = document.getElementById('detail-player-roles-checkboxes'); if (checkboxesContainer) { const roleCheckboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked'); roleCheckboxes.forEach(cb => selectedRoles.push(cb.value)); } if (JSON.stringify(player.playableRoles || []) !== JSON.stringify(selectedRoles)) { player.playableRoles = selectedRoles; dataChanged = true; visualChanged = true; } player.personalInfo = player.personalInfo || { birthday: '', phone: '', email: '' }; player.matchStats = player.matchStats || { matchesPlayed: 0, goalsScored: 0 }; if (player.personalInfo.birthday !== detailBirthdayInput.value) { player.personalInfo.birthday = detailBirthdayInput.value; dataChanged = true; } if (player.personalInfo.phone !== detailPhoneInput.value) { player.personalInfo.phone = detailPhoneInput.value; dataChanged = true; } if (player.personalInfo.email !== detailEmailInput.value) { player.personalInfo.email = detailEmailInput.value; dataChanged = true; } const matches = parseInt(detailMatchesPlayedInput.value) || 0; const goals = parseInt(detailGoalsScoredInput.value) || 0; if (player.matchStats.matchesPlayed !== matches) { player.matchStats.matchesPlayed = matches; dataChanged = true; } if (player.matchStats.goalsScored !== goals) { player.matchStats.goalsScored = goals; dataChanged = true; } const currentComment = detailMatchCommentInput.value.trim(); if (currentComment) { if (confirm("Legge til usnlagret kommentar?")) { handleAddCommentToHistory(); dataChanged = true; } } if (dataChanged) { saveSquad(); if (visualChanged) { renderUI(); if (appContainer && appContainer.classList.contains('view-squad')) { renderFullSquadList(); } const pieceElement = playersOnPitch[playerId]; if (pieceElement) { const nameDiv = pieceElement.querySelector('.player-name'); if (nameDiv) nameDiv.textContent = player.nickname || player.name; const imgDiv = pieceElement.querySelector('.player-image'); if (imgDiv) { if (player.imageUrl && typeof player.imageUrl === 'string' && player.imageUrl.trim() !== '' && !player.imageUrl.startsWith('placeholder-file:')) { imgDiv.style.backgroundImage = `url('${player.imageUrl}')`; imgDiv.style.backgroundColor = 'transparent'; } else { imgDiv.style.backgroundImage = 'none'; imgDiv.style.backgroundColor = '#aaa'; } } } } alert("Detaljer lagret."); } closePlayerDetailModal(); }
 // === FUNKSJON: handleSavePlayerDetails END ===
 // === FUNKSJON: handleDeletePlayer START ===
-function handleDeletePlayer(playerId, playerName) { // NY funksjon fra V#114
-    if (!playerId) { console.error("handleDeletePlayer: playerId mangler."); return; }
-    const confirmDelete = confirm(`Er du sikker på at du vil slette spilleren "${playerName || playerId}" permanent?\nSpilleren fjernes fra troppen, banen og benken.`);
-    if (confirmDelete) {
-        console.log(`Sletter spiller: ${playerId}`);
-        const playerIndex = squad.findIndex(p => p.id === playerId);
-        if (playerIndex > -1) { squad.splice(playerIndex, 1); } 
-        else { console.warn(`handleDeletePlayer: Spiller ${playerId} ikke funnet i squad.`); }
-        if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; console.log(` - Spiller ${playerId} fjernet fra banen.`); }
-        const benchIndex = playersOnBench.indexOf(playerId);
-        if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); console.log(` - Spiller ${playerId} fjernet fra benken.`); }
-        saveSquad(); saveCurrentState(); 
-        renderUI(); renderFullSquadList(); 
-        alert(`Spiller "${playerName || playerId}" ble slettet.`);
-    } else { console.log(`Sletting av spiller ${playerId} avbrutt.`); }
-}
+function handleDeletePlayer(playerId, playerName) { if (!playerId) { console.error("handleDeletePlayer: playerId mangler."); return; } const confirmDelete = confirm(`Er du sikker på at du vil slette spilleren "${playerName || playerId}" permanent?\nSpilleren fjernes fra troppen, banen og benken.`); if (confirmDelete) { console.log(`Sletter spiller: ${playerId}`); const playerIndex = squad.findIndex(p => p.id === playerId); if (playerIndex > -1) { squad.splice(playerIndex, 1); } else { console.warn(`handleDeletePlayer: Spiller ${playerId} ikke funnet i squad.`); } if (playersOnPitch[playerId]) { playersOnPitch[playerId].remove(); delete playersOnPitch[playerId]; console.log(` - Spiller ${playerId} fjernet fra banen.`); } const benchIndex = playersOnBench.indexOf(playerId); if (benchIndex > -1) { playersOnBench.splice(benchIndex, 1); console.log(` - Spiller ${playerId} fjernet fra benken.`); } saveSquad(); saveCurrentState(); renderUI(); renderFullSquadList(); alert(`Spiller "${playerName || playerId}" ble slettet.`); } else { console.log(`Sletting av spiller ${playerId} avbrutt.`); } }
 // === FUNKSJON: handleDeletePlayer END ===
 // === FUNKSJON: openBallSettingsModal START ===
 function openBallSettingsModal() { if (!ballSettingsModal) return; const sizeSlider = ballSettingsModal.querySelector('#ball-size-slider'); const sizeValueDisplay = ballSettingsModal.querySelector('#ball-size-value'); const customColorInput = ballSettingsModal.querySelector('#ball-custom-color'); const styleRadios = ballSettingsModal.querySelectorAll('input[name="ball-style"]'); sizeSlider.value = ballSettings.size; sizeValueDisplay.textContent = `${ballSettings.size}px`; customColorInput.value = ballSettings.color; styleRadios.forEach(radio => { radio.checked = radio.value === ballSettings.style; }); ballSettingsModal.style.display = 'block'; }
@@ -152,10 +173,10 @@ function renderBench() { if (!benchListElement) return; benchListElement.innerHT
 function renderSquadList() { if (!squadListElement) return; squadListElement.innerHTML = ''; const availablePlayers = squad.filter(p => !playersOnPitch[p.id] && !playersOnBench.includes(p.id)).sort((a, b) => a.name.localeCompare(b.name)); if (availablePlayers.length === 0 && squad.length > 0) { squadListElement.innerHTML = '<li><i>Alle spillere er plassert.</i></li>'; } else if (squad.length === 0) { squadListElement.innerHTML = '<li><i>Ingen spillere i troppen.</i></li>'; } else { availablePlayers.forEach(player => { const listItem = document.createElement('li'); let roleText = player.mainRole ? ` (${player.mainRole})` : ''; listItem.textContent = (player.nickname || player.name) + roleText; listItem.setAttribute('data-player-id', player.id); listItem.classList.add('squad-player-item', 'draggable'); listItem.setAttribute('draggable', true); listItem.addEventListener('dblclick', () => openPlayerDetailModal(player.id)); squadListElement.appendChild(listItem); }); } addDragListenersToSquadItems(); }
 // === FUNKSJON: renderSquadList END ===
 // === FUNKSJON: renderFullSquadList START ===
-function renderFullSquadList() { // Fra V#114
-    if (!fullSquadListContainer) { console.error("renderFullSquadList: FEIL - Container #full-squad-list-container ikke funnet."); return; }
+function renderFullSquadList() { // Fra V#114 (med flere kolonner + slett)
+    if (!fullSquadListContainer) { console.error("renderFullSquadList: Container ikke funnet."); return; }
     fullSquadListContainer.innerHTML = ''; 
-    if (squad.length === 0) { fullSquadListContainer.innerHTML = '<p>Ingen spillere i troppen enda. Legg til spillere via sidepanelet.</p>'; return; }
+    if (squad.length === 0) { fullSquadListContainer.innerHTML = '<p>Ingen spillere i troppen.</p>'; return; }
     const sortedSquad = [...squad].sort((a, b) => a.name.localeCompare(b.name));
     const table = document.createElement('table'); table.style.width = '100%'; table.style.borderCollapse = 'collapse';
     const thead = table.createTHead(); const headerRow = thead.insertRow(); 
@@ -164,7 +185,7 @@ function renderFullSquadList() { // Fra V#114
     const tbody = table.createTBody();
     sortedSquad.forEach(player => {
         const row = tbody.insertRow(); row.style.borderBottom = '1px solid #eee';
-        const nameCell = row.insertCell(); nameCell.textContent = player.name || 'Ukjent Navn'; nameCell.style.padding = '8px';
+        const nameCell = row.insertCell(); nameCell.textContent = player.name || '?'; nameCell.style.padding = '8px';
         const nicknameCell = row.insertCell(); nicknameCell.textContent = player.nickname || '-'; nicknameCell.style.padding = '8px';
         const mainRoleCell = row.insertCell(); mainRoleCell.textContent = player.mainRole || '-'; mainRoleCell.style.padding = '8px';
         const rolesCell = row.insertCell(); const rolesString = (player.playableRoles && player.playableRoles.length > 0) ? player.playableRoles.map(roleKey => PLAYER_ROLES[roleKey] || roleKey).join(', ') : '-'; rolesCell.textContent = rolesString; rolesCell.style.padding = '8px'; rolesCell.style.fontSize = '0.85em'; 
@@ -262,6 +283,25 @@ function togglePitchRotation() { isPitchRotated = !isPitchRotated; if (!pitchCon
 // === FUNKSJON: switchView START ===
 function switchView(viewName) { if (!appContainer || !navTacticsButton || !navSquadButton) { console.error("switchView: Nødvendige elementer ikke funnet."); return; } appContainer.classList.remove('view-tactics', 'view-squad'); if (viewName === 'tactics') { appContainer.classList.add('view-tactics'); navTacticsButton.classList.add('active'); navSquadButton.classList.remove('active'); resizePitchElement(); } else if (viewName === 'squad') { appContainer.classList.add('view-squad'); navSquadButton.classList.add('active'); navTacticsButton.classList.remove('active'); renderFullSquadList(); } else { console.warn(`Ukjent viewName: ${viewName}. Viser taktikksiden.`); appContainer.classList.add('view-tactics'); navTacticsButton.classList.add('active'); navSquadButton.classList.remove('active'); resizePitchElement(); } console.log(`Byttet til view: ${viewName}`); }
 // === FUNKSJON: switchView END ===
+// === FUNKSJON: handleFormationChange START (NY) ===
+function handleFormationChange(event) {
+    const selectedFormationName = event.target.value;
+    currentFormation = FORMATIONS[selectedFormationName] || null; // Hent data fra FORMATIONS-objektet
+
+    if (currentFormation) {
+        console.log(`Formasjon valgt: ${currentFormation.name}`, currentFormation);
+        // TODO: Implementer logikk for å vise posisjoner/filtrere spillere
+        // f.eks. drawFormationPositions(currentFormation);
+        // f.eks. resetPositionFilter(); 
+    } else {
+        console.log("Ingen formasjon valgt.");
+        // TODO: Implementer logikk for å fjerne evt. formasjonsvisning
+        // f.eks. clearFormationPositions();
+        // f.eks. resetPositionFilter();
+    }
+    // TODO: Lagre currentFormation i saveCurrentState/applyState hvis ønskelig
+}
+// === FUNKSJON: handleFormationChange END ===
 // === 5. Drag and Drop & Valg/Farge/UI Toggles END ===
 
 
@@ -273,13 +313,13 @@ function saveSquad() { try { localStorage.setItem(STORAGE_KEY_SQUAD, JSON.string
 function loadSquad() { const savedSquadJson = localStorage.getItem(STORAGE_KEY_SQUAD); if (savedSquadJson) { try { const parsedSquad = JSON.parse(savedSquadJson); squad = parsedSquad.map(player => ({ ...player, nickname: player.nickname || '', imageUrl: player.imageUrl || '', personalInfo: player.personalInfo || { birthday: '', phone: '', email: '' }, matchStats: player.matchStats || { matchesPlayed: 0, goalsScored: 0 }, comments: player.comments || [], borderColor: player.borderColor || 'black', position: player.position || { x: 50, y: 50 }, mainRole: player.mainRole || '', playableRoles: player.playableRoles || [], status: player.status || DEFAULT_PLAYER_STATUS })); const maxId = squad.reduce((max, p) => { const idNum = p.id && typeof p.id === 'string' ? parseInt(p.id.split('-')[1]) : 0; return Math.max(max, !isNaN(idNum) ? idNum : 0); }, 0); nextPlayerId = maxId + 1; return true; } catch (e) { console.error("Feil ved parsing av tropp:", e); squad = []; localStorage.removeItem(STORAGE_KEY_SQUAD); return false; } } squad = []; return false; }
 // === FUNKSJON: loadSquad END ===
 // === FUNKSJON: getCurrentStateData START ===
-function getCurrentStateData() { const playersOnPitchData = {}; for (const playerId in playersOnPitch) { const player = getPlayerById(playerId); if (player && player.position && typeof player.position.x === 'number' && typeof player.position.y === 'number') { playersOnPitchData[playerId] = { x: player.position.x, y: player.position.y, borderColor: player.borderColor || 'black' }; } else if (player) { playersOnPitchData[playerId] = { x: 50, y: 50, borderColor: player.borderColor || 'black' }; } } return { playersOnPitchData: playersOnPitchData, playersOnBenchIds: [...playersOnBench], isPitchRotated: isPitchRotated, ballPosition: ballSettings.position, ballSettings: { size: ballSettings.size, style: ballSettings.style, color: ballSettings.color } }; }
+function getCurrentStateData() { const playersOnPitchData = {}; for (const playerId in playersOnPitch) { const player = getPlayerById(playerId); if (player && player.position && typeof player.position.x === 'number' && typeof player.position.y === 'number') { playersOnPitchData[playerId] = { x: player.position.x, y: player.position.y, borderColor: player.borderColor || 'black' }; } else if (player) { playersOnPitchData[playerId] = { x: 50, y: 50, borderColor: player.borderColor || 'black' }; } } return { playersOnPitchData: playersOnPitchData, playersOnBenchIds: [...playersOnBench], isPitchRotated: isPitchRotated, ballPosition: ballSettings.position, ballSettings: { size: ballSettings.size, style: ballSettings.style, color: ballSettings.color } /* , currentFormationName: currentFormation ? currentFormation.name : null */ }; /* TODO: Vurder å lagre formasjon */ }
 // === FUNKSJON: getCurrentStateData END ===
 // === FUNKSJON: saveCurrentState START ===
 function saveCurrentState() { try { const stateData = getCurrentStateData(); localStorage.setItem(STORAGE_KEY_LAST_STATE, JSON.stringify(stateData)); } catch (e) { console.error("Feil ved lagring av state:", e); } }
 // === FUNKSJON: saveCurrentState END ===
 // === FUNKSJON: applyState START ===
-function applyState(stateData) { if (!stateData) return; clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = stateData.isPitchRotated || false; if (stateData.ballSettings) { ballSettings.size = stateData.ballSettings.size || 35; ballSettings.style = stateData.ballSettings.style || 'default'; ballSettings.color = stateData.ballSettings.color || '#FFA500'; } applyBallStyle(); if (stateData.ballPosition && typeof stateData.ballPosition.x === 'number' && typeof stateData.ballPosition.y === 'number') { ballSettings.position = stateData.ballPosition; updateBallPosition(stateData.ballPosition.x, stateData.ballPosition.y); } else { ballSettings.position = {x: 50, y: 50}; updateBallPosition(50, 50); } if (pitchContainer) { pitchContainer.classList.toggle('rotated', isPitchRotated); resizePitchElement(); } if (stateData.playersOnPitchData) { for (const playerId in stateData.playersOnPitchData) { const player = getPlayerById(playerId); const positionData = stateData.playersOnPitchData[playerId]; if (player && positionData && typeof positionData.x === 'number' && typeof positionData.y === 'number') { player.position = { x: positionData.x, y: positionData.y }; player.borderColor = positionData.borderColor || 'black'; const piece = createPlayerPieceElement(player, player.position.x, player.position.y); if(pitchSurface) pitchSurface.appendChild(piece); else console.error("FEIL: pitchSurface ikke funnet!"); playersOnPitch[playerId] = piece; } } } if (stateData.playersOnBenchIds) { playersOnBench = stateData.playersOnBenchIds.filter(id => getPlayerById(id)); } renderUI(); }
+function applyState(stateData) { if (!stateData) return; clearPitch(); playersOnPitch = {}; playersOnBench = []; isPitchRotated = stateData.isPitchRotated || false; if (stateData.ballSettings) { ballSettings.size = stateData.ballSettings.size || 35; ballSettings.style = stateData.ballSettings.style || 'default'; ballSettings.color = stateData.ballSettings.color || '#FFA500'; } applyBallStyle(); if (stateData.ballPosition && typeof stateData.ballPosition.x === 'number' && typeof stateData.ballPosition.y === 'number') { ballSettings.position = stateData.ballPosition; updateBallPosition(stateData.ballPosition.x, stateData.ballPosition.y); } else { ballSettings.position = {x: 50, y: 50}; updateBallPosition(50, 50); } if (pitchContainer) { pitchContainer.classList.toggle('rotated', isPitchRotated); resizePitchElement(); } if (stateData.playersOnPitchData) { for (const playerId in stateData.playersOnPitchData) { const player = getPlayerById(playerId); const positionData = stateData.playersOnPitchData[playerId]; if (player && positionData && typeof positionData.x === 'number' && typeof positionData.y === 'number') { player.position = { x: positionData.x, y: positionData.y }; player.borderColor = positionData.borderColor || 'black'; const piece = createPlayerPieceElement(player, player.position.x, player.position.y); if(pitchSurface) pitchSurface.appendChild(piece); else console.error("FEIL: pitchSurface ikke funnet!"); playersOnPitch[playerId] = piece; } } } if (stateData.playersOnBenchIds) { playersOnBench = stateData.playersOnBenchIds.filter(id => getPlayerById(id)); } /* TODO: Gjenopprett formasjon? if (stateData.currentFormationName && FORMATIONS[stateData.currentFormationName]) { currentFormation = FORMATIONS[stateData.currentFormationName]; if (formationSelect) formationSelect.value = stateData.currentFormationName; // Vis i dropdown handleFormationChange({ target: { value: stateData.currentFormationName } }); // Kall handler? } else { currentFormation = null; if (formationSelect) formationSelect.value = ""; } */ renderUI(); }
 // === FUNKSJON: applyState END ===
 // === FUNKSJON: resizePitchElement START ===
 function resizePitchElement() { if (!pitchContainer || !pitchElement) return; const containerWidth = pitchContainer.clientWidth; const containerHeight = pitchContainer.clientHeight; let targetWidth, targetHeight; if (isPitchRotated) { const currentAR = PITCH_ASPECT_RATIO_LANDSCAPE; const heightFromWidth = containerWidth / currentAR; const widthFromHeight = containerHeight * currentAR; if (heightFromWidth <= containerHeight) { targetWidth = containerWidth; targetHeight = heightFromWidth; } else { targetWidth = widthFromHeight; targetHeight = containerHeight; } pitchElement.style.width = `${targetHeight}px`; pitchElement.style.height = `${targetWidth}px`; } else { const currentAR = PITCH_ASPECT_RATIO_PORTRAIT; const widthFromHeight = containerHeight * currentAR; const heightFromWidth = containerWidth / currentAR; if (widthFromHeight <= containerWidth) { targetWidth = widthFromHeight; targetHeight = containerHeight; } else { targetWidth = containerWidth; targetHeight = heightFromWidth; } pitchElement.style.width = `${targetWidth}px`; pitchElement.style.height = `${targetHeight}px`; } }
@@ -319,14 +359,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Andre Globale Listeners ---
     window.addEventListener('click', (event) => { if (addPlayerModal && event.target === addPlayerModal) closeAddPlayerModal(); if (playerDetailModal && event.target === playerDetailModal) closePlayerDetailModal(); if (ballSettingsModal && event.target === ballSettingsModal) closeBallSettingsModal(); if (!event.target.closest('.player-piece') && !event.target.closest('.preset-color-button') && !event.target.closest('#player-border-color') && !event.target.closest('#set-border-color-button') && selectedPlayerIds.size > 0) { clearPlayerSelection(); } });
     // --- Drag & Drop Listeners ---
-    if (pitchElement) { pitchElement.addEventListener('dragover', (e) => handleDragOver(e, 'pitch')); pitchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'pitch')); pitchElement.addEventListener('drop', handleDropOnPitch); } if (benchElement) { benchElement.addEventListener('dragover', (e) => handleDragOver(e, 'bench')); benchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'bench')); benchElement.addEventListener('drop', handleDropOnBench); } if (squadListContainer) { squadListContainer.addEventListener('dragover', (e) => handleDragOver(e, 'squad')); squadListContainer.addEventListener('dragleave', (e) => handleDragLeave(e, 'squad')); squadListContainer.addEventListener('drop', handleDropOnSquadList); } if (ballElement) { ballElement.addEventListener('dragstart', handleBallDragStart); ballElement.addEventListener('dragend', handleDragEnd); } if (onPitchSectionElement) { onPitchSectionElement.addEventListener('dragover', (e) => handleDragOver(e, 'onpitch-list')); onPitchSectionElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'onpitch-list')); onPitchSectionElement.addEventListener('drop', handleDropOnOnPitchList); console.log("Listeners: onPitchSectionElement OK"); } else { console.error("onPitchSectionElement ikke funnet!"); }
+    if (pitchElement) { pitchElement.addEventListener('dragover', (e) => handleDragOver(e, 'pitch')); pitchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'pitch')); pitchElement.addEventListener('drop', handleDropOnPitch); } if (benchElement) { benchElement.addEventListener('dragover', (e) => handleDragOver(e, 'bench')); benchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'bench')); benchElement.addEventListener('drop', handleDropOnBench); } if (squadListContainer) { squadListContainer.addEventListener('dragover', (e) => handleDragOver(e, 'squad')); squadListContainer.addEventListener('dragleave', (e) => handleDragLeave(e, 'squad')); squadListContainer.addEventListener('drop', handleDropOnSquadList); } if (ballElement) { ballElement.addEventListener('dragstart', handleBallDragStart); ballElement.addEventListener('dragend', handleDragEnd); } if (onPitchSectionElement) { onPitchSectionElement.addEventListener('dragover', (e) => handleDragOver(e, 'onpitch-list')); onPitchSectionElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'onpitch-list')); onPitchSectionElement.addEventListener('drop', handleDropOnOnPitchList); }
     // --- Knapp Listeners (Sidepanel etc.) ---
     if (toggleSidebarButton) toggleSidebarButton.addEventListener('click', toggleSidebar); if (rotatePitchButton) rotatePitchButton.addEventListener('click', togglePitchRotation); if (setBorderColorButton) setBorderColorButton.addEventListener('click', handleSetSelectedPlayerBorderColor); if(setColorRedButton) setColorRedButton.addEventListener('click', () => applyBorderColorToSelection('red')); if(setColorYellowButton) setColorYellowButton.addEventListener('click', () => applyBorderColorToSelection('yellow')); if(setColorGreenButton) setColorGreenButton.addEventListener('click', () => applyBorderColorToSelection('lime')); if(setColorDefaultButton) setColorDefaultButton.addEventListener('click', () => applyBorderColorToSelection('black')); if (saveSetupButton) saveSetupButton.addEventListener('click', handleSaveSetup); if (loadSetupButton) loadSetupButton.addEventListener('click', handleLoadSetup); if (deleteSetupButton) deleteSetupButton.addEventListener('click', handleDeleteSetup);
     // --- Navigasjonsknapp Listeners ---
     if (navTacticsButton) navTacticsButton.addEventListener('click', () => switchView('tactics')); if (navSquadButton) navSquadButton.addEventListener('click', () => switchView('squad'));
+    // NYTT: Listener for formasjonsvalg
+    if (formationSelect) { formationSelect.addEventListener('change', handleFormationChange); console.log("Listener: formationSelect OK"); } else { console.error("formationSelect ikke funnet!"); }
     // Resize Listener
     window.addEventListener('resize', resizePitchElement);
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #115 */
+/* Version: #117 */
