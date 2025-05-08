@@ -1,4 +1,4 @@
-/* Version: #148 */
+/* Version: #151 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -51,15 +51,10 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .app-container.view-tactics #tactics-page-content { display: flex; }
 .app-container.view-squad #squad-page-content { display: flex; flex-direction: column; }
 #tactics-page-content { justify-content: center; align-items: center; padding: 5px; }
-
 .main-content-buttons { position: absolute; top: 10px; right: 10px; z-index: 110; display: flex; gap: 5px; }
-#tactics-page-content .rotate-button,
-#tactics-page-content .fullscreen-button { position: static; font-size: 18px; padding: 5px 10px; line-height: 1; border: 1px solid #ccc; background-color: #f0f0f0; color: #333; border-radius: 4px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-#tactics-page-content .rotate-button:hover,
-#tactics-page-content .fullscreen-button:hover { background-color: #e0e0e0; }
-/* Sørger for at ikonet er sentrert */
+#tactics-page-content .rotate-button, #tactics-page-content .fullscreen-button { position: static; font-size: 18px; padding: 5px 10px; line-height: 1; border: 1px solid #ccc; background-color: #f0f0f0; color: #333; border-radius: 4px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+#tactics-page-content .rotate-button:hover, #tactics-page-content .fullscreen-button:hover { background-color: #e0e0e0; }
 .fullscreen-button i { display: block; line-height: inherit; } 
-
 #pitch-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; }
 #pitch { max-width: 100%; max-height: 100%; position: relative; overflow: hidden; border: 2px solid white; transition: transform 0.4s ease-in-out; transform-origin: center center; transform: rotate(0deg); box-shadow: inset 0 0 15px rgba(0,0,0,0.3); background-size: cover; background-position: center center; background-repeat: no-repeat; background-image: url('pitch-background-portrait.jpg'); }
 #pitch-container.rotated #pitch { transform: rotate(90deg); background-image: url('pitch-background.jpg'); }
@@ -134,12 +129,70 @@ input[type="color"]#player-border-color { width: 40px; height: 40px; padding: 0;
 
 /* === Modaler og Diverse UI === */
 .modal { display: none; position: fixed; z-index: 1100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
-.modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; border-radius: 5px; width: 80%; max-width: 500px; position: relative; }
-.modal-content.wide { max-width: 800px; }
-.modal-columns { display: flex; gap: 20px; }
+.modal-content { background-color: #fefefe; margin: 5% auto; /* Mindre margin for mer plass */ padding: 20px; border: 1px solid #888; border-radius: 5px; width: 90%; /* Bredere modal */ max-width: 900px; /* Maks bredde */ position: relative; }
+.modal-content.wide { max-width: 900px; /* Samme som standard nå */ }
+.modal-columns { display: flex; gap: 20px; } /* Gjelder nå internt i faner */
 .modal-column { flex: 1; }
 .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
 .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+
+/* NYTT: Styling for modal-faner */
+.modal-tabs {
+    overflow: hidden;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 15px;
+    background-color: #f1f1f1; /* Lys grå bakgrunn for fanelinjen */
+}
+.modal-tabs button.tab-button {
+    background-color: inherit; /* Arv bakgrunn */
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: background-color 0.3s;
+    font-size: 1em;
+    border-radius: 4px 4px 0 0; /* Avrundede hjørner øverst */
+    margin: 0; /* Fjern default knappemargin */
+    border-right: 1px solid #ccc; /* Skillelinje */
+}
+.modal-tabs button.tab-button:last-child {
+    border-right: none;
+}
+.modal-tabs button.tab-button:hover {
+    background-color: #ddd; /* Mørkere grå ved hover */
+}
+.modal-tabs button.tab-button.active {
+    background-color: #fff; /* Hvit bakgrunn for aktiv fane */
+    border-bottom: 2px solid #4CAF50; /* Grønn bunnlinje */
+    position: relative;
+    top: 1px; /* Flytt litt opp for å "koble" til innholdet */
+    border-right-color: transparent; /* Fjern høyre kant */
+    border-left-color: transparent; /* Fjern venstre kant (hvis den får det) */
+}
+.modal-tab-content {
+    display: none; /* Skjul innhold som standard */
+    padding: 15px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+    background-color: #fff; /* Hvit bakgrunn for innhold */
+    border-radius: 0 0 4px 4px; /* Avrundede hjørner nederst */
+}
+.modal-tab-content.active {
+    display: block; /* Vis aktiv fane */
+}
+/* Justeringer for innhold i faner */
+.modal-tab-content h4 { 
+    margin-top: 0; /* Første tittel har ikke ekstra toppmargin */
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+.modal-tab-content .modal-columns {
+    margin-bottom: 15px; /* Litt luft under kolonner */
+}
+/* Slutt på nytt */
+
 .detail-image-display { width: 150px; height: 150px; background-color: #eee; background-size: cover; background-position: center; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; text-align: center; color: #888; font-size: 0.9em; }
 .detail-image-display span { padding: 5px; }
 .comment-history { max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin-top: 5px; background-color: #f9f9f9; }
@@ -160,4 +213,4 @@ input[type="file"] { margin: 5px 0; width: auto; }
 input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 
-/* Version: #148 */
+/* Version: #151 */
