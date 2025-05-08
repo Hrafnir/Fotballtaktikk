@@ -1,12 +1,12 @@
-/* Version: #120 */
+/* Version: #121 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
-let playersOnPitch = {}; // { playerId: element }
-let playersOnBench = []; // [playerId1, playerId2]
+let playersOnPitch = {}; 
+let playersOnBench = []; 
 let nextPlayerId = 1;
 let draggedPlayerId = null;
 let draggedElement = null;
-let dragSource = null; // 'squad', 'pitch', 'bench', 'ball', 'onpitch-list'
+let dragSource = null; 
 let selectedPlayerIds = new Set();
 let isSidebarHidden = false;
 let isPitchRotated = false; 
@@ -16,6 +16,7 @@ let ballSettings = {
 };
 
 let currentFormation = null; 
+let selectedFormationPosition = null; // NY: Holder info om valgt posisjon {id, name, roles}
 
 const MAX_PLAYERS_ON_PITCH = 11;
 const PITCH_ASPECT_RATIO_PORTRAIT = 2 / 3;
@@ -32,7 +33,7 @@ const DEFAULT_PLAYER_STATUS = 'AVAILABLE';
 const FORMATIONS = {
     "4-4-2": {
         name: "4-4-2",
-        positions: [ // x, y er % fra topp-venstre
+        positions: [
             { id: 'gk', name: 'Keeper', roles: ['K'], x: 50, y: 92 },
             { id: 'dr', name: 'Høyre Back', roles: ['HB', 'HVB'], x: 85, y: 75 },
             { id: 'dl', name: 'Venstre Back', roles: ['VB', 'VVB'], x: 15, y: 75 },
@@ -100,7 +101,7 @@ const FORMATIONS = {
 
 // === 1. DOM Element Referanser START ===
 // ... (som før V#118) ...
-let appContainer, sidebar, toggleSidebarButton, onPitchListElement, benchListElement, squadListElement, squadListContainer, onPitchCountElement, onBenchCountElement, pitchElement, pitchSurface, rotatePitchButton, addPlayerButton, playerBorderColorInput, setBorderColorButton, setColorRedButton, setColorYellowButton, setColorGreenButton, setColorDefaultButton, toggleDrawModeButton, clearDrawingsButton, setupNameInput, saveSetupButton, loadSetupSelect, loadSetupButton, deleteSetupButton, exportPngButton, pitchContainer, drawingCanvas, ballElement, navTacticsButton, navSquadButton, tacticsPageContent, squadPageContent, fullSquadListContainer, onPitchSectionElement, formationSelect, addPlayerModal, closeButton, newPlayerNameInput, newPlayerImageUpload, newPlayerImageUrlInput, newPlayerMainRoleInput, confirmAddPlayerButton, playerDetailModal, ballSettingsModal, benchElement;
+let appContainer, sidebar, toggleSidebarButton, onPitchListElement, benchListElement, squadListElement, squadListContainer, onPitchCountElement, onBenchCountElement, pitchElement, pitchSurface, rotatePitchButton, addPlayerButton, playerBorderColorInput, setBorderColorButton, setColorRedButton, setColorYellowButton, setColorGreenButton, setColorDefaultButton, toggleDrawModeButton, clearDrawingsButton, setupNameInput, saveSetupButton, loadSetupSelect, loadSetupButton, deleteSetupButton, exportPngButton, pitchContainer, drawingCanvas, ballElement, navTacticsButton, navSquadButton, tacticsPageContent, squadPageContent, fullSquadListContainer, onPitchSectionElement, formationSelect, addPlayerModal, closeButton, newPlayerNameInput, newPlayerImageUpload, newPlayerImageUrlInput, newPlayerMainRoleInput, confirmAddPlayerButton, playerDetailModal, ballSettingsModal, benchElement, squadManagementSection; // Lagt til squadManagementSection
 // === 1. DOM Element Referanser END ===
 
 
@@ -165,7 +166,66 @@ function renderOnPitchList() { if (!onPitchListElement) return; onPitchListEleme
 function renderBench() { if (!benchListElement) return; benchListElement.innerHTML = ''; if (playersOnBench.length === 0) { benchListElement.innerHTML = '<li><i>Benken er tom.</i></li>'; return; } const sortedPlayers = playersOnBench.map(id => getPlayerById(id)).filter(p => p).sort((a, b) => a.name.localeCompare(b.name)); sortedPlayers.forEach(player => { const listItem = document.createElement('li'); let roleText = player.mainRole ? ` (${player.mainRole})` : ''; listItem.textContent = (player.nickname || player.name) + roleText; listItem.setAttribute('data-player-id', player.id); listItem.classList.add('bench-player-item', 'draggable'); listItem.setAttribute('draggable', true); listItem.addEventListener('dblclick', () => openPlayerDetailModal(player.id)); benchListElement.appendChild(listItem); }); addDragListenersToBenchItems(); }
 // === FUNKSJON: renderBench END ===
 // === FUNKSJON: renderSquadList START ===
-function renderSquadList() { if (!squadListElement) return; squadListElement.innerHTML = ''; const availablePlayers = squad.filter(p => !playersOnPitch[p.id] && !playersOnBench.includes(p.id)).sort((a, b) => a.name.localeCompare(b.name)); if (availablePlayers.length === 0 && squad.length > 0) { squadListElement.innerHTML = '<li><i>Alle spillere er plassert.</i></li>'; } else if (squad.length === 0) { squadListElement.innerHTML = '<li><i>Ingen spillere i troppen.</i></li>'; } else { availablePlayers.forEach(player => { const listItem = document.createElement('li'); let roleText = player.mainRole ? ` (${player.mainRole})` : ''; listItem.textContent = (player.nickname || player.name) + roleText; listItem.setAttribute('data-player-id', player.id); listItem.classList.add('squad-player-item', 'draggable'); listItem.setAttribute('draggable', true); listItem.addEventListener('dblclick', () => openPlayerDetailModal(player.id)); squadListElement.appendChild(listItem); }); } addDragListenersToSquadItems(); }
+function renderSquadList() {
+    if (!squadListElement || !squadManagementSection) return;
+    squadListElement.innerHTML = ''; // Tøm alltid listen først
+
+    // Finn standard tittel element
+    const titleElement = squadManagementSection.querySelector('h3');
+    const defaultTitle = "Tropp (Tilgjengelige)";
+
+    let playersToList = [];
+    let currentTitle = defaultTitle;
+
+    // Sjekk om en formasjonsposisjon er valgt
+    if (selectedFormationPosition && selectedFormationPosition.roles) {
+        currentTitle = `Tilgjengelige for ${selectedFormationPosition.name || selectedFormationPosition.id.toUpperCase()}:`;
+        console.log(`Filtrerer for roller: ${selectedFormationPosition.roles.join(', ')}`);
+        // Filtrer HELE troppen
+        playersToList = squad.filter(p => 
+            !playersOnPitch[p.id] &&                 // Ikke på banen
+            !playersOnBench.includes(p.id) &&        // Ikke på benken
+            p.playableRoles &&                       // Må ha roller definert
+            p.playableRoles.some(playerRole => selectedFormationPosition.roles.includes(playerRole)) // Må ha minst én av de påkrevde rollene
+        ).sort((a, b) => a.name.localeCompare(b.name));
+        console.log(`Fant ${playersToList.length} spillere for posisjonen.`);
+
+    } else {
+        // Ingen posisjon valgt, vis alle tilgjengelige
+        playersToList = squad.filter(p => !playersOnPitch[p.id] && !playersOnBench.includes(p.id))
+                             .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    // Oppdater tittel
+    if (titleElement) {
+        titleElement.textContent = currentTitle;
+    } else {
+        console.warn("Fant ikke tittelelement for tropplisten.");
+    }
+
+    // Fyll listen
+    if (playersToList.length === 0) {
+         if (selectedFormationPosition) {
+             squadListElement.innerHTML = '<li><i>Ingen tilgjengelige spillere med passende rolle(r).</i></li>';
+         } else if (squad.length === 0) {
+             squadListElement.innerHTML = '<li><i>Ingen spillere i troppen.</i></li>';
+         } else {
+             squadListElement.innerHTML = '<li><i>Alle spillere er plassert.</i></li>';
+         }
+    } else {
+        playersToList.forEach(player => {
+            const listItem = document.createElement('li');
+            let roleText = player.mainRole ? ` (${player.mainRole})` : '';
+            listItem.textContent = (player.nickname || player.name) + roleText;
+            listItem.setAttribute('data-player-id', player.id);
+            listItem.classList.add('squad-player-item', 'draggable');
+            listItem.setAttribute('draggable', true);
+            listItem.addEventListener('dblclick', () => openPlayerDetailModal(player.id));
+            squadListElement.appendChild(listItem);
+        });
+    }
+    addDragListenersToSquadItems();
+}
 // === FUNKSJON: renderSquadList END ===
 // === FUNKSJON: renderFullSquadList START ===
 function renderFullSquadList() { if (!fullSquadListContainer) { console.error("renderFullSquadList: Container ikke funnet."); return; } fullSquadListContainer.innerHTML = ''; if (squad.length === 0) { fullSquadListContainer.innerHTML = '<p>Ingen spillere i troppen.</p>'; return; } const sortedSquad = [...squad].sort((a, b) => a.name.localeCompare(b.name)); const table = document.createElement('table'); table.style.width = '100%'; table.style.borderCollapse = 'collapse'; const thead = table.createTHead(); const headerRow = thead.insertRow(); const headers = ['Navn', 'Kallenavn', 'Hovedpos.', 'Roller', 'Status', 'Handlinger']; headers.forEach(text => { const th = document.createElement('th'); th.textContent = text; th.style.borderBottom = '2px solid #ccc'; th.style.padding = '8px'; th.style.textAlign = 'left'; headerRow.appendChild(th); }); const tbody = table.createTBody(); sortedSquad.forEach(player => { const row = tbody.insertRow(); row.style.borderBottom = '1px solid #eee'; const nameCell = row.insertCell(); nameCell.textContent = player.name || '?'; nameCell.style.padding = '8px'; const nicknameCell = row.insertCell(); nicknameCell.textContent = player.nickname || '-'; nicknameCell.style.padding = '8px'; const mainRoleCell = row.insertCell(); mainRoleCell.textContent = player.mainRole || '-'; mainRoleCell.style.padding = '8px'; const rolesCell = row.insertCell(); const rolesString = (player.playableRoles && player.playableRoles.length > 0) ? player.playableRoles.map(roleKey => PLAYER_ROLES[roleKey] || roleKey).join(', ') : '-'; rolesCell.textContent = rolesString; rolesCell.style.padding = '8px'; rolesCell.style.fontSize = '0.85em'; const statusCell = row.insertCell(); statusCell.textContent = PLAYER_STATUSES[player.status] || player.status; statusCell.style.padding = '8px'; if (player.status === 'INJURED_SHORT' || player.status === 'INJURED_LONG') { statusCell.style.color = 'orange'; } else if (player.status === 'SUSPENDED' || player.status === 'UNAVAILABLE') { statusCell.style.color = 'red'; } else if (player.status === 'AVAILABLE') { statusCell.style.color = 'green'; } const actionsCell = row.insertCell(); actionsCell.style.padding = '8px'; actionsCell.style.whiteSpace = 'nowrap'; const editButton = document.createElement('button'); editButton.textContent = 'Rediger'; editButton.style.padding = '4px 8px'; editButton.style.marginRight = '5px'; editButton.classList.add('action-button'); editButton.addEventListener('click', () => openPlayerDetailModal(player.id)); actionsCell.appendChild(editButton); const deleteButton = document.createElement('button'); deleteButton.textContent = 'Slett'; deleteButton.style.padding = '4px 8px'; deleteButton.style.backgroundColor = '#f44336'; deleteButton.classList.add('action-button'); deleteButton.addEventListener('click', () => handleDeletePlayer(player.id, player.name)); actionsCell.appendChild(deleteButton); }); fullSquadListContainer.appendChild(table); }
@@ -257,38 +317,32 @@ function togglePitchRotation() { isPitchRotated = !isPitchRotated; if (!pitchCon
 function switchView(viewName) { if (!appContainer || !navTacticsButton || !navSquadButton) { console.error("switchView: Nødvendige elementer ikke funnet."); return; } appContainer.classList.remove('view-tactics', 'view-squad'); if (viewName === 'tactics') { appContainer.classList.add('view-tactics'); navTacticsButton.classList.add('active'); navSquadButton.classList.remove('active'); resizePitchElement(); } else if (viewName === 'squad') { appContainer.classList.add('view-squad'); navSquadButton.classList.add('active'); navTacticsButton.classList.remove('active'); renderFullSquadList(); } else { console.warn(`Ukjent viewName: ${viewName}. Viser taktikksiden.`); appContainer.classList.add('view-tactics'); navTacticsButton.classList.add('active'); navSquadButton.classList.remove('active'); resizePitchElement(); } console.log(`Byttet til view: ${viewName}`); }
 // === FUNKSJON: switchView END ===
 // === FUNKSJON: handleFormationChange START ===
-function handleFormationChange(event) { // Fra V#117
+function handleFormationChange(event) { 
     const selectedFormationName = event.target.value;
     currentFormation = FORMATIONS[selectedFormationName] || null; 
 
-    clearFormationPositions(); // Fjern gamle markører først
+    clearFormationPositions(); 
+    resetPositionFilter(); // Nullstill filter når formasjon endres
 
     if (currentFormation) {
         console.log(`Formasjon valgt: ${currentFormation.name}`, currentFormation);
-        drawFormationPositions(currentFormation); // Tegn nye markører
+        drawFormationPositions(currentFormation); 
     } else {
         console.log("Ingen formasjon valgt.");
     }
-    // TODO: Lagre valgt formasjon i state?
 }
 // === FUNKSJON: handleFormationChange END ===
-// === FUNKSJON: clearFormationPositions START (NY) ===
-function clearFormationPositions() {
-    if (!pitchSurface) {
-        console.error("clearFormationPositions: pitchSurface ikke funnet!");
-        return;
-    }
+// === FUNKSJON: clearFormationPositions START ===
+function clearFormationPositions() { // Fra V#120
+    if (!pitchSurface) { console.error("clearFormationPositions: pitchSurface ikke funnet!"); return; }
     const markers = pitchSurface.querySelectorAll('.formation-position-marker');
     markers.forEach(marker => marker.remove());
     console.log("Formasjonsmarkører fjernet.");
 }
 // === FUNKSJON: clearFormationPositions END ===
-// === FUNKSJON: drawFormationPositions START (NY) ===
-function drawFormationPositions(formation) {
-    if (!formation || !formation.positions || !pitchSurface) {
-        console.error("drawFormationPositions: Mangler formasjonsdata eller pitchSurface.", formation, pitchSurface);
-        return;
-    }
+// === FUNKSJON: drawFormationPositions START ===
+function drawFormationPositions(formation) { // Fra V#120, med oppdatert klikk-handler
+    if (!formation || !formation.positions || !pitchSurface) { console.error("drawFormationPositions: Mangler formasjonsdata eller pitchSurface.", formation, pitchSurface); return; }
     console.log(`Tegner posisjoner for: ${formation.name}`);
 
     formation.positions.forEach(pos => {
@@ -296,31 +350,62 @@ function drawFormationPositions(formation) {
         marker.classList.add('formation-position-marker');
         marker.style.left = `${pos.x}%`;
         marker.style.top = `${pos.y}%`;
-        marker.textContent = pos.id.toUpperCase(); // Vis ID som tekst (f.eks. GK, DR)
-        marker.title = `${pos.name} (Roller: ${pos.roles.join(', ')})`; // Tooltip med mer info
-
-        // Lagre data for senere bruk (filtrering/klikk)
+        marker.textContent = pos.id.toUpperCase(); 
+        marker.title = `${pos.name} (Roller: ${pos.roles.join(', ')})`; 
         marker.setAttribute('data-pos-id', pos.id);
         marker.setAttribute('data-pos-name', pos.name);
-        marker.setAttribute('data-roles', JSON.stringify(pos.roles)); // Lagre roller som JSON-streng
+        marker.setAttribute('data-roles', JSON.stringify(pos.roles)); 
 
-        // Legg til klikk-listener (foreløpig bare logging)
-        marker.addEventListener('click', () => {
-            console.log(`Klikket på posisjon: ${pos.name} (ID: ${pos.id}), Roller: ${pos.roles.join(', ')}`);
-            // TODO: Implementer logikk for å velge posisjon og filtrere spillere
-            // 1. Fjern .selected fra andre markører
-            // 2. Legg til .selected på denne
-            // 3. Kall en funksjon for å filtrere/vise spillere
+        // NY Klikk-handler for filtrering
+        marker.addEventListener('click', (e) => {
+            e.stopPropagation(); // Forhindre at klikket går videre til window-listeneren
+            handlePositionMarkerClick(marker, pos);
         });
 
         pitchSurface.appendChild(marker);
     });
 }
 // === FUNKSJON: drawFormationPositions END ===
+// === FUNKSJON: handlePositionMarkerClick START (NY) ===
+function handlePositionMarkerClick(markerElement, positionData) {
+    console.log(`Klikket på posisjon: ${positionData.name} (ID: ${positionData.id}), Roller: ${positionData.roles.join(', ')}`);
+
+    // Sjekk om denne allerede er valgt
+    const isAlreadySelected = markerElement.classList.contains('selected');
+
+    // Fjern .selected fra alle markører
+    clearSelectedPositionMarker();
+
+    if (isAlreadySelected) {
+        // Klikket på den som var valgt -> nullstill filter
+        resetPositionFilter();
+    } else {
+        // Ny posisjon valgt
+        markerElement.classList.add('selected');
+        selectedFormationPosition = positionData; // Lagre info om valgt posisjon
+        renderSquadList(); // Oppdater listen med filter
+    }
+}
+// === FUNKSJON: handlePositionMarkerClick END ===
+// === FUNKSJON: clearSelectedPositionMarker START (NY) ===
+function clearSelectedPositionMarker() {
+    const selectedMarkers = pitchSurface.querySelectorAll('.formation-position-marker.selected');
+    selectedMarkers.forEach(marker => marker.classList.remove('selected'));
+}
+// === FUNKSJON: clearSelectedPositionMarker END ===
+// === FUNKSJON: resetPositionFilter START (NY) ===
+function resetPositionFilter() {
+    console.log("Nullstiller posisjonsfilter.");
+    selectedFormationPosition = null;
+    clearSelectedPositionMarker();
+    renderSquadList(); // Gjengir standardlisten
+}
+// === FUNKSJON: resetPositionFilter END ===
 // === 5. Drag and Drop & Valg/Farge/UI Toggles END ===
 
 
 // === 6. Lokal Lagring START ===
+// ... (alle lagringsfunksjoner som før V#118) ...
 // === FUNKSJON: saveSquad START ===
 function saveSquad() { try { localStorage.setItem(STORAGE_KEY_SQUAD, JSON.stringify(squad)); } catch (e) { console.error("Feil ved lagring av tropp:", e); } }
 // === FUNKSJON: saveSquad END ===
@@ -367,13 +452,26 @@ function populateSetupDropdown() { if (!loadSetupSelect) return; const savedSetu
 document.addEventListener('DOMContentLoaded', () => {
     // Hent referanser
     appContainer = document.querySelector('.app-container'); sidebar = document.querySelector('.sidebar'); toggleSidebarButton = document.getElementById('toggle-sidebar-button'); onPitchListElement = document.getElementById('on-pitch-list'); benchListElement = document.getElementById('bench-list'); squadListElement = document.getElementById('squad-list'); squadListContainer = document.getElementById('squad-list-container'); onPitchCountElement = document.getElementById('on-pitch-count'); onBenchCountElement = document.getElementById('on-bench-count'); pitchElement = document.getElementById('pitch'); pitchSurface = document.getElementById('pitch-surface'); rotatePitchButton = document.getElementById('rotate-pitch-button'); addPlayerButton = document.getElementById('add-player-button'); playerBorderColorInput = document.getElementById('player-border-color'); setBorderColorButton = document.getElementById('set-border-color-button'); setColorRedButton = document.getElementById('set-color-red'); setColorYellowButton = document.getElementById('set-color-yellow'); setColorGreenButton = document.getElementById('set-color-green'); setColorDefaultButton = document.getElementById('set-color-default'); toggleDrawModeButton = document.getElementById('toggle-draw-mode-button'); clearDrawingsButton = document.getElementById('clear-drawings-button'); setupNameInput = document.getElementById('setup-name'); saveSetupButton = document.getElementById('save-setup-button'); loadSetupSelect = document.getElementById('load-setup-select'); loadSetupButton = document.getElementById('load-setup-button'); deleteSetupButton = document.getElementById('delete-setup-button'); exportPngButton = document.getElementById('export-png-button'); pitchContainer = document.getElementById('pitch-container'); drawingCanvas = document.getElementById('drawing-canvas'); ballElement = document.getElementById('ball'); navTacticsButton = document.getElementById('nav-tactics-button'); navSquadButton = document.getElementById('nav-squad-button'); tacticsPageContent = document.getElementById('tactics-page-content'); squadPageContent = document.getElementById('squad-page-content'); fullSquadListContainer = document.getElementById('full-squad-list-container'); onPitchSectionElement = document.getElementById('on-pitch-section'); formationSelect = document.getElementById('formation-select'); addPlayerModal = document.getElementById('add-player-modal'); closeButton = addPlayerModal ? addPlayerModal.querySelector('.close-button') : null; newPlayerNameInput = document.getElementById('new-player-name'); newPlayerImageUpload = document.getElementById('new-player-image-upload'); newPlayerImageUrlInput = document.getElementById('new-player-image-url'); newPlayerMainRoleInput = document.getElementById('new-player-main-role'); confirmAddPlayerButton = document.getElementById('confirm-add-player'); playerDetailModal = document.getElementById('player-detail-modal'); ballSettingsModal = document.getElementById('ball-settings-modal'); benchElement = document.getElementById('bench'); 
-    
+    squadManagementSection = document.getElementById('squad-management'); // Hent referanse til seksjonen
+
     // Last data 
     loadSquad(); loadLastState(); populateSetupDropdown();
 
     // --- Listeners ---
     if (addPlayerButton) addPlayerButton.addEventListener('click', openAddPlayerModal); if (closeButton) closeButton.addEventListener('click', closeAddPlayerModal); if (confirmAddPlayerButton) confirmAddPlayerButton.addEventListener('click', handleAddPlayerConfirm); const detailModalCloseBtn = playerDetailModal ? playerDetailModal.querySelector('.close-detail-button') : null; const detailModalSaveBtn = playerDetailModal ? playerDetailModal.querySelector('#save-details-button') : null; const detailModalAddCommentBtn = playerDetailModal ? playerDetailModal.querySelector('#add-comment-to-history-button') : null; if (detailModalCloseBtn) detailModalCloseBtn.addEventListener('click', closePlayerDetailModal); if (detailModalSaveBtn) detailModalSaveBtn.addEventListener('click', handleSavePlayerDetails); if (detailModalAddCommentBtn) detailModalAddCommentBtn.addEventListener('click', handleAddCommentToHistory); if (ballElement) ballElement.addEventListener('dblclick', openBallSettingsModal); if (ballSettingsModal) { const closeBallBtn = ballSettingsModal.querySelector('.close-ball-settings-button'); const saveBallBtn = ballSettingsModal.querySelector('#save-ball-settings-button'); const sizeSlider = ballSettingsModal.querySelector('#ball-size-slider'); if (closeBallBtn) closeBallBtn.addEventListener('click', closeBallSettingsModal); if (saveBallBtn) saveBallBtn.addEventListener('click', handleSaveBallSettings); if (sizeSlider) sizeSlider.addEventListener('input', handleBallSizeChange); window.addEventListener('click', (event) => { if (event.target === ballSettingsModal) closeBallSettingsModal(); }); }
-    window.addEventListener('click', (event) => { if (addPlayerModal && event.target === addPlayerModal) closeAddPlayerModal(); if (playerDetailModal && event.target === playerDetailModal) closePlayerDetailModal(); if (ballSettingsModal && event.target === ballSettingsModal) closeBallSettingsModal(); if (!event.target.closest('.player-piece') && !event.target.closest('.formation-position-marker') && !event.target.closest('.preset-color-button') && !event.target.closest('#player-border-color') && !event.target.closest('#set-border-color-button') && selectedPlayerIds.size > 0) { clearPlayerSelection(); } }); // Lagt til !event.target.closest('.formation-position-marker')
+    window.addEventListener('click', (event) => { 
+        if (addPlayerModal && event.target === addPlayerModal) closeAddPlayerModal(); 
+        if (playerDetailModal && event.target === playerDetailModal) closePlayerDetailModal(); 
+        if (ballSettingsModal && event.target === ballSettingsModal) closeBallSettingsModal(); 
+        // Nullstill spillerbrikke-valg ved klikk utenfor
+        if (!event.target.closest('.player-piece') && !event.target.closest('.preset-color-button') && !event.target.closest('#player-border-color') && !event.target.closest('#set-border-color-button') && selectedPlayerIds.size > 0) { clearPlayerSelection(); } 
+        // NYTT: Nullstill posisjonsfilter ved klikk utenfor markører
+        if (!event.target.closest('.formation-position-marker')) {
+            if (selectedFormationPosition) { // Kun hvis et filter er aktivt
+                 resetPositionFilter();
+            }
+        }
+    }); 
     if (pitchElement) { pitchElement.addEventListener('dragover', (e) => handleDragOver(e, 'pitch')); pitchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'pitch')); pitchElement.addEventListener('drop', handleDropOnPitch); } if (benchElement) { benchElement.addEventListener('dragover', (e) => handleDragOver(e, 'bench')); benchElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'bench')); benchElement.addEventListener('drop', handleDropOnBench); } if (squadListContainer) { squadListContainer.addEventListener('dragover', (e) => handleDragOver(e, 'squad')); squadListContainer.addEventListener('dragleave', (e) => handleDragLeave(e, 'squad')); squadListContainer.addEventListener('drop', handleDropOnSquadList); } if (ballElement) { ballElement.addEventListener('dragstart', handleBallDragStart); ballElement.addEventListener('dragend', handleDragEnd); } if (onPitchSectionElement) { onPitchSectionElement.addEventListener('dragover', (e) => handleDragOver(e, 'onpitch-list')); onPitchSectionElement.addEventListener('dragleave', (e) => handleDragLeave(e, 'onpitch-list')); onPitchSectionElement.addEventListener('drop', handleDropOnOnPitchList); }
     if (toggleSidebarButton) toggleSidebarButton.addEventListener('click', toggleSidebar); if (rotatePitchButton) rotatePitchButton.addEventListener('click', togglePitchRotation); if (setBorderColorButton) setBorderColorButton.addEventListener('click', handleSetSelectedPlayerBorderColor); if(setColorRedButton) setColorRedButton.addEventListener('click', () => applyBorderColorToSelection('red')); if(setColorYellowButton) setColorYellowButton.addEventListener('click', () => applyBorderColorToSelection('yellow')); if(setColorGreenButton) setColorGreenButton.addEventListener('click', () => applyBorderColorToSelection('lime')); if(setColorDefaultButton) setColorDefaultButton.addEventListener('click', () => applyBorderColorToSelection('black')); if (saveSetupButton) saveSetupButton.addEventListener('click', handleSaveSetup); if (loadSetupButton) loadSetupButton.addEventListener('click', handleLoadSetup); if (deleteSetupButton) deleteSetupButton.addEventListener('click', handleDeleteSetup);
     if (navTacticsButton) navTacticsButton.addEventListener('click', () => switchView('tactics')); if (navSquadButton) navSquadButton.addEventListener('click', () => switchView('squad'));
@@ -382,4 +480,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 7. Event Listeners END ===
-/* Version: #120 */
+/* Version: #121 */
