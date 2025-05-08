@@ -1,4 +1,4 @@
-/* Version: #109 */
+/* Version: #110 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -28,20 +28,15 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #bench-list { max-height: 180px; overflow-y: auto; flex-grow: 1; }
 #squad-management { flex-grow: 1; display: flex; flex-direction: column; }
 #squad-list-container { border: 1px solid #ddd; background-color: #fff; overflow-y: auto; flex-grow: 1; min-height: 50px; }
-
-/* Styling for drop targets i sidepanelet */
 #on-pitch-section.drag-over { background-color: rgba(173, 216, 230, 0.3); border-color: #add8e6; } 
 #bench.drag-over { background-color: rgba(255, 235, 150, 0.3); border-color: #ffcc66; }
 #squad-list-container.drag-over { background-color: rgba(200, 200, 200, 0.2); border-color: #999999; }
-
-/* Navigasjonsknapper i sidepanel */
 #navigation-section { padding: 5px 10px; background-color: #d0d0d0; border-color: #bbb; }
 #navigation-section h3 { margin-bottom: 5px; }
 .nav-button { width: calc(50% - 4px); margin: 2px; padding: 10px 5px; background-color: #e0e0e0; border: 1px solid #ccc; color: #333; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; }
 .nav-button:hover { background-color: #d5d5d5; }
 .nav-button.active { background-color: #4CAF50; color: white; border-color: #45a049; cursor: default; }
 .nav-button:not(.active):hover { background-color: #c8c8c8; }
-
 
 /* === 2 & 3. Hovedområde (Sidevisning) START === */
 .main-content { 
@@ -55,25 +50,17 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     position: relative; 
 }
 .page-content { 
-    display: none; /* Skjul alle sider som standard */ 
+    display: none; 
     width: 100%; 
     height: 100%; 
-    overflow: auto; 
+    overflow: hidden; /* Endret til hidden for å se om containeren begrenser */
 }
-
-/* Vis riktig side basert på klasse på .app-container */
 .app-container.view-tactics #tactics-page-content { display: flex; }
 .app-container.view-squad #squad-page-content { display: flex; flex-direction: column; }
 
 /* Taktikkside spesifikk */
-#tactics-page-content { 
-    justify-content: center; 
-    align-items: center; 
-    padding: 5px; 
-}
-#tactics-page-content .rotate-button { 
-    position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; 
-}
+#tactics-page-content { justify-content: center; align-items: center; padding: 5px; }
+#tactics-page-content .rotate-button { position: absolute; top: 10px; right: 10px; z-index: 100; font-size: 20px; padding: 5px 10px; line-height: 1; }
 
 /* Pitch Container & Pitch */
 #pitch-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; }
@@ -86,6 +73,7 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
     padding: 20px; 
     background-color: #f8f8f8; 
     align-items: center; 
+    overflow-y: auto; /* Tillater scrolling på selve siden hvis innholdet blir for høyt */
 }
 #squad-page-content h2 { 
     width: 90%; 
@@ -100,11 +88,10 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #full-squad-list-container { 
     width: 90%; 
     max-width: 1000px; 
-    flex-grow: 1; /* Tilbake til flex-grow */
-    min-height: 200px; /* Beholder min-height */
+    height: calc(100% - 80px); /* NYTT: Prøver med prosentbasert høyde minus ca tittelhøyde */
     overflow-y: auto; 
-    background-color: #fff; 
-    border: 1px solid #ddd; /* Tilbake til vanlig border */
+    background-color: lightblue; /* NYTT: Test-bakgrunn */
+    border: 1px solid #ddd; 
     border-radius: 4px; 
     padding: 15px; 
     box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
@@ -112,10 +99,10 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 }
 /* Stil for tabell */
 #full-squad-list-container table { width: 100%; border-collapse: collapse; }
-#full-squad-list-container th, #full-squad-list-container td { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
+#full-squad-list-container th, #full-squad-list-container td { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; background-color: white; /* Sikrer at tabellceller har bakgrunn */ }
 #full-squad-list-container th { border-bottom-width: 2px; border-color: #ccc; font-weight: bold; background-color: #f9f9f9; }
 #full-squad-list-container tr:last-child td { border-bottom: none; }
-#full-squad-list-container tr:hover { background-color: #f5f5f5; }
+#full-squad-list-container tr:hover td { background-color: #f5f5f5; } /* Endret til å gjelde td for å overstyre */
 #full-squad-list-container .action-button { padding: 4px 8px; font-size: 0.9em; }
 /* === 2 & 3. Hovedområde (Sidevisning) END === */
 
@@ -188,4 +175,4 @@ input[type="file"] { margin: 5px 0; width: auto; }
 input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 
-/* Version: #109 */
+/* Version: #110 */
