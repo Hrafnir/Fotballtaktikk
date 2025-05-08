@@ -1,14 +1,13 @@
-<!-- Version: #95 -->
+<!-- Version: #103 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fotballtaktiker</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link til Version: #89 -->
+    <link rel="stylesheet" href="style.css"> <!-- Link til Version: #96 -->
 </head>
 <body>
-    <!-- NYTT: Klasse "view-tactics" for å vise taktikksiden som standard -->
     <div class="app-container view-tactics"> 
 
         <button id="toggle-sidebar-button" class="sidebar-toggle-button" title="Skjul/Vis sidepanel"><</button>
@@ -16,7 +15,6 @@
         <!-- === 1. Kontrollpanel / Sidepanel START === -->
         <aside class="sidebar">
             
-            <!-- NYTT: Navigasjonsseksjon -->
             <div id="navigation-section" class="control-section">
                 <h3>Navigasjon</h3>
                 <button id="nav-tactics-button" class="nav-button active">Taktikk</button>
@@ -24,7 +22,8 @@
             </div>
 
             <h2>Kontrollpanel</h2> 
-            <div id="on-pitch-section" class="control-section">
+            <!-- NYTT: Lagt til klassen "drop-target" -->
+            <div id="on-pitch-section" class="control-section drop-target"> 
                 <h3>På Banen (<span id="on-pitch-count">0</span>/11)</h3>
                 <ul id="on-pitch-list"><li><i>Ingen spillere på banen.</i></li></ul>
             </div>
@@ -73,7 +72,6 @@
         <!-- === 1. Kontrollpanel / Sidepanel END === -->
 
         <!-- === 2. Hovedområde (Bane / Taktikkside) START === -->
-        <!-- NYTT: Lagt til ID "tactics-page-content" -->
         <main id="tactics-page-content" class="main-content page-content">
              <button id="rotate-pitch-button" class="rotate-button" title="Roter bane">↻</button>
             <div id="pitch-container">
@@ -88,11 +86,10 @@
         </main>
         <!-- === 2. Hovedområde (Bane / Taktikkside) END === -->
 
-        <!-- === 3. Hovedområde (Troppside) START (NYTT) === -->
-        <main id="squad-page-content" class="main-content page-content" style="display: none;"> <!-- Start skjult -->
+        <!-- === 3. Hovedområde (Troppside) START === -->
+        <main id="squad-page-content" class="main-content page-content" style="display: none;"> 
             <h2>Tropp Oversikt</h2>
             <div id="full-squad-list-container" style="width: 90%; height: 80%; overflow-y: auto; border: 1px solid #ccc; padding: 15px;">
-                <!-- Innhold genereres av JS -->
                 <p>Laster tropp...</p>
             </div>
         </main>
@@ -201,8 +198,8 @@
     </div>
     <!-- === Modaler/Dialoger END === -->
 
-    <script src="script.js"></script> <!-- Link til Version: #93 -->
+    <script src="script.js"></script> <!-- Link til Versjon: #102 -->
 
 </body>
 </html>
-<!-- Version: #95 -->
+<!-- Version: #103 -->
