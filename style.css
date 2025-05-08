@@ -1,4 +1,4 @@
-/* Version: #122 */
+/* Version: #130 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -12,78 +12,50 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .app-container.sidebar-hidden .sidebar-toggle-button { left: 10px; transform: scaleX(-1); }
 
 /* === 1. Sidepanel (Kontrollpanel) === */
-.sidebar { width: 300px; min-width: 300px; background-color: #e9e9e9; padding: 15px; overflow-y: auto; height: 100%; border-right: 1px solid #ccc; display: flex; flex-direction: column; position: relative; transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease, transform 0.3s ease; flex-shrink: 0; transform: translateX(0); }
-.app-container.sidebar-hidden .sidebar { width: 0; min-width: 0; padding-left: 0; padding-right: 0; overflow: hidden; border-right: none; transform: translateX(-300px); }
+.sidebar { 
+    width: 350px; /* Økt fra 300px */
+    min-width: 350px; /* Økt fra 300px */
+    background-color: #e9e9e9; 
+    padding: 15px; 
+    overflow-y: auto; 
+    height: 100%; 
+    border-right: 1px solid #ccc; 
+    display: flex; 
+    flex-direction: column; 
+    position: relative; 
+    transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease, transform 0.3s ease; 
+    flex-shrink: 0; 
+    transform: translateX(0); 
+}
+.app-container.sidebar-hidden .sidebar { 
+    width: 0; 
+    min-width: 0; 
+    padding-left: 0; 
+    padding-right: 0; 
+    overflow: hidden; 
+    border-right: none; 
+    transform: translateX(-350px); /* Justert for ny bredde */
+}
 .sidebar h2, .sidebar h3, .sidebar h4 { white-space: nowrap; overflow: hidden; margin-top: 0; margin-bottom: 10px; color: #333; }
 .sidebar h3 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
 .sidebar h4 { border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 5px; }
 .control-section { margin-bottom: 15px; padding: 10px; background-color: #fdfdfd; border: 1px solid #ddd; border-radius: 4px; flex-shrink: 0; overflow: hidden; white-space: nowrap; }
 #on-pitch-list, #bench-list, #squad-list { list-style: none; padding: 0; margin: 0; }
 #on-pitch-list li, #bench-list li, #squad-list li { 
-    padding: 5px 8px; 
-    border-bottom: 1px solid #eee; 
-    font-size: 0.95em; 
-    background-color: #fff; /* Standard bakgrunn */
-    color: #333; /* Standard tekstfarge */
-    margin-bottom: 2px; 
-    border-radius: 3px; 
-    display: flex; 
-    align-items: center; 
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    cursor: default; 
-    transition: background-color 0.1s ease; /* Myk overgang for hover */
+    padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 0.95em; background-color: #fff; color: #333; margin-bottom: 2px; border-radius: 3px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; transition: background-color 0.1s ease; 
 }
 #on-pitch-list li.draggable, #bench-list li.draggable, #squad-list li.draggable { cursor: grab; }
 #on-pitch-list li i, #bench-list li i, #squad-list li i { color: #777; font-style: italic; padding: 5px; display: block; background-color: transparent; border-bottom: none; }
 
-/* NYTT: Statusfarger for listeelementer */
-#on-pitch-list li:not(:hover), #bench-list li:not(:hover), #squad-list li:not(:hover) { /* Gjelder når ikke hover */
-   /* Farger settes basert på klassen under */
-}
-#on-pitch-list li.player-status-AVAILABLE, 
-#bench-list li.player-status-AVAILABLE, 
-#squad-list li.player-status-AVAILABLE { 
-    background-color: #e8f5e9; /* Lys grønn */
-    border-left: 4px solid #4CAF50; /* Grønn markør */
-}
-#on-pitch-list li.player-status-INJURED_SHORT, 
-#bench-list li.player-status-INJURED_SHORT, 
-#squad-list li.player-status-INJURED_SHORT { 
-    background-color: #fff3e0; /* Lys oransje */
-    border-left: 4px solid #ff9800; /* Oransje markør */
-}
-#on-pitch-list li.player-status-INJURED_LONG, 
-#bench-list li.player-status-INJURED_LONG, 
-#squad-list li.player-status-INJURED_LONG { 
-    background-color: #ffebee; /* Lys rød */
-    border-left: 4px solid #c62828; /* Mørk rød markør */
-}
-#on-pitch-list li.player-status-SUSPENDED, 
-#bench-list li.player-status-SUSPENDED, 
-#squad-list li.player-status-SUSPENDED { 
-    background-color: #fce4ec; /* Lys rosa/lilla */
-    border-left: 4px solid #e91e63; /* Rosa/lilla markør */
-}
-#on-pitch-list li.player-status-LIGHT_TRAINING, 
-#bench-list li.player-status-LIGHT_TRAINING, 
-#squad-list li.player-status-LIGHT_TRAINING { 
-    background-color: #e3f2fd; /* Lys blå */
-    border-left: 4px solid #2196F3; /* Blå markør */
-}
-#on-pitch-list li.player-status-UNAVAILABLE, 
-#bench-list li.player-status-UNAVAILABLE, 
-#squad-list li.player-status-UNAVAILABLE { 
-    background-color: #eeeeee; /* Lys grå */
-    border-left: 4px solid #757575; /* Grå markør */
-    color: #757575;
-}
-/* Hover-effekt som overstyrer bakgrunn, men beholder border */
-#on-pitch-list li:hover, #bench-list li:hover, #squad-list li:hover {
-    background-color: #f0f0f0; /* Generell hover-farge */
-}
-
+/* Statusfarger for listeelementer */
+#on-pitch-list li:not(:hover), #bench-list li:not(:hover), #squad-list li:not(:hover) {}
+#on-pitch-list li.player-status-AVAILABLE, #bench-list li.player-status-AVAILABLE, #squad-list li.player-status-AVAILABLE { background-color: #e8f5e9; border-left: 4px solid #4CAF50; }
+#on-pitch-list li.player-status-INJURED_SHORT, #bench-list li.player-status-INJURED_SHORT, #squad-list li.player-status-INJURED_SHORT { background-color: #fff3e0; border-left: 4px solid #ff9800; }
+#on-pitch-list li.player-status-INJURED_LONG, #bench-list li.player-status-INJURED_LONG, #squad-list li.player-status-INJURED_LONG { background-color: #ffebee; border-left: 4px solid #c62828; }
+#on-pitch-list li.player-status-SUSPENDED, #bench-list li.player-status-SUSPENDED, #squad-list li.player-status-SUSPENDED { background-color: #fce4ec; border-left: 4px solid #e91e63; }
+#on-pitch-list li.player-status-LIGHT_TRAINING, #bench-list li.player-status-LIGHT_TRAINING, #squad-list li.player-status-LIGHT_TRAINING { background-color: #e3f2fd; border-left: 4px solid #2196F3; }
+#on-pitch-list li.player-status-UNAVAILABLE, #bench-list li.player-status-UNAVAILABLE, #squad-list li.player-status-UNAVAILABLE { background-color: #eeeeee; border-left: 4px solid #757575; color: #757575;}
+#on-pitch-list li:hover, #bench-list li:hover, #squad-list li:hover { background-color: #f0f0f0; }
 
 #on-pitch-section { background-color: #e6f7ff; border-color: #b3e0ff; }
 #on-pitch-list { max-height: 180px; overflow-y: auto; }
@@ -123,7 +95,6 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #full-squad-list-container .action-button { padding: 4px 8px; font-size: 0.9em; }
 /* === 2 & 3. Hovedområde (Sidevisning) END === */
 
-
 /* === Spillerbrikker PÅ BANEN (inne i #pitch-surface) === */
 .player-piece { position: absolute; width: 70px; height: auto; cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; user-select: none; -webkit-user-select: none; opacity: 1; transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.4s ease-in-out; transform-origin: center center; transform: translate(-50%, -50%) rotate(0deg); }
 #pitch-container.rotated .player-piece { transform: translate(-50%, -50%) rotate(-90deg); }
@@ -138,46 +109,10 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #pitch-container.rotated #ball { transform: translate(-50%, -50%) rotate(-90deg); }
 
 /* === Formasjonsmarkører START === */
-.formation-position-marker {
-    position: absolute;
-    width: 45px; 
-    height: 45px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.6); 
-    border: 2px dashed #555; 
-    color: #333;
-    font-size: 10px;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 2px;
-    cursor: pointer;
-    z-index: 8; 
-    user-select: none;
-    -webkit-user-select: none;
-    transform-origin: center center;
-    transform: translate(-50%, -50%) rotate(0deg); 
-    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.4s ease-in-out;
-}
-.formation-position-marker:hover {
-    background-color: rgba(230, 230, 230, 0.8); 
-    border-color: #000;
-}
-.formation-position-marker.selected { 
-    background-color: rgba(76, 175, 80, 0.7); 
-    border-style: solid;
-    border-color: #388E3C;
-    color: white;
-}
-/* NYTT: drag-over stil for markør */
-.formation-position-marker.drag-over {
-    border-style: solid;
-    border-color: #4CAF50; /* Grønn ramme ved drag over */
-    background-color: rgba(76, 175, 80, 0.3); /* Lett grønn bakgrunn */
-}
-
+.formation-position-marker { position: absolute; width: 45px; height: 45px; border-radius: 50%; background-color: rgba(255, 255, 255, 0.6); border: 2px dashed #555; color: #333; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; text-align: center; padding: 2px; cursor: pointer; z-index: 8; user-select: none; -webkit-user-select: none; transform-origin: center center; transform: translate(-50%, -50%) rotate(0deg); transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.4s ease-in-out; }
+.formation-position-marker:hover { background-color: rgba(230, 230, 230, 0.8); border-color: #000; }
+.formation-position-marker.selected { background-color: rgba(76, 175, 80, 0.7); border-style: solid; border-color: #388E3C; color: white; }
+.formation-position-marker.drag-over { border-style: solid; border-color: #4CAF50; background-color: rgba(76, 175, 80, 0.3); }
 #pitch-container.rotated .formation-position-marker { transform: translate(-50%, -50%) rotate(-90deg); }
 /* === Formasjonsmarkører END === */
 
@@ -236,4 +171,4 @@ input[type="file"] { margin: 5px 0; width: auto; }
 input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 
-/* Version: #122 */
+/* Version: #130 */
