@@ -1,21 +1,36 @@
-/* Version: #18 */
+/* Version: #22 */
 // === Interaksjoner (Drag & Drop, Valg, Toggles, View Switching) START ===
+
+/**
+ * Fjerner alle spillerbrikker fra banen.
+ * Denne funksjonen endrer IKKE playersOnPitch-arrayet direkte,
+ * det må gjøres av kallende funksjon (f.eks. applyState).
+ */
+function clearPitch() {
+    // pitchSurface er global (config.js)
+    if (!pitchSurface) {
+        console.warn("clearPitch: pitchSurface ikke funnet, kan ikke fjerne brikker.");
+        return;
+    }
+    const pieces = pitchSurface.querySelectorAll('.player-piece');
+    pieces.forEach(piece => piece.remove());
+    console.log("Alle spillerbrikker fjernet fra banens DOM.");
+}
+
 
 // --- Drag and Drop Håndtering ---
 function addDragListenersToSquadItems() {
-    // squadListElement er global (config.js)
     if (!squadListElement) return;
     const items = squadListElement.querySelectorAll('.squad-player-item.draggable');
     items.forEach(item => {
-        item.removeEventListener('dragstart', handleDragStart); // Fjern for å unngå duplikater
+        item.removeEventListener('dragstart', handleDragStart);
         item.addEventListener('dragstart', handleDragStart);
-        item.removeEventListener('dragend', handleDragEnd);     // Fjern for å unngå duplikater
+        item.removeEventListener('dragend', handleDragEnd);
         item.addEventListener('dragend', handleDragEnd);
     });
 }
 
 function addDragListenersToBenchItems() {
-    // benchListElement er global (config.js)
     if (!benchListElement) return;
     const items = benchListElement.querySelectorAll('.bench-player-item.draggable');
     items.forEach(item => {
@@ -26,62 +41,53 @@ function addDragListenersToBenchItems() {
     });
 }
 
-// Generell drag start fra lister (benk, tropp)
 function handleDragStart(event) {
-    // draggedPlayerId, draggedElement, dragSource er globale (config.js)
     draggedPlayerId = event.target.getAttribute('data-player-id');
-    const player = getPlayerById(draggedPlayerId); // Fra utils.js
-    if (!player) { // Sikkerhetssjekk
+    const player = getPlayerById(draggedPlayerId);
+    if (!player) {
         console.warn(`handleDragStart: Spiller med ID ${draggedPlayerId} ikke funnet.`);
         event.preventDefault();
         return;
     }
     draggedElement = event.target;
-    dragSource = 'squad'; // Antar 'squad' hvis ikke spesifisert av en mer spesifikk handler
+    dragSource = 'squad'; 
     
-    // Sett dataTransfer
     try {
         event.dataTransfer.setData('text/plain', draggedPlayerId);
         event.dataTransfer.effectAllowed = 'move';
     } catch (e) {
         console.error("Feil ved event.dataTransfer.setData i handleDragStart:", e);
-        event.preventDefault(); // Forhindre drag hvis data ikke kan settes
+        event.preventDefault();
         return;
     }
-
-    // Visuell feedback (forsinket for å la nettleseren fange drag-bildet først)
     setTimeout(() => {
         if (draggedElement) draggedElement.classList.add('dragging');
     }, 0);
 }
 
 function handleDragStartBench(event) {
-    // dragSource settes spesifikt for benk
-    handleDragStart(event); // Kall generell funksjon
-    if (draggedPlayerId) { // Hvis drag ikke ble avbrutt i handleDragStart
+    handleDragStart(event);
+    if (draggedPlayerId) {
         dragSource = 'bench';
     }
 }
 
 function handleDragStartOnPitchList(event) {
-    handleDragStart(event); // Kall generell funksjon
+    handleDragStart(event);
     if (draggedPlayerId) {
         dragSource = 'onpitch-list';
     }
 }
 
 function handleDragStartPiece(event) {
-    // draggedPlayerId, draggedElement, dragSource er globale (config.js)
     const pieceElement = event.target.closest('.player-piece');
     if (!pieceElement) return;
-
-    // Sjekk om elementet faktisk er draggable (f.eks. ikke hvis tegne-modus er aktiv over det)
     if (!pieceElement.hasAttribute('draggable') || pieceElement.getAttribute('draggable') === 'false') {
         event.preventDefault();
         return;
     }
     draggedPlayerId = pieceElement.getAttribute('data-player-id');
-    if (!getPlayerById(draggedPlayerId)) { // Fra utils.js
+    if (!getPlayerById(draggedPlayerId)) {
         console.warn(`handleDragStartPiece: Spiller med ID ${draggedPlayerId} ikke funnet.`);
         event.preventDefault();
         return;
@@ -92,20 +98,19 @@ function handleDragStartPiece(event) {
     try {
         event.dataTransfer.setData('text/plain', draggedPlayerId);
         event.dataTransfer.effectAllowed = 'move';
-        draggedElement.classList.add('dragging'); // Legg til umiddelbart for brikker
+        draggedElement.classList.add('dragging');
     } catch (e) {
         console.error("Feil ved event.dataTransfer.setData i handleDragStartPiece:", e);
         event.preventDefault();
     }
-    event.stopPropagation(); // Forhindre at eventet bobler opp til banen
+    event.stopPropagation();
 }
 
 function handleBallDragStart(event) {
-    // dragSource, draggedElement er globale (config.js)
     try {
-        event.dataTransfer.setData('text/x-dragged-item', 'ball'); // Egendefinert type for ball
+        event.dataTransfer.setData('text/x-dragged-item', 'ball');
         dragSource = 'ball';
-        draggedElement = event.target; // ballElement
+        draggedElement = event.target;
         event.dataTransfer.effectAllowed = 'move';
         event.target.classList.add('dragging');
     } catch (e) {
@@ -115,11 +120,9 @@ function handleBallDragStart(event) {
 }
 
 function handleDragOver(event, targetType) {
-    event.preventDefault(); // Nødvendig for å tillate drop
+    event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
-
     let targetElement;
-    // pitchElement, benchElement, squadListContainer, onPitchSectionElement er globale (config.js)
     if (targetType === 'pitch') targetElement = pitchElement;
     else if (targetType === 'bench') targetElement = benchElement;
     else if (targetType === 'squad') targetElement = squadListContainer;
@@ -140,29 +143,24 @@ function handleDragLeave(event, targetType) {
     else if (targetType === 'formation-marker') targetElement = event.target.closest('.formation-position-marker');
 
     if (!targetElement) return;
-
-    // Fjern 'drag-over' bare hvis musen faktisk forlater elementet (og ikke bare går over et barneelement)
     if (!event.relatedTarget || !targetElement.contains(event.relatedTarget)) {
         targetElement.classList.remove('drag-over');
     }
 }
 
 function handleDragEnd(event) {
-    // Fjern 'drag-over' fra alle potensielle mål
     if (pitchElement) pitchElement.classList.remove('drag-over');
     if (benchElement) benchElement.classList.remove('drag-over');
     if (squadListContainer) squadListContainer.classList.remove('drag-over');
     if (onPitchSectionElement) onPitchSectionElement.classList.remove('drag-over');
-    if (pitchSurface) { // pitchSurface er global (config.js)
+    if (pitchSurface) {
         const markers = pitchSurface.querySelectorAll('.formation-position-marker.drag-over');
         markers.forEach(m => m.classList.remove('drag-over'));
     }
-
-    // Fjern 'dragging' klassen fra det dragede elementet
-    if (draggedElement) { // draggedElement er global (config.js)
+    if (draggedElement) {
         draggedElement.classList.remove('dragging');
     }
-    // resetDragState(); // Nullstill globale drag-variabler - kalles etter drop
+    // resetDragState(); // Kalles vanligvis etter en vellykket drop
 }
 
 function resetDragState() {
@@ -171,13 +169,9 @@ function resetDragState() {
     dragSource = null;
 }
 
-
-// --- Drop Håndtering ---
 function handleDropOnPitch(event) {
     event.preventDefault();
     if (pitchElement) pitchElement.classList.remove('drag-over');
-    // pitchElement, isPitchRotated er globale (config.js)
-    // playersOnPitch, playersOnBench, MAX_PLAYERS_ON_PITCH er globale (config.js)
 
     const pitchRect = pitchElement.getBoundingClientRect();
     if (!pitchRect || pitchRect.width === 0 || pitchRect.height === 0) {
@@ -199,15 +193,13 @@ function handleDropOnPitch(event) {
         xPercent = (dropX_relative / pitchRect.width) * 100;
         yPercent = (dropY_relative / pitchRect.height) * 100;
     }
-    // Begrens til innenfor banen (0-100%)
     xPercent = Math.max(0, Math.min(100, xPercent));
     yPercent = Math.max(0, Math.min(100, yPercent));
 
     const draggedItemType = event.dataTransfer.getData('text/x-dragged-item');
     if (draggedItemType === 'ball') {
-        updateBallPosition(xPercent, yPercent); // Fra pitch_elements.js
-        // ballSettings (global) oppdateres i updateBallPosition
-        saveCurrentState(); // Fra storage.js
+        if (typeof updateBallPosition === "function") updateBallPosition(xPercent, yPercent);
+        if (typeof saveCurrentState === "function") saveCurrentState();
         resetDragState();
         return;
     }
@@ -226,16 +218,15 @@ function handleDropOnPitch(event) {
         return;
     }
 
-    const player = getPlayerById(playerId); // Fra utils.js
+    const player = getPlayerById(playerId);
     if (!player) {
         console.warn(`handleDropOnPitch: Spiller med ID ${playerId} ikke funnet.`);
         resetDragState();
         return;
     }
 
-    // Sjekk maks spillere på banen hvis spilleren kommer fra tropp eller benk
     if ((dragSource === 'squad' || dragSource === 'bench') && Object.keys(playersOnPitch).length >= MAX_PLAYERS_ON_PITCH) {
-        if (!playersOnPitch[playerId]) { // Bare vis alert hvis spilleren ikke allerede er på banen
+        if (!playersOnPitch[playerId]) { 
             alert(`Kan ikke legge til flere spillere på banen (maks ${MAX_PLAYERS_ON_PITCH}).`);
             resetDragState();
             return;
@@ -245,42 +236,45 @@ function handleDropOnPitch(event) {
     player.position = { x: xPercent, y: yPercent };
     let stateChanged = false;
 
-    if (playersOnPitch[playerId]) { // Spilleren er allerede på banen, flyttes
+    if (playersOnPitch[playerId]) {
         const piece = playersOnPitch[playerId];
         piece.style.left = `${xPercent}%`;
         piece.style.top = `${yPercent}%`;
         stateChanged = true;
-    } else { // Ny spiller på banen
-        const newPiece = createPlayerPieceElement(player, xPercent, yPercent); // Fra pitch_elements.js
-        if (pitchSurface) pitchSurface.appendChild(newPiece); // pitchSurface er global (config.js)
-        else console.error("handleDropOnPitch: FEIL - pitchSurface ikke funnet!");
-        
-        playersOnPitch[playerId] = newPiece;
-        if (dragSource === 'bench') {
-            const benchIndex = playersOnBench.indexOf(playerId);
-            if (benchIndex > -1) playersOnBench.splice(benchIndex, 1);
+    } else { 
+        if (typeof createPlayerPieceElement === "function") {
+            const newPiece = createPlayerPieceElement(player, xPercent, yPercent);
+            if (pitchSurface) pitchSurface.appendChild(newPiece);
+            else console.error("handleDropOnPitch: FEIL - pitchSurface ikke funnet!");
+            playersOnPitch[playerId] = newPiece;
+            if (dragSource === 'bench') {
+                const benchIndex = playersOnBench.indexOf(playerId);
+                if (benchIndex > -1) playersOnBench.splice(benchIndex, 1);
+            }
+            stateChanged = true;
+        } else {
+            console.error("handleDropOnPitch: createPlayerPieceElement function not found.");
         }
-        stateChanged = true;
     }
 
     if (stateChanged) {
-        saveCurrentState(); // Fra storage.js
-        if (typeof renderUI === "function") renderUI(); // Fra ui_render.js
-        if (typeof saveCurrentSetupToActiveMatch === "function" && activeMatchId) saveCurrentSetupToActiveMatch(); // Fra matches.js
+        if (typeof saveCurrentState === "function") saveCurrentState();
+        if (typeof renderUI === "function") renderUI();
+        if (typeof saveCurrentSetupToActiveMatch === "function" && activeMatchId) saveCurrentSetupToActiveMatch();
     }
     resetDragState();
 }
 
 function handleDropOnOnPitchList(event) {
     event.preventDefault();
-    if (onPitchSectionElement) onPitchSectionElement.classList.remove('drag-over'); // onPitchSectionElement er global (config.js)
+    if (onPitchSectionElement) onPitchSectionElement.classList.remove('drag-over');
     
     let playerId = event.dataTransfer.getData('text/plain');
     if (!playerId) { resetDragState(); return; }
     const player = getPlayerById(playerId);
     if (!player) { resetDragState(); return; }
 
-    if (playersOnPitch[playerId]) { resetDragState(); return; } // Allerede på banen
+    if (playersOnPitch[playerId]) { resetDragState(); return; }
 
     if (Object.keys(playersOnPitch).length >= MAX_PLAYERS_ON_PITCH) {
         alert(`Maks ${MAX_PLAYERS_ON_PITCH} spillere på banen.`);
@@ -290,27 +284,30 @@ function handleDropOnOnPitchList(event) {
 
     let stateChanged = false;
     if (dragSource === 'bench' || dragSource === 'squad') {
-        // Finn en default ledig posisjon eller senter av banen
         const defaultX = player.position ? player.position.x : 50;
-        const defaultY = player.position ? player.position.y : 75; // Litt lenger ned som default
+        const defaultY = player.position ? player.position.y : 75;
         player.position = { x: defaultX, y: defaultY };
 
-        const newPiece = createPlayerPieceElement(player, defaultX, defaultY);
-        if (pitchSurface) {
-            pitchSurface.appendChild(newPiece);
-            playersOnPitch[playerId] = newPiece;
-            stateChanged = true;
-            if (dragSource === 'bench') {
-                const benchIndex = playersOnBench.indexOf(playerId);
-                if (benchIndex > -1) playersOnBench.splice(benchIndex, 1);
+        if (typeof createPlayerPieceElement === "function") {
+            const newPiece = createPlayerPieceElement(player, defaultX, defaultY);
+            if (pitchSurface) {
+                pitchSurface.appendChild(newPiece);
+                playersOnPitch[playerId] = newPiece;
+                stateChanged = true;
+                if (dragSource === 'bench') {
+                    const benchIndex = playersOnBench.indexOf(playerId);
+                    if (benchIndex > -1) playersOnBench.splice(benchIndex, 1);
+                }
+            } else {
+                console.error("handleDropOnOnPitchList: FEIL - pitchSurface ikke funnet!");
             }
         } else {
-            console.error("handleDropOnOnPitchList: FEIL - pitchSurface ikke funnet!");
+            console.error("handleDropOnOnPitchList: createPlayerPieceElement function not found.");
         }
     }
 
     if (stateChanged) {
-        saveCurrentState();
+        if (typeof saveCurrentState === "function") saveCurrentState();
         if (typeof renderUI === "function") renderUI();
         if (typeof saveCurrentSetupToActiveMatch === "function" && activeMatchId) saveCurrentSetupToActiveMatch();
     }
@@ -319,33 +316,30 @@ function handleDropOnOnPitchList(event) {
 
 function handleDropOnBench(event) {
     event.preventDefault();
-    if (benchElement) benchElement.classList.remove('drag-over'); // benchElement er global (config.js)
+    if (benchElement) benchElement.classList.remove('drag-over');
     
     let playerId = event.dataTransfer.getData('text/plain');
     if (!playerId) { resetDragState(); return; }
-    // const player = getPlayerById(playerId); // Trenger ikke spillerobjektet her, kun ID
-    // if (!player) { resetDragState(); return; }
 
     let stateChanged = false;
-    if (dragSource === 'pitch' || dragSource === 'onpitch-list') { // Fra banen eller banelisten
+    if (dragSource === 'pitch' || dragSource === 'onpitch-list') {
         if (!playersOnBench.includes(playerId)) {
             playersOnBench.push(playerId);
-            // stateChanged = true; // Settes nedenfor uansett om spiller fjernes fra banen
         }
         if (playersOnPitch[playerId]) {
-            playersOnPitch[playerId].remove(); // Fjern DOM-element
+            playersOnPitch[playerId].remove();
             delete playersOnPitch[playerId];
             stateChanged = true;
         }
-    } else if (dragSource === 'squad') { // Fra tropplisten til benken
-        if (!playersOnBench.includes(playerId) && !playersOnPitch[playerId]) { // Ikke allerede på benk eller bane
+    } else if (dragSource === 'squad') {
+        if (!playersOnBench.includes(playerId) && !playersOnPitch[playerId]) {
             playersOnBench.push(playerId);
             stateChanged = true;
         }
     }
 
     if (stateChanged) {
-        saveCurrentState();
+        if (typeof saveCurrentState === "function") saveCurrentState();
         if (typeof renderUI === "function") renderUI();
         if (typeof saveCurrentSetupToActiveMatch === "function" && activeMatchId) saveCurrentSetupToActiveMatch();
     }
@@ -354,19 +348,19 @@ function handleDropOnBench(event) {
 
 function handleDropOnSquadList(event) {
     event.preventDefault();
-    if (squadListContainer) squadListContainer.classList.remove('drag-over'); // squadListContainer er global
+    if (squadListContainer) squadListContainer.classList.remove('drag-over');
     
     let playerId = event.dataTransfer.getData('text/plain');
     if (!playerId) { resetDragState(); return; }
 
     let stateChanged = false;
-    if (dragSource === 'pitch' || dragSource === 'onpitch-list') { // Fra banen eller banelisten til tropp
+    if (dragSource === 'pitch' || dragSource === 'onpitch-list') {
         if (playersOnPitch[playerId]) {
             playersOnPitch[playerId].remove();
             delete playersOnPitch[playerId];
             stateChanged = true;
         }
-    } else if (dragSource === 'bench') { // Fra benken til tropp
+    } else if (dragSource === 'bench') {
         const benchIndex = playersOnBench.indexOf(playerId);
         if (benchIndex > -1) {
             playersOnBench.splice(benchIndex, 1);
@@ -375,7 +369,7 @@ function handleDropOnSquadList(event) {
     }
 
     if (stateChanged) {
-        saveCurrentState();
+        if (typeof saveCurrentState === "function") saveCurrentState();
         if (typeof renderUI === "function") renderUI();
         if (typeof saveCurrentSetupToActiveMatch === "function" && activeMatchId) saveCurrentSetupToActiveMatch();
     }
@@ -404,20 +398,24 @@ function handleDropOnFormationMarker(event, positionData) {
     let stateChanged = false;
     player.position = { x: targetX, y: targetY };
 
-    if (playersOnPitch[playerId]) { // Flytt eksisterende brikke
+    if (playersOnPitch[playerId]) {
         const piece = playersOnPitch[playerId];
         piece.style.left = `${targetX}%`;
         piece.style.top = `${targetY}%`;
         stateChanged = true;
-    } else { // Ny brikke på banen
-        const newPiece = createPlayerPieceElement(player, targetX, targetY);
-        if (pitchSurface) {
-            pitchSurface.appendChild(newPiece);
-            playersOnPitch[playerId] = newPiece;
-            stateChanged = true;
+    } else {
+        if (typeof createPlayerPieceElement === "function") {
+            const newPiece = createPlayerPieceElement(player, targetX, targetY);
+            if (pitchSurface) {
+                pitchSurface.appendChild(newPiece);
+                playersOnPitch[playerId] = newPiece;
+                stateChanged = true;
+            } else {
+                console.error("handleDropOnFormationMarker: FEIL - pitchSurface ikke funnet!");
+                resetDragState(); return;
+            }
         } else {
-            console.error("handleDropOnFormationMarker: FEIL - pitchSurface ikke funnet!");
-            resetDragState(); return;
+             console.error("handleDropOnFormationMarker: createPlayerPieceElement function not found.");
         }
     }
 
@@ -425,24 +423,20 @@ function handleDropOnFormationMarker(event, positionData) {
         const benchIndex = playersOnBench.indexOf(playerId);
         if (benchIndex > -1) {
             playersOnBench.splice(benchIndex, 1);
-            stateChanged = true; // Allerede satt hvis ny brikke, men ok for tydelighet
+            stateChanged = true; 
         }
     }
-    // Hvis dragSource var 'squad', fjernes spilleren implisitt fra squadList ved neste renderUI
 
     if (stateChanged) {
-        saveCurrentState();
+        if (typeof saveCurrentState === "function") saveCurrentState();
         if (typeof renderUI === "function") renderUI();
         if (typeof saveCurrentSetupToActiveMatch === "function" && activeMatchId) saveCurrentSetupToActiveMatch();
     }
     resetDragState();
 }
 
-
-// --- Spillerbrikke Valg & Farge ---
 function handlePlayerPieceClick(event) {
-    // selectedPlayerIds er global (config.js)
-    const pieceElement = event.currentTarget; // .player-piece
+    const pieceElement = event.currentTarget;
     const playerId = pieceElement.getAttribute('data-player-id');
     if (!playerId) return;
 
@@ -453,12 +447,11 @@ function handlePlayerPieceClick(event) {
         selectedPlayerIds.add(playerId);
         pieceElement.classList.add('selected');
     }
-    // console.log("Valgte spillere:", Array.from(selectedPlayerIds));
 }
 
 function clearPlayerSelection() {
     selectedPlayerIds.forEach(id => {
-        const piece = playersOnPitch[id]; // playersOnPitch er global (config.js)
+        const piece = playersOnPitch[id];
         if (piece) {
             piece.classList.remove('selected');
         }
@@ -486,15 +479,13 @@ function applyBorderColorToSelection(color) {
     });
 
     if (stateChanged) {
-        saveCurrentState(); // Lagre endring i borderColor for spillerne
+        if (typeof saveCurrentState === "function") saveCurrentState();
         if (typeof saveCurrentSetupToActiveMatch === "function" && activeMatchId) saveCurrentSetupToActiveMatch();
-
     }
-    clearPlayerSelection(); // Avvelg etter at fargen er satt
+    clearPlayerSelection();
 }
 
 function handleSetSelectedPlayerBorderColor() {
-    // playerBorderColorInput er global (config.js)
     if (playerBorderColorInput) {
         applyBorderColorToSelection(playerBorderColorInput.value);
     } else {
@@ -502,23 +493,17 @@ function handleSetSelectedPlayerBorderColor() {
     }
 }
 
-
-// --- UI Toggles & View Switching ---
 function toggleSidebar() {
-    // appContainer, toggleSidebarButton er globale (config.js)
-    // isSidebarHidden er global (config.js)
     isSidebarHidden = !isSidebarHidden;
     if (appContainer) {
         appContainer.classList.toggle('sidebar-hidden', isSidebarHidden);
         if (toggleSidebarButton) {
-            toggleSidebarButton.innerHTML = isSidebarHidden ? '<i class="fas fa-angle-double-right"></i>' : '<i class="fas fa-angle-double-left"></i>'; // Bruker ikoner
+            toggleSidebarButton.innerHTML = isSidebarHidden ? '<i class="fas fa-angle-double-right"></i>' : '<i class="fas fa-angle-double-left"></i>';
         }
-        // Lagre sidebar-status? Kan gjøres i saveCurrentState hvis ønskelig
     }
 }
 
 function togglePitchRotation() {
-    // pitchContainer, pitchElement, isPitchRotated er globale (config.js)
     if (!pitchContainer || !pitchElement) {
         console.warn("togglePitchRotation: pitchContainer eller pitchElement ikke funnet.");
         return;
@@ -526,20 +511,18 @@ function togglePitchRotation() {
     isPitchRotated = !isPitchRotated;
     pitchContainer.classList.toggle('rotated', isPitchRotated);
     
-    // Oppdater bakgrunnsbilde basert på rotasjon
     if (isPitchRotated) {
         pitchElement.style.backgroundImage = `url('pitch-background.jpg')`;
     } else {
         pitchElement.style.backgroundImage = `url('pitch-background-portrait.jpg')`;
     }
 
-    resizePitchElement(); // Fra pitch_elements.js (eller denne filen hvis den flyttes)
-    saveCurrentState();   // Fra storage.js
+    if (typeof resizePitchElement === "function") resizePitchElement();
+    if (typeof saveCurrentState === "function") saveCurrentState();
     if (typeof saveCurrentSetupToActiveMatch === "function" && activeMatchId) saveCurrentSetupToActiveMatch();
 }
 
 function switchView(viewName) {
-    // appContainer, navTacticsButton, navSquadButton, navMatchesButton er globale (config.js)
     if (!appContainer || !navTacticsButton || !navSquadButton || !navMatchesButton) {
         console.error("switchView: Nødvendige DOM-elementer ikke funnet.");
         return;
@@ -549,182 +532,157 @@ function switchView(viewName) {
     navSquadButton.classList.remove('active');
     navMatchesButton.classList.remove('active');
 
-    // Skjul/vis sidepanel-seksjoner basert på view
     const tacticsControls = document.getElementById('tactics-display-options');
-    const formationSelectSection = document.getElementById('formation-select')?.parentElement; // Antar label er i samme div
+    // Finner formasjonsvelgerens container mer robust (antar at select har en label som er søsken inni en div)
+    const formationSelectElement = document.getElementById('formation-select');
+    const formationSelectSection = formationSelectElement ? formationSelectElement.closest('.control-section') || formationSelectElement.parentElement : null;
     const matchPrepSection = document.getElementById('match-preparation-section');
+
 
     if (viewName === 'tactics') {
         appContainer.classList.add('view-tactics');
         navTacticsButton.classList.add('active');
         if (tacticsControls) tacticsControls.style.display = 'block';
-        if (formationSelectSection) formationSelectSection.style.display = 'block'; // Eller den div-en som omslutter formasjonsvalg
-        if (matchPrepSection) matchPrepSection.style.display = 'block'; // Vis kampforberedelser på taktikksiden
-        resizePitchElement();
+        if (formationSelectSection) formationSelectSection.style.display = 'block';
+        if (matchPrepSection) matchPrepSection.style.display = 'block';
+        if (typeof resizePitchElement === "function") resizePitchElement();
     } else if (viewName === 'squad') {
         appContainer.classList.add('view-squad');
         navSquadButton.classList.add('active');
-        if (typeof renderFullSquadList === "function") renderFullSquadList(); // Fra ui_render.js
+        if (typeof renderFullSquadList === "function") renderFullSquadList();
         if (tacticsControls) tacticsControls.style.display = 'none';
         if (formationSelectSection) formationSelectSection.style.display = 'none';
         if (matchPrepSection) matchPrepSection.style.display = 'none';
     } else if (viewName === 'matches') {
         appContainer.classList.add('view-matches');
         navMatchesButton.classList.add('active');
-        if (typeof renderMatchList === "function") renderMatchList(); // Fra ui_render.js
+        if (typeof renderMatchList === "function") renderMatchList();
         if (tacticsControls) tacticsControls.style.display = 'none';
         if (formationSelectSection) formationSelectSection.style.display = 'none';
         if (matchPrepSection) matchPrepSection.style.display = 'none';
-    } else { // Fallback til taktikksiden
+    } else { 
         appContainer.classList.add('view-tactics');
         navTacticsButton.classList.add('active');
         if (tacticsControls) tacticsControls.style.display = 'block';
         if (formationSelectSection) formationSelectSection.style.display = 'block';
         if (matchPrepSection) matchPrepSection.style.display = 'block';
-        resizePitchElement();
+        if (typeof resizePitchElement === "function") resizePitchElement();
         console.warn(`Ukjent viewName: ${viewName}. Viser taktikksiden.`);
     }
     console.log(`Byttet til view: ${viewName}`);
-    // saveCurrentView(viewName); // Vurder å lagre aktivt view
 }
 
 function toggleFullscreen() {
-    // appContainer, fullscreenButton er globale (config.js)
     if (!appContainer) return;
-    const elem = document.documentElement; // For å få hele siden i fullskjerm
+    const elem = document.documentElement;
 
     if (!document.fullscreenElement) {
-        if (elem.requestFullscreen) {
-            elem.requestFullscreen();
-        } else if (elem.mozRequestFullScreen) { /* Firefox */
-            elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-            elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) { /* IE/Edge */
-            elem.msRequestFullscreen();
-        }
+        if (elem.requestFullscreen) elem.requestFullscreen();
+        else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen();
+        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+        else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
         if (fullscreenButton) fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
     } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-        }
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.msExitFullscreen) document.msExitFullscreen();
         if (fullscreenButton) fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
     }
 }
 
-// --- Anvende Lagret Tilstand ---
-/**
- * Anvender en gitt tilstand på applikasjonen (spillerposisjoner, benk, rotasjon etc.).
- * @param {object} stateData - Objektet som inneholder tilstandsdata.
- */
 function applyState(stateData) {
     if (!stateData) {
-        console.warn("applyState kalt med ugyldig stateData.");
-        return;
+        console.warn("applyState kalt med ugyldig stateData. Bruker tom state.");
+        stateData = {}; // Default til tom state for å unngå feil
     }
 
-    // Nullstill nåværende bane og lister
-    clearPitch(); // Fra storage.js (eller flyttes til interactions.js/main.js)
-    playersOnPitch = {}; // Globale (config.js)
-    playersOnBench = []; // Globale (config.js)
+    clearPitch(); // Denne er nå i interactions.js
+    playersOnPitch = {}; 
+    playersOnBench = []; 
 
-    isPitchRotated = stateData.isPitchRotated || false; // Global (config.js)
+    isPitchRotated = stateData.isPitchRotated || false;
     
-    // Ballinnstillinger og posisjon
     if (stateData.ballSettings) {
         ballSettings.size = stateData.ballSettings.size || 35;
         ballSettings.style = stateData.ballSettings.style || 'default';
         ballSettings.color = stateData.ballSettings.color || '#FFA500';
     }
-    applyBallStyle(); // Fra pitch_elements.js
+    if (typeof applyBallStyle === "function") applyBallStyle();
+    
     if (stateData.ballPosition && typeof stateData.ballPosition.x === 'number' && typeof stateData.ballPosition.y === 'number') {
-        updateBallPosition(stateData.ballPosition.x, stateData.ballPosition.y); // Fra pitch_elements.js
+        if (typeof updateBallPosition === "function") updateBallPosition(stateData.ballPosition.x, stateData.ballPosition.y);
     } else {
-        updateBallPosition(50, 50); // Default ballposisjon
+        if (typeof updateBallPosition === "function") updateBallPosition(50, 50);
     }
 
-    if (pitchContainer) pitchContainer.classList.toggle('rotated', isPitchRotated); // pitchContainer er global (config.js)
-    // Oppdater bakgrunnsbilde for banen
-    if (pitchElement) { // pitchElement er global (config.js)
+    if (pitchContainer) pitchContainer.classList.toggle('rotated', isPitchRotated);
+    if (pitchElement) {
         pitchElement.style.backgroundImage = `url('${isPitchRotated ? 'pitch-background.jpg' : 'pitch-background-portrait.jpg'}')`;
     }
-    resizePitchElement(); // Fra pitch_elements.js eller denne filen. Sørger for at canvas også resizes.
+    if (typeof resizePitchElement === "function") resizePitchElement();
 
 
-    // Spillere på banen
     if (stateData.playersOnPitchData) {
         for (const playerId in stateData.playersOnPitchData) {
-            const player = getPlayerById(playerId); // Fra utils.js
+            const player = getPlayerById(playerId);
             const positionData = stateData.playersOnPitchData[playerId];
             if (player && positionData && typeof positionData.x === 'number' && typeof positionData.y === 'number') {
                 player.position = { x: positionData.x, y: positionData.y };
-                player.borderColor = positionData.borderColor || 'black'; // Hent lagret farge
-                const piece = createPlayerPieceElement(player, player.position.x, player.position.y); // Fra pitch_elements.js
-                if (pitchSurface) pitchSurface.appendChild(piece); // pitchSurface er global (config.js)
-                else console.error("applyState: FEIL - pitchSurface ikke funnet ved plassering av brikke!");
-                playersOnPitch[playerId] = piece;
+                player.borderColor = positionData.borderColor || 'black';
+                if (typeof createPlayerPieceElement === "function") {
+                    const piece = createPlayerPieceElement(player, player.position.x, player.position.y);
+                    if (pitchSurface) pitchSurface.appendChild(piece);
+                    else console.error("applyState: FEIL - pitchSurface ikke funnet!");
+                    playersOnPitch[playerId] = piece;
+                } else {
+                     console.error("applyState: createPlayerPieceElement function not found.");
+                }
             }
         }
     }
 
-    // Spillere på benken
     if (stateData.playersOnBenchIds) {
-        playersOnBench = stateData.playersOnBenchIds.filter(id => getPlayerById(id)); // Filtrer for gyldige spillere
+        playersOnBench = stateData.playersOnBenchIds.filter(id => getPlayerById(id));
     }
     
-    // Formasjon (hvis lagret med oppsettet)
-    if (stateData.currentFormationName && FORMATIONS[stateData.currentFormationName]) { // FORMATIONS fra config.js
-        currentFormation = FORMATIONS[stateData.currentFormationName]; // currentFormation fra config.js
-        if(formationSelect) formationSelect.value = stateData.currentFormationName; // formationSelect fra config.js
-        drawFormationPositions(currentFormation); // Fra pitch_elements.js
-    } else if (formationSelect) {
+    // Formasjon
+    // currentFormation er global (config.js)
+    // formationSelect er global (config.js)
+    // FORMATIONS er global (config.js)
+    if (stateData.currentFormationName && FORMATIONS[stateData.currentFormationName]) {
+        currentFormation = FORMATIONS[stateData.currentFormationName];
+        if(formationSelect) formationSelect.value = stateData.currentFormationName;
+        if (typeof drawFormationPositions === "function") drawFormationPositions(currentFormation);
+    } else if (formationSelect) { // Hvis ingen formasjon i state, nullstill
         currentFormation = null;
-        formationSelect.value = ""; // Nullstill dropdown
-        clearFormationPositions(); // Fra pitch_elements.js
+        formationSelect.value = ""; 
+        if (typeof clearFormationPositions === "function") clearFormationPositions();
     }
 
-    // Tegninger (hvis lagret med oppsettet)
-    // savedDrawings er global (config.js)
-    savedDrawings = stateData.savedDrawings || []; // Hvis ikke i stateData, sett til tom array
-    redrawAllDrawings(); // Fra pitch_elements.js
+    savedDrawings = stateData.savedDrawings || [];
+    if (typeof redrawAllDrawings === "function") redrawAllDrawings();
 
-    // Til slutt, oppdater UI-listene
-    if (typeof renderUI === "function") renderUI(); // Fra ui_render.js
+    if (typeof renderUI === "function") renderUI();
     else console.error("applyState: renderUI function not found.");
 
-    console.log("Tilstand anvendt.");
+    console.log("Tilstand anvendt fra applyState.");
 }
 
-
-/**
- * Wrapper for å laste siste lagrede tilstand og anvende den.
- * @param {boolean} [forceEmptyForMatch=false] - Hvis true, og en kamp er aktiv uten egen state, ikke last generell state.
- */
 function loadLastStateAndApply(forceEmptyForMatch = false) {
-    // Hvis vi er i en kampmodus og skal tvinge tom for kamp, og kampen ikke har state, ikke last generell.
-    if (forceEmptyForMatch && activeMatchId) {
-        const match = matches.find(m => m.id === activeMatchId);
+    if (forceEmptyForMatch && activeMatchId) { // activeMatchId er global
+        const match = matches.find(m => m.id === activeMatchId); // matches er global
         if (match && !match.tacticsState) {
             console.log("loadLastStateAndApply: Tvinger tom/default state for kamp uten lagret taktikk.");
-            applyState({}); // Anvend en tom state for å nullstille
+            applyState({});
             return;
         }
     }
-
-    const stateData = loadLastState(); // loadLastState fra storage.js (returnerer stateData)
+    const stateData = loadLastState(); // Fra storage.js
     applyState(stateData);
 }
 
-
-// --- Andre UI-interaksjoner ---
 function resizePitchElement() {
-    // pitchContainer, pitchElement, isPitchRotated er globale (config.js)
     if (!pitchContainer || !pitchElement) {
         console.warn("resizePitchElement: pitchContainer eller pitchElement ikke funnet!");
         return;
@@ -733,25 +691,20 @@ function resizePitchElement() {
     const containerHeight = pitchContainer.clientHeight;
     let targetWidth, targetHeight;
 
-    if (isPitchRotated) { // Landskap
-        const currentAR = PITCH_ASPECT_RATIO_LANDSCAPE; // Fra config.js
-        // Beregn bredde basert på høyde
+    if (isPitchRotated) { 
+        const currentAR = PITCH_ASPECT_RATIO_LANDSCAPE;
         targetWidth = containerHeight * currentAR;
         targetHeight = containerHeight;
-        // Hvis beregnet bredde er for stor, beregn høyde basert på bredde
         if (targetWidth > containerWidth) {
             targetWidth = containerWidth;
             targetHeight = containerWidth / currentAR;
         }
-        // Bytt om for CSS siden banen er rotert 90 grader
         pitchElement.style.width = `${targetHeight}px`; 
         pitchElement.style.height = `${targetWidth}px`;
-    } else { // Portrett
-        const currentAR = PITCH_ASPECT_RATIO_PORTRAIT; // Fra config.js
-        // Beregn bredde basert på høyde
+    } else { 
+        const currentAR = PITCH_ASPECT_RATIO_PORTRAIT;
         targetWidth = containerHeight * currentAR;
         targetHeight = containerHeight;
-        // Hvis beregnet bredde er for stor, beregn høyde basert på bredde
         if (targetWidth > containerWidth) {
             targetWidth = containerWidth;
             targetHeight = containerWidth / currentAR;
@@ -759,10 +712,8 @@ function resizePitchElement() {
         pitchElement.style.width = `${targetWidth}px`;
         pitchElement.style.height = `${targetHeight}px`;
     }
-    // Sørg for at tegnecanvaset også oppdateres
-    if (typeof setupDrawingCanvas === "function") setupDrawingCanvas(); // Fra pitch_elements.js
+    if (typeof setupDrawingCanvas === "function") setupDrawingCanvas();
 }
 
-
 // === Interaksjoner (Drag & Drop, Valg, Toggles, View Switching) END ===
-/* Version: #18 */
+/* Version: #22 */
