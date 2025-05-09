@@ -1,4 +1,4 @@
-/* Version: #7 */
+/* Version: #8 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {};
@@ -96,10 +96,14 @@ function openAddMatchModal() {
         console.error('openAddMatchModal: addMatchModal elementet er null!');
         return;
     }
-    const dateInput = addMatchModal.querySelector('#new-match-only-date');
-    const timeInput = addMatchModal.querySelector('#new-match-time');
-    const opponentInput = addMatchModal.querySelector('#new-match-opponent');
-    const venueInput = addMatchModal.querySelector('#new-match-venue');
+    // Bruk document.getElementById direkte for å være helt sikker
+    const dateInput = document.getElementById('new-match-only-date');
+    const timeInput = document.getElementById('new-match-time');
+    const opponentInput = document.getElementById('new-match-opponent'); // Denne ble funnet sist, så querySelector burde virke for den
+    const venueInput = document.getElementById('new-match-venue'); // Samme her
+
+    console.log("openAddMatchModal: dateInput:", dateInput); // Logging for debugging
+    console.log("openAddMatchModal: timeInput:", timeInput); // Logging for debugging
 
     if (dateInput) dateInput.value = '';
     if (timeInput) timeInput.value = '18:00';
@@ -117,27 +121,26 @@ function closeAddMatchModal() {
 }
 
 function handleAddMatchConfirm() {
-    if (!addMatchModal) { // Ekstra sjekk for selve modalen
+    if (!addMatchModal) {
         console.error("handleAddMatchConfirm: addMatchModal er null. Kan ikke fortsette.");
         alert("En kritisk feil oppstod. Prøv å laste siden på nytt.");
         return;
     }
 
-    const dateInput = addMatchModal.querySelector('#new-match-only-date');
-    const timeInput = addMatchModal.querySelector('#new-match-time');
-    const opponentInput = addMatchModal.querySelector('#new-match-opponent');
-    const venueInput = addMatchModal.querySelector('#new-match-venue');
+    // Bruk document.getElementById direkte for å være helt sikker
+    const dateInput = document.getElementById('new-match-only-date');
+    const timeInput = document.getElementById('new-match-time');
+    const opponentInput = document.getElementById('new-match-opponent');
+    const venueInput = document.getElementById('new-match-venue');
 
-    // Logg for å se om elementene blir funnet
-    console.log("handleAddMatchConfirm: dateInput:", dateInput);
-    console.log("handleAddMatchConfirm: timeInput:", timeInput);
-    console.log("handleAddMatchConfirm: opponentInput:", opponentInput);
-    console.log("handleAddMatchConfirm: venueInput:", venueInput);
-
+    console.log("handleAddMatchConfirm (etter getElementById): dateInput:", dateInput);
+    console.log("handleAddMatchConfirm (etter getElementById): timeInput:", timeInput);
+    console.log("handleAddMatchConfirm (etter getElementById): opponentInput:", opponentInput);
+    console.log("handleAddMatchConfirm (etter getElementById): venueInput:", venueInput);
 
     if (!dateInput || !timeInput || !opponentInput || !venueInput) {
-        console.error("handleAddMatchConfirm: Ett eller flere input-elementer for kamp ble ikke funnet i modalen!");
-        alert("En feil oppstod: Kunne ikke finne alle nødvendige felt for å legge til kamp.");
+        console.error("handleAddMatchConfirm: Ett eller flere input-elementer for kamp ble ikke funnet i dokumentet!");
+        alert("En feil oppstod: Kunne ikke finne alle nødvendige felt for å legge til kamp. Sjekk ID-er i HTML og script.");
         return;
     }
 
@@ -521,7 +524,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (navMatchesButton) navMatchesButton.addEventListener('click', () => switchView('matches'));
     if (addNewMatchButton) addNewMatchButton.addEventListener('click', openAddMatchModal);
-    // Sjekker om knappene finnes før addEventListener
     if (closeAddMatchModalButton) closeAddMatchModalButton.addEventListener('click', closeAddMatchModal);
     else if(addMatchModal) console.warn("DOMContentLoaded: closeAddMatchModalButton ikke funnet i addMatchModal.");
 
@@ -534,4 +536,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 10. Event Listeners END ===
-/* Version: #7 */
+/* Version: #8 */
