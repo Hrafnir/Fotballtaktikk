@@ -1,31 +1,41 @@
-<!-- Version: #150 --> 
+<!-- Version: #1 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fotballtaktiker</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link til Versjon: #151 -->
+    <link rel="stylesheet" href="style.css"> <!-- Forventer style.css Version: #1 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
-    <div class="app-container view-tactics"> 
+    <div class="app-container view-tactics">
 
         <button id="toggle-sidebar-button" class="sidebar-toggle-button" title="Skjul/Vis sidepanel"><</button>
 
         <!-- === 1. Kontrollpanel / Sidepanel START === -->
         <aside class="sidebar">
-            
+
             <div id="navigation-section" class="control-section">
                 <h3>Navigasjon</h3>
                 <button id="nav-tactics-button" class="nav-button active">Taktikk</button>
                 <button id="nav-squad-button" class="nav-button">Tropp</button>
+                <button id="nav-matches-button" class="nav-button">Kamper</button> <!-- NYTT -->
             </div>
 
-            <h2>Kontrollpanel</h2> 
-            
-            <div id="on-pitch-section" class="control-section drop-target"> 
+            <h2>Kontrollpanel</h2>
+
+            <div id="match-preparation-section" class="control-section"> <!-- NY SEKSJON -->
+                <h3>Kampforberedelser</h3>
+                <label for="active-match-select">Velg Aktiv Kamp:</label>
+                <select id="active-match-select">
+                    <option value="">Ingen kamp valgt</option>
+                    <!-- Kamper lastes her av JS -->
+                </select>
+            </div>
+
+            <div id="on-pitch-section" class="control-section drop-target">
                 <h3>På Banen (<span id="on-pitch-count">0</span>/11)</h3>
                 <ul id="on-pitch-list"><li><i>Ingen spillere på banen.</i></li></ul>
             </div>
@@ -40,7 +50,7 @@
                 </div>
                  <button id="add-player-button" style="margin-top: 10px;">Legg til Spiller i Tropp</button>
             </div>
-            
+
             <div class="control-section" id="tactics-display-options">
                 <h3>Taktikk & Visning</h3>
 
@@ -52,7 +62,7 @@
                     <option value="4-2-3-1">4-2-3-1</option>
                     <option value="3-5-2">3-5-2</option>
                 </select>
-                
+
                 <hr style="margin: 15px 0;">
 
                 <h4>Tegneverktøy</h4>
@@ -68,22 +78,22 @@
                         <input type="color" id="drawing-color" value="#FFFF00" title="Velg tegnefarge">
                     </div>
                     <div class="drawing-actions">
-                         <button id="toggle-draw-mode-button">Modus (Av)</button> 
+                         <button id="toggle-draw-mode-button">Modus (Av)</button>
                          <button id="toggle-visibility-button">Skjul Tegn.</button>
-                         <button id="undo-drawing-button" title="Angre siste tegning">Angre</button> 
+                         <button id="undo-drawing-button" title="Angre siste tegning">Angre</button>
                          <button id="clear-drawings-button">Slett Alt</button>
                     </div>
                 </div>
-                
+
                 <hr style="margin: 15px 0;">
 
                 <h4>Visning (Brikker)</h4>
-                <div> 
+                <div>
                     <label for="player-border-color">Egendefinert:</label>
                     <input type="color" id="player-border-color" value="#FFFF00" title="Velg egendefinert farge">
                     <button id="set-border-color-button" title="Bruk egendefinert farge">Sett Farge</button>
                 </div>
-                 <div style="margin-top: 10px;"> 
+                 <div style="margin-top: 10px;">
                      <label>Standard:</label>
                      <button id="set-color-red" class="preset-color-button" data-color="red" title="Sett til rød (Angrep)"></button>
                      <button id="set-color-yellow" class="preset-color-button" data-color="yellow" title="Sett til gul (Midtbane)"></button>
@@ -114,9 +124,9 @@
                 <button id="fullscreen-button" class="fullscreen-button" title="Fullskjerm"><i class="fas fa-expand"></i></button>
                 <button id="rotate-pitch-button" class="rotate-button" title="Roter bane">↻</button>
              </div>
-             
+
             <div id="pitch-container">
-                 <div id="pitch" class="drop-target"> 
+                 <div id="pitch" class="drop-target">
                      <div id="pitch-surface">
                         <canvas id="drawing-canvas"></canvas>
                         <div id="ball" class="draggable" draggable="true"></div>
@@ -127,7 +137,7 @@
         <!-- === 2. Hovedområde (Bane / Taktikkside) END === -->
 
         <!-- === 3. Hovedområde (Troppside) START === -->
-        <main id="squad-page-content" class="main-content page-content"> 
+        <main id="squad-page-content" class="main-content page-content">
             <h2>Tropp Oversikt</h2>
             <div id="full-squad-list-container" style="width: 90%; height: 80%; overflow-y: auto; border: 1px solid #ccc; padding: 15px;">
                 <p>Laster tropp...</p>
@@ -135,25 +145,35 @@
         </main>
         <!-- === 3. Hovedområde (Troppside) END === -->
 
+        <!-- === 4. Hovedområde (Kampside) START === -->
+        <main id="matches-page-content" class="main-content page-content"> <!-- NYTT -->
+            <h2>Kampprogram</h2>
+            <button id="add-new-match-button" style="margin-bottom: 20px;">Legg til Ny Kamp</button>
+            <div id="match-list-container" style="width: 90%; max-width: 1000px; margin: 0 auto;">
+                <p>Laster kamper...</p>
+                <!-- Kampene listes her av JS -->
+            </div>
+        </main>
+        <!-- === 4. Hovedområde (Kampside) END === -->
+
+
     </div> <!-- /.app-container -->
 
     <!-- === Modaler/Dialoger START === -->
     <div id="add-player-modal" class="modal" style="display: none;"> <div class="modal-content"> <span class="close-button">×</span> <h3>Legg til ny spiller</h3> <label for="new-player-name">Navn:</label> <input type="text" id="new-player-name" required><br><br> <label for="new-player-image-upload">Bilde (URL eller last opp):</label> <input type="file" id="new-player-image-upload" accept="image/*"><br> <input type="text" id="new-player-image-url" placeholder="Eller lim inn URL"><br><br> <label for="new-player-main-role">Hovedposisjon:</label> <input type="text" id="new-player-main-role"><br><br> <h4>Spillbare Roller:</h4> <div id="new-player-roles-checkboxes" class="roles-checkbox-container"></div> <br> <button id="confirm-add-player">Legg til</button> </div> </div>
-    
+
     <div id="player-detail-modal" class="modal" style="display: none;">
-        <div class="modal-content wide"> <!-- Bruker wide-klassen -->
+        <div class="modal-content wide">
             <span class="close-detail-button close-button">×</span>
             <h3 id="detail-modal-title">Spillerdetaljer</h3>
             <input type="hidden" id="detail-player-id">
 
-            <!-- Fane-knapper -->
             <div class="modal-tabs">
                 <button class="tab-button" onclick="openModalTab(event, 'info-tab')">Info</button>
                 <button class="tab-button" onclick="openModalTab(event, 'details-tab')">Spillerdetaljer</button>
                 <button class="tab-button" onclick="openModalTab(event, 'stats-tab')">Statistikk & Notater</button>
             </div>
 
-            <!-- Faneinnhold 1: Info -->
             <div id="info-tab" class="modal-tab-content">
                  <h4>Personlig Info & Bilde</h4>
                  <div class="modal-columns">
@@ -175,29 +195,25 @@
                            <label for="detail-player-image-url">Bilde-URL:</label>
                            <input type="text" id="detail-player-image-url" placeholder="Lim inn URL til bilde...">
                            <label for="detail-player-image-upload">Last opp nytt bilde:</label>
-                           <input type="file" id="detail-player-image-upload" accept="image/*"> 
+                           <input type="file" id="detail-player-image-upload" accept="image/*">
                       </div>
                  </div>
             </div>
 
-            <!-- Faneinnhold 2: Spillerdetaljer -->
             <div id="details-tab" class="modal-tab-content">
                 <h4>Posisjoner & Roller</h4>
-                 <label for="detail-player-main-role">Hovedposisjon:</label> 
-                 <input type="text" id="detail-player-main-role"> 
+                 <label for="detail-player-main-role">Hovedposisjon:</label>
+                 <input type="text" id="detail-player-main-role">
                  <label>Spillbare Roller:</label>
                  <div id="detail-player-roles-checkboxes" class="roles-checkbox-container">
-                     <!-- Checkboxes for roller genereres her av JS -->
                  </div>
                 <hr style="margin: 15px 0;">
                  <h4>Status</h4>
                  <label for="detail-player-status">Nåværende Status:</label>
                  <select id="detail-player-status">
-                     <!-- Options fylles av JS -->
                  </select>
             </div>
 
-            <!-- Faneinnhold 3: Statistikk & Notater -->
             <div id="stats-tab" class="modal-tab-content">
                  <h4>Sesongstatistikk (Manuell)</h4>
                   <div class="modal-columns">
@@ -219,7 +235,6 @@
                  <div id="detail-comment-history" class="comment-history"><p><i>Ingen historikk.</i></p></div>
             </div>
 
-            <!-- Felles bunntekst -->
             <div class="modal-footer">
                  <button id="save-details-button">Lagre Endringer</button>
             </div>
@@ -227,10 +242,35 @@
     </div>
 
     <div id="ball-settings-modal" class="modal" style="display: none;"> <div class="modal-content"> <span class="close-ball-settings-button close-button">×</span> <h3>Ballinnstillinger</h3> <div> <label for="ball-size-slider">Størrelse:</label> <input type="range" id="ball-size-slider" min="20" max="60" value="35"> <span id="ball-size-value">35px</span> </div> <div style="margin-top: 15px;"> <label>Utseende:</label><br> <input type="radio" id="ball-style-default" name="ball-style" value="default" checked> <label for="ball-style-default">Standard</label><br> <input type="radio" id="ball-style-classic" name="ball-style" value="classic"> <label for="ball-style-classic">Klassisk (CSS)</label><br> <input type="radio" id="ball-style-color" name="ball-style" value="color"> <label for="ball-style-color">Ensfarget:</label> <input type="color" id="ball-custom-color" value="#FFA500"> </div> <div class="modal-footer"> <button id="save-ball-settings-button">Lagre</button> </div> </div> </div>
+
+    <!-- NY MODAL: Legg til Kamp -->
+    <div id="add-match-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-add-match-modal-button close-button">×</span>
+            <h3>Legg til Ny Kamp</h3>
+            <div class="modal-body" style="padding:20px;">
+                <label for="new-match-date">Dato og Tid:</label>
+                <input type="datetime-local" id="new-match-date" required>
+
+                <label for="new-match-opponent">Motstander:</label>
+                <input type="text" id="new-match-opponent" required placeholder="Navn på motstanderlag">
+
+                <label for="new-match-venue">Arena (Hjemme/Borte):</label>
+                <select id="new-match-venue">
+                    <option value="H">Hjemme</option>
+                    <option value="B">Borte</option>
+                </select>
+                <!-- Resultat og Status settes typisk senere, eller default til "Planlagt" -->
+            </div>
+            <div class="modal-footer">
+                <button id="confirm-add-match-button">Legg til Kamp</button>
+            </div>
+        </div>
+    </div>
     <!-- === Modaler/Dialoger END === -->
 
-    <script src="script.js"></script> <!-- Link til Versjon: #153 -->
+    <script src="script.js"></script> <!-- Forventer script.js Version: #1 -->
 
 </body>
 </html>
-<!-- Version: #150 -->
+<!-- Version: #1 -->
