@@ -1,4 +1,4 @@
-/* Version: #6 */
+/* Version: #7 */
 // === 0. Globale Variabler og Konstanter START ===
 let squad = [];
 let playersOnPitch = {};
@@ -55,7 +55,6 @@ const DEFAULT_MATCH_STATUS = 'PLANLAGT';
 // === 1. DOM Element Referanser START ===
 let appContainer, sidebar, toggleSidebarButton, onPitchListElement, benchListElement, squadListElement, squadListContainer, onPitchCountElement, onBenchCountElement, pitchElement, pitchSurface, rotatePitchButton, addPlayerButton, playerBorderColorInput, setBorderColorButton, setColorRedButton, setColorYellowButton, setColorGreenButton, setColorDefaultButton, toggleDrawModeButton, clearDrawingsButton, setupNameInput, saveSetupButton, loadSetupSelect, loadSetupButton, deleteSetupButton, exportPngButton, pitchContainer, drawingCanvas, ballElement, navTacticsButton, navSquadButton, tacticsPageContent, squadPageContent, fullSquadListContainer, onPitchSectionElement, formationSelect, addPlayerModal, closeButton, newPlayerNameInput, newPlayerImageUpload, newPlayerImageUrlInput, newPlayerMainRoleInput, confirmAddPlayerButton, playerDetailModal, ballSettingsModal, benchElement, squadManagementSection, drawToolButtons, drawingColorInput, toggleVisibilityButton, undoDrawingButton, fullscreenButton, detailModalTabButtons, detailPlayerImageUpload;
 let navMatchesButton, matchesPageContent, addNewMatchButton, matchListContainer, addMatchModal, closeAddMatchModalButton, confirmAddMatchButton, activeMatchSelect, matchPreparationSection;
-// Fjernet newMatchOnlyDateInput, newMatchTimeInput, newMatchOpponentInput, newMatchVenueInput herfra, de hentes lokalt i funksjoner.
 // === 1. DOM Element Referanser END ===
 
 // === 2. IndexedDB Funksjoner START ===
@@ -97,14 +96,13 @@ function openAddMatchModal() {
         console.error('openAddMatchModal: addMatchModal elementet er null!');
         return;
     }
-    // Hent referanser til input-felt direkte her
     const dateInput = addMatchModal.querySelector('#new-match-only-date');
     const timeInput = addMatchModal.querySelector('#new-match-time');
     const opponentInput = addMatchModal.querySelector('#new-match-opponent');
     const venueInput = addMatchModal.querySelector('#new-match-venue');
 
     if (dateInput) dateInput.value = '';
-    if (timeInput) timeInput.value = '18:00'; // Default tid
+    if (timeInput) timeInput.value = '18:00';
     if (opponentInput) opponentInput.value = '';
     if (venueInput) venueInput.value = 'H';
 
@@ -119,11 +117,23 @@ function closeAddMatchModal() {
 }
 
 function handleAddMatchConfirm() {
-    // Hent referanser til input-felt direkte her for å sikre at de er gyldige
+    if (!addMatchModal) { // Ekstra sjekk for selve modalen
+        console.error("handleAddMatchConfirm: addMatchModal er null. Kan ikke fortsette.");
+        alert("En kritisk feil oppstod. Prøv å laste siden på nytt.");
+        return;
+    }
+
     const dateInput = addMatchModal.querySelector('#new-match-only-date');
     const timeInput = addMatchModal.querySelector('#new-match-time');
     const opponentInput = addMatchModal.querySelector('#new-match-opponent');
     const venueInput = addMatchModal.querySelector('#new-match-venue');
+
+    // Logg for å se om elementene blir funnet
+    console.log("handleAddMatchConfirm: dateInput:", dateInput);
+    console.log("handleAddMatchConfirm: timeInput:", timeInput);
+    console.log("handleAddMatchConfirm: opponentInput:", opponentInput);
+    console.log("handleAddMatchConfirm: venueInput:", venueInput);
+
 
     if (!dateInput || !timeInput || !opponentInput || !venueInput) {
         console.error("handleAddMatchConfirm: Ett eller flere input-elementer for kamp ble ikke funnet i modalen!");
@@ -155,10 +165,9 @@ function handleAddMatchConfirm() {
     const combinedDateTime = `${datePart}T${timePart}:00`;
     let matchDateTime;
     try {
-        // Sjekk om datoen er gyldig før konvertering til ISO streng
         const testDate = new Date(combinedDateTime);
-        if (isNaN(testDate.getTime())) { // getTime() returnerer NaN for ugyldige datoer
-            throw new Error("Invalid date/time value");
+        if (isNaN(testDate.getTime())) {
+            throw new Error("Invalid date/time value from new Date()");
         }
         matchDateTime = testDate.toISOString();
     } catch (e) {
@@ -469,10 +478,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     matchesPageContent = document.getElementById('matches-page-content');
     addNewMatchButton = document.getElementById('add-new-match-button');
     matchListContainer = document.getElementById('match-list-container');
-    addMatchModal = document.getElementById('add-match-modal'); // addMatchModal er allerede hentet globalt
-    if (addMatchModal) { // Sjekker om modalen ble funnet
+    addMatchModal = document.getElementById('add-match-modal');
+    if (addMatchModal) {
         closeAddMatchModalButton = addMatchModal.querySelector('.close-add-match-modal-button');
-        // Input-felt for kampmodal hentes nå i openAddMatchModal og handleAddMatchConfirm
         confirmAddMatchButton = addMatchModal.querySelector('#confirm-add-match-button');
     } else {
         console.error("DOMContentLoaded: addMatchModal ble ikke funnet!");
@@ -513,12 +521,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (navMatchesButton) navMatchesButton.addEventListener('click', () => switchView('matches'));
     if (addNewMatchButton) addNewMatchButton.addEventListener('click', openAddMatchModal);
-    if (closeAddMatchModalButton) closeAddMatchModalButton.addEventListener('click', closeAddMatchModal); // closeAddMatchModalButton er definert globalt
-    if (confirmAddMatchButton) confirmAddMatchButton.addEventListener('click', handleAddMatchConfirm); // confirmAddMatchButton er definert globalt
+    // Sjekker om knappene finnes før addEventListener
+    if (closeAddMatchModalButton) closeAddMatchModalButton.addEventListener('click', closeAddMatchModal);
+    else if(addMatchModal) console.warn("DOMContentLoaded: closeAddMatchModalButton ikke funnet i addMatchModal.");
+
+    if (confirmAddMatchButton) confirmAddMatchButton.addEventListener('click', handleAddMatchConfirm);
+    else if(addMatchModal) console.warn("DOMContentLoaded: confirmAddMatchButton ikke funnet i addMatchModal.");
+
     if (activeMatchSelect) activeMatchSelect.addEventListener('change', handleActiveMatchChange);
 
     window.addEventListener('resize', () => { resizePitchElement(); });
     console.log('DOMContentLoaded: Initialisering ferdig.');
 });
 // === 10. Event Listeners END ===
-/* Version: #6 */
+/* Version: #7 */
