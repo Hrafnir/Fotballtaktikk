@@ -1,4 +1,4 @@
-/* Version: #154 */
+/* Version: #2 */
 /* === Generelt === */
 body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; height: 100vh; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 * { box-sizing: border-box; }
@@ -35,26 +35,27 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #bench-list { max-height: 180px; overflow-y: auto; flex-grow: 1; }
 #squad-management { flex-grow: 1; display: flex; flex-direction: column; }
 #squad-list-container { border: 1px solid #ddd; background-color: #fff; overflow-y: auto; flex-grow: 1; min-height: 50px; }
-#on-pitch-section.drag-over { background-color: rgba(173, 216, 230, 0.3); border-color: #add8e6; } 
+#on-pitch-section.drag-over { background-color: rgba(173, 216, 230, 0.3); border-color: #add8e6; }
 #bench.drag-over { background-color: rgba(255, 235, 150, 0.3); border-color: #ffcc66; }
 #squad-list-container.drag-over { background-color: rgba(200, 200, 200, 0.2); border-color: #999999; }
 #navigation-section { padding: 5px 10px; background-color: #d0d0d0; border-color: #bbb; }
 #navigation-section h3 { margin-bottom: 5px; }
-.nav-button { width: calc(50% - 4px); margin: 2px; padding: 10px 5px; background-color: #e0e0e0; border: 1px solid #ccc; color: #333; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; border-radius: 3px; /* NYTT */ }
+.nav-button { width: calc(33.333% - 4px); margin: 2px; padding: 10px 5px; background-color: #e0e0e0; border: 1px solid #ccc; color: #333; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; border-radius: 3px; } /* Justert width for 3 knapper */
 .nav-button:hover { background-color: #d5d5d5; }
 .nav-button.active { background-color: #4CAF50; color: white; border-color: #45a049; cursor: default; }
 .nav-button:not(.active):hover { background-color: #c8c8c8; }
 
-/* === 2 & 3. Hovedområde (Sidevisning) START === */
+/* === Hovedområde (Sidevisning) START === */
 .main-content { flex-grow: 1; display: flex; flex-direction: column; padding: 0; height: 100%; overflow: hidden; background-color: #ededed; position: relative; }
 .page-content { display: none; width: 100%; height: 100%; overflow: auto; }
 .app-container.view-tactics #tactics-page-content { display: flex; }
 .app-container.view-squad #squad-page-content { display: flex; flex-direction: column; }
+.app-container.view-matches #matches-page-content { display: flex; flex-direction: column; } /* NYTT for Kamper-siden */
 #tactics-page-content { justify-content: center; align-items: center; padding: 5px; }
 .main-content-buttons { position: absolute; top: 10px; right: 10px; z-index: 110; display: flex; gap: 5px; }
-#tactics-page-content .rotate-button, #tactics-page-content .fullscreen-button { position: static; font-size: 18px; padding: 5px 10px; line-height: 1; border: 1px solid #ccc; background-color: #f0f0f0; color: #333; border-radius: 3px; /* NYTT */ cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+#tactics-page-content .rotate-button, #tactics-page-content .fullscreen-button { position: static; font-size: 18px; padding: 5px 10px; line-height: 1; border: 1px solid #ccc; background-color: #f0f0f0; color: #333; border-radius: 3px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 #tactics-page-content .rotate-button:hover, #tactics-page-content .fullscreen-button:hover { background-color: #e0e0e0; }
-.fullscreen-button i { display: block; line-height: inherit; } 
+.fullscreen-button i { display: block; line-height: inherit; }
 #pitch-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; }
 #pitch { max-width: 100%; max-height: 100%; position: relative; overflow: hidden; border: 2px solid white; transition: transform 0.4s ease-in-out; transform-origin: center center; transform: rotate(0deg); box-shadow: inset 0 0 15px rgba(0,0,0,0.3); background-size: cover; background-position: center center; background-repeat: no-repeat; background-image: url('pitch-background-portrait.jpg'); }
 #pitch-container.rotated #pitch { transform: rotate(90deg); background-image: url('pitch-background.jpg'); }
@@ -68,7 +69,18 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 #full-squad-list-container tr:last-child td { border-bottom: none; }
 #full-squad-list-container tr:hover td { background-color: #f5f5f5; }
 #full-squad-list-container .action-button { padding: 4px 8px; font-size: 0.9em; }
-/* === 2 & 3. Hovedområde (Sidevisning) END === */
+
+/* NYTT: Styling for Kamper-siden */
+#matches-page-content { padding: 20px; background-color: #f8f8f8; align-items: center; overflow-y: auto; }
+#matches-page-content h2 { width: 90%; max-width: 1000px; text-align: center; margin: 0 auto 20px auto; color: #333; border-bottom: 2px solid #ccc; padding-bottom: 10px; flex-shrink: 0; }
+#add-new-match-button { /* Bruker generell button-styling, kan tilpasses mer her om nødvendig */ }
+#match-list-container { width: 90%; max-width: 1000px; margin: 0 auto 20px auto; flex-grow: 1; min-height: 200px; overflow-y: auto; background-color: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 15px; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); }
+/* Eksempel på styling for kamp-elementer i listen (kan utvides senere) */
+.match-item { padding: 10px; border-bottom: 1px solid #eee; }
+.match-item:last-child { border-bottom: none; }
+.match-item h4 { margin: 0 0 5px 0; }
+.match-item p { margin: 0 0 3px 0; font-size: 0.9em; color: #555; }
+/* === Hovedområde (Sidevisning) END === */
 
 /* === Spillerbrikker PÅ BANEN === */
 .player-piece { position: absolute; width: 70px; height: auto; cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; user-select: none; -webkit-user-select: none; opacity: 1; transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.4s ease-in-out; transform-origin: center center; transform: translate(-50%, -50%) rotate(0deg); }
@@ -108,11 +120,11 @@ body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4
 .player-piece.selected .player-image-container { box-shadow: 0 0 10px 3px gold; }
 
 /* === Kontrollpanel Justeringer === */
-#tactics-display-options label { margin-top: 10px; display: block; margin-bottom: 3px; } 
+#tactics-display-options label, #match-preparation-section label { margin-top: 10px; display: block; margin-bottom: 3px; } /* Inkludert match-preparation-section */
 #tactics-display-options label[for="player-border-color"], #tactics-display-options label[for="drawing-color"] { display: inline-block; margin-right: 5px; vertical-align: middle; margin-top: 5px;}
 .drawing-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
 .tool-selection { display: flex; gap: 3px; }
-.draw-tool-button { padding: 5px 8px; font-size: 16px; min-width: 35px; line-height: 1.2; background-color: #f0f0f0; border: 1px solid #ccc; color: #555; border-radius: 3px; /* NYTT */ }
+.draw-tool-button { padding: 5px 8px; font-size: 16px; min-width: 35px; line-height: 1.2; background-color: #f0f0f0; border: 1px solid #ccc; color: #555; border-radius: 3px; }
 #draw-tool-circle, #draw-tool-rect { font-size: 20px; line-height: 1; }
 .draw-tool-button.active { background-color: #cce5ff; border-color: #99c2ff; color: #004085; }
 .color-selection { display: flex; align-items: center; }
@@ -131,20 +143,22 @@ input[type="color"]#player-border-color { width: 40px; height: 40px; padding: 0;
 .modal { display: none; position: fixed; z-index: 1100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
 .modal-content { background-color: #fefefe; margin: 5% auto; padding: 0; border: 1px solid #888; border-radius: 5px; width: 90%; max-width: 900px; position: relative; display: flex; flex-direction: column; }
 .modal-content.wide { max-width: 900px; }
+/* Justering for mindre modal (Legg til Kamp) */
+#add-match-modal .modal-content { max-width: 500px; }
 .modal-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
 .modal-header h3 { margin: 0; color: #333; }
-.modal-body { flex-grow: 1; overflow-y: auto; }
+.modal-body { flex-grow: 1; overflow-y: auto; } /* Generell for modal body hvis brukt */
 .modal-tabs { overflow: hidden; border-bottom: 1px solid #ccc; background-color: #f1f1f1; flex-shrink: 0; }
-.modal-tabs button.tab-button { background-color: inherit; float: left; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: background-color 0.3s; font-size: 1em; border-radius: 0; border-right: 1px solid #ccc; margin: 0; color: #555; /* Litt mørkere tekst */}
+.modal-tabs button.tab-button { background-color: inherit; float: left; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: background-color 0.3s; font-size: 1em; border-radius: 0; border-right: 1px solid #ccc; margin: 0; color: #555; }
 .modal-tabs button.tab-button:last-child { border-right: none; }
-.modal-tabs button.tab-button:hover { background-color: #e0e0e0; /* Litt mørkere hover */ }
-.modal-tabs button.tab-button.active { background-color: #fff; border-bottom: 2px solid #4CAF50; position: relative; top: 1px; color: #000; /* Svart tekst for aktiv fane */ font-weight: bold; }
+.modal-tabs button.tab-button:hover { background-color: #e0e0e0; }
+.modal-tabs button.tab-button.active { background-color: #fff; border-bottom: 2px solid #4CAF50; position: relative; top: 1px; color: #000; font-weight: bold; }
 .modal-tab-content { display: none; padding: 20px; border: none; background-color: #fff; border-radius: 0 0 4px 4px;}
 .modal-tab-content.active { display: block; }
 .modal-tab-content h4 { margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
 .modal-columns { display: flex; gap: 20px; margin-bottom: 15px;}
 .modal-column { flex: 1; }
-.close-button { color: #aaa; float: none; font-size: 28px; font-weight: bold; background: none; border: none; padding: 0 5px; line-height: 1; border-radius: 3px; /* NYTT */ }
+.close-button { color: #aaa; float: none; font-size: 28px; font-weight: bold; background: none; border: none; padding: 0 5px; line-height: 1; border-radius: 3px; position: absolute; top: 10px; right: 15px; /* Gjør lukkeknapp mer konsistent for alle modaler */ }
 .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
 .detail-image-display { width: 150px; height: 150px; background-color: #eee; background-size: cover; background-position: center; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; text-align: center; color: #888; font-size: 0.9em; }
 .detail-image-display span { padding: 5px; }
@@ -158,12 +172,12 @@ input[type="color"]#player-border-color { width: 40px; height: 40px; padding: 0;
 .roles-checkbox-container input[type="checkbox"] { margin-right: 5px; vertical-align: middle; }
 
 /* Generelle knapper/input */
-button { padding: 8px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 3px; /* Avrundet */ cursor: pointer; margin: 5px 2px; transition: background-color 0.2s ease; }
+button { padding: 8px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer; margin: 5px 2px; transition: background-color 0.2s ease; }
 button:hover { background-color: #45a049; }
 button:active { background-color: #3e8e41; }
-input[type="text"], input[type="tel"], input[type="email"], input[type="date"], input[type="number"], select, textarea { padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 3px; /* Avrundet */ width: 100%; font-size: 1em; }
-input[type="file"] { margin: 5px 0; width: auto; border-radius: 3px; /* Avrundet */ }
+input[type="text"], input[type="tel"], input[type="email"], input[type="date"], input[type="datetime-local"], input[type="number"], select, textarea { padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 3px; width: 100%; font-size: 1em; } /* Lagt til datetime-local */
+input[type="file"] { margin: 5px 0; width: auto; border-radius: 3px; }
 input[type="number"] { width: 80px; }
 label { display: block; margin-bottom: 3px; font-weight: bold; margin-top: 10px; }
 
-/* Version: #154 */
+/* Version: #2 */
