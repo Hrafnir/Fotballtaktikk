@@ -1,4 +1,4 @@
-<!-- Version: #9 -->
+<!-- Version: #23 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -159,16 +159,17 @@
     <!-- === Modaler/Dialoger START === -->
     <div id="add-player-modal" class="modal" style="display: none;"> <div class="modal-content"> <span class="close-button">×</span> <h3>Legg til ny spiller</h3> <label for="new-player-name">Navn:</label> <input type="text" id="new-player-name" required><br><br> <label for="new-player-image-upload">Bilde (URL eller last opp):</label> <input type="file" id="new-player-image-upload" accept="image/*"><br> <input type="text" id="new-player-image-url" placeholder="Eller lim inn URL"><br><br> <label for="new-player-main-role">Hovedposisjon:</label> <input type="text" id="new-player-main-role"><br><br> <h4>Spillbare Roller:</h4> <div id="new-player-roles-checkboxes" class="roles-checkbox-container"></div> <br> <button id="confirm-add-player">Legg til</button> </div> </div>
 
-    <div id="player-detail-modal" class="modal" style="display: none;">
+    <div id="player-detail-modal" class="modal" style="display: none;"> <!-- ID for modalen -->
         <div class="modal-content wide">
             <span class="close-detail-button close-button">×</span>
             <h3 id="detail-modal-title">Spillerdetaljer</h3>
             <input type="hidden" id="detail-player-id">
 
             <div class="modal-tabs">
-                <button class="tab-button" onclick="openModalTab(event, 'info-tab')">Info</button>
-                <button class="tab-button" onclick="openModalTab(event, 'details-tab')">Spillerdetaljer</button>
-                <button class="tab-button" onclick="openModalTab(event, 'stats-tab')">Statistikk & Notater</button>
+                <!-- ENDRET: Sender med ID-en til modalen -->
+                <button class="tab-button" onclick="openModalTab(event, 'info-tab', 'player-detail-modal')">Info</button>
+                <button class="tab-button" onclick="openModalTab(event, 'details-tab', 'player-detail-modal')">Spillerdetaljer</button>
+                <button class="tab-button" onclick="openModalTab(event, 'stats-tab', 'player-detail-modal')">Statistikk & Notater</button>
             </div>
 
             <div id="info-tab" class="modal-tab-content">
@@ -267,19 +268,18 @@
     </div>
     <!-- === Modaler/Dialoger END === -->
 
-    <!-- Oppdelte JavaScript-filer -->
-    <script src="config.js"></script>       <!-- Forventer Version: #9 -->
-    <script src="db.js"></script>           <!-- Forventer Version: #9 -->
-    <script src="storage.js"></script>     <!-- Forventer Version: #9 -->
-    <script src="utils.js"></script>       <!-- Ny fil for hjelpefunksjoner som getPlayerById, generateMatchId -->
-    <script src="matches.js"></script>     <!-- Ny fil spesifikt for kamp-logikk (openAddMatchModal, handleAddMatchConfirm etc.) -->
-    <script src="modals.js"></script>      <!-- For spiller- og ball-modaler -->
-    <script src="ui_render.js"></script>   <!-- For alle render-funksjoner (renderUI, renderFullSquadList, renderMatchList etc.) -->
-    <script src="pitch_elements.js"></script> <!-- Spillerbrikker, ball, formasjonsmarkører, tegning -->
-    <script src="interactions.js"></script><!-- Drag&drop, valg, toggles, view switching -->
+    <script src="config.js"></script>
+    <script src="db.js"></script>
+    <script src="storage.js"></script>
+    <script src="utils.js"></script>
+    <script src="matches.js"></script>
+    <script src="modals.js"></script>
+    <script src="ui_render.js"></script>
+    <script src="pitch_elements.js"></script>
+    <script src="interactions.js"></script>
     <script src="export.js"></script>
-    <script src="main.js"></script>        <!-- DOMContentLoaded, hoved-event listeners -->
+    <script src="main.js"></script>
 
 </body>
 </html>
-<!-- Version: #9 -->
+<!-- Version: #23 -->
