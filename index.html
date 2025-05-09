@@ -1,11 +1,11 @@
-<!-- Version: #1 -->
+<!-- Version: #9 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fotballtaktiker</title>
-    <link rel="stylesheet" href="style.css"> <!-- Forventer style.css Version: #1 -->
+    <link rel="stylesheet" href="style.css"> <!-- Forventer style.css Version: #2 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
@@ -21,17 +21,16 @@
                 <h3>Navigasjon</h3>
                 <button id="nav-tactics-button" class="nav-button active">Taktikk</button>
                 <button id="nav-squad-button" class="nav-button">Tropp</button>
-                <button id="nav-matches-button" class="nav-button">Kamper</button> <!-- NYTT -->
+                <button id="nav-matches-button" class="nav-button">Kamper</button>
             </div>
 
             <h2>Kontrollpanel</h2>
 
-            <div id="match-preparation-section" class="control-section"> <!-- NY SEKSJON -->
+            <div id="match-preparation-section" class="control-section">
                 <h3>Kampforberedelser</h3>
                 <label for="active-match-select">Velg Aktiv Kamp:</label>
                 <select id="active-match-select">
                     <option value="">Ingen kamp valgt</option>
-                    <!-- Kamper lastes her av JS -->
                 </select>
             </div>
 
@@ -146,16 +145,14 @@
         <!-- === 3. Hovedområde (Troppside) END === -->
 
         <!-- === 4. Hovedområde (Kampside) START === -->
-        <main id="matches-page-content" class="main-content page-content"> <!-- NYTT -->
+        <main id="matches-page-content" class="main-content page-content">
             <h2>Kampprogram</h2>
             <button id="add-new-match-button" style="margin-bottom: 20px;">Legg til Ny Kamp</button>
             <div id="match-list-container" style="width: 90%; max-width: 1000px; margin: 0 auto;">
                 <p>Laster kamper...</p>
-                <!-- Kampene listes her av JS -->
             </div>
         </main>
         <!-- === 4. Hovedområde (Kampside) END === -->
-
 
     </div> <!-- /.app-container -->
 
@@ -243,14 +240,16 @@
 
     <div id="ball-settings-modal" class="modal" style="display: none;"> <div class="modal-content"> <span class="close-ball-settings-button close-button">×</span> <h3>Ballinnstillinger</h3> <div> <label for="ball-size-slider">Størrelse:</label> <input type="range" id="ball-size-slider" min="20" max="60" value="35"> <span id="ball-size-value">35px</span> </div> <div style="margin-top: 15px;"> <label>Utseende:</label><br> <input type="radio" id="ball-style-default" name="ball-style" value="default" checked> <label for="ball-style-default">Standard</label><br> <input type="radio" id="ball-style-classic" name="ball-style" value="classic"> <label for="ball-style-classic">Klassisk (CSS)</label><br> <input type="radio" id="ball-style-color" name="ball-style" value="color"> <label for="ball-style-color">Ensfarget:</label> <input type="color" id="ball-custom-color" value="#FFA500"> </div> <div class="modal-footer"> <button id="save-ball-settings-button">Lagre</button> </div> </div> </div>
 
-    <!-- NY MODAL: Legg til Kamp -->
     <div id="add-match-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close-add-match-modal-button close-button">×</span>
             <h3>Legg til Ny Kamp</h3>
             <div class="modal-body" style="padding:20px;">
-                <label for="new-match-date">Dato og Tid:</label>
-                <input type="datetime-local" id="new-match-date" required>
+                <label for="new-match-only-date">Dato:</label>
+                <input type="date" id="new-match-only-date" required>
+
+                <label for="new-match-time">Tidspunkt (HH:MM):</label>
+                <input type="time" id="new-match-time" step="300" required>
 
                 <label for="new-match-opponent">Motstander:</label>
                 <input type="text" id="new-match-opponent" required placeholder="Navn på motstanderlag">
@@ -260,7 +259,6 @@
                     <option value="H">Hjemme</option>
                     <option value="B">Borte</option>
                 </select>
-                <!-- Resultat og Status settes typisk senere, eller default til "Planlagt" -->
             </div>
             <div class="modal-footer">
                 <button id="confirm-add-match-button">Legg til Kamp</button>
@@ -269,8 +267,19 @@
     </div>
     <!-- === Modaler/Dialoger END === -->
 
-    <script src="script.js"></script> <!-- Forventer script.js Version: #1 -->
+    <!-- Oppdelte JavaScript-filer -->
+    <script src="config.js"></script>       <!-- Forventer Version: #9 -->
+    <script src="db.js"></script>           <!-- Forventer Version: #9 -->
+    <script src="storage.js"></script>     <!-- Forventer Version: #9 -->
+    <script src="utils.js"></script>       <!-- Ny fil for hjelpefunksjoner som getPlayerById, generateMatchId -->
+    <script src="matches.js"></script>     <!-- Ny fil spesifikt for kamp-logikk (openAddMatchModal, handleAddMatchConfirm etc.) -->
+    <script src="modals.js"></script>      <!-- For spiller- og ball-modaler -->
+    <script src="ui_render.js"></script>   <!-- For alle render-funksjoner (renderUI, renderFullSquadList, renderMatchList etc.) -->
+    <script src="pitch_elements.js"></script> <!-- Spillerbrikker, ball, formasjonsmarkører, tegning -->
+    <script src="interactions.js"></script><!-- Drag&drop, valg, toggles, view switching -->
+    <script src="export.js"></script>
+    <script src="main.js"></script>        <!-- DOMContentLoaded, hoved-event listeners -->
 
 </body>
 </html>
-<!-- Version: #1 -->
+<!-- Version: #9 -->
